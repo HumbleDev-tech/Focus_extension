@@ -3,11 +3,14 @@
   "name": "YouTube Focus Extension",
   "version": "1.0",
   "description": "Oculta elementos en YouTube para mejorar el enfoque.",
-  "permissions": ["storage"],
+  "permissions": ["storage", "scripting", "activeTab"],
   "content_scripts": [
     {
       "matches": ["*://www.youtube.com/*"],
       "js": ["content.js"]
     }
-  ]
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
 }
