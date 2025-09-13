@@ -1,4 +1,17 @@
-document.getElementById('toggleSubscribeBtn').addEventListener('click', async () => {
+const btn = document.getElementById('toggleSubscribeBtn');
+
+// Al cargar el popup, recupera el estado guardado y actualiza el botón
+chrome.storage.sync.get('subscribeHidden', (data) => {
+  if (data.subscribeHidden) {
+    btn.classList.add('active');
+    btn.textContent = 'Mostrar botón Suscribirse';
+  } else {
+    btn.classList.remove('active');
+    btn.textContent = 'Ocultar botón Suscribirse';
+  }
+});
+
+btn.addEventListener('click', async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
   chrome.scripting.executeScript({
@@ -18,8 +31,22 @@ document.getElementById('toggleSubscribeBtn').addEventListener('click', async ()
     },
   }, (injectionResults) => {
     if (injectionResults && injectionResults[0].result !== null) {
-      // Guardar estado en storage
-      chrome.storage.sync.set({ subscribeHidden: injectionResults[0].result });
+      const hidden = injectionResults[0].result;
+
+      // Guarda el estado
+      chrome.storage.sync.set({ subscribeHidden: hidden });
+
+      // Actualiza texto y estilo según estado
+      if (hidden) {
+        btn.classList.add('active');
+        btn.textContent = 'Mostrar botón Suscribirse';
+      } else {
+        btn.classList.remove('active');
+        btn.textContent = 'Ocultar botón Suscribirse';
+      }
+    } else {
+      // No encontró el botón en la página, puedes manejar error si quieres
+      alert('No se encontró el botón Suscribirse en esta página.');
     }
   });
 });
