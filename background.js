@@ -4,11 +4,17 @@ const DEFAULT_SETTINGS = {
   theme: 'dark', // 'dark', 'light', 'oled'
   lang: 'auto', // 'auto', 'en', 'es'
   scale: 'auto', // 'auto', '100', '115', '125'
+  activeTab: 'focus', // 'focus', 'cleaner'
   hideHomeFeed: false,
   hideSidebar: true,
   hideComments: true,
   hideShorts: true,
   hideEndScreens: true,
+  hideVoiceSearch: true,
+  hideAskAi: true,
+  hideDownload: true,
+  hideThanksClips: true,
+  hideShare: false,
   showDislikes: true,
   untranslateTitles: true,
   customConfig: {
@@ -17,6 +23,11 @@ const DEFAULT_SETTINGS = {
     hideComments: true,
     hideShorts: true,
     hideEndScreens: true,
+    hideVoiceSearch: true,
+    hideAskAi: true,
+    hideDownload: true,
+    hideThanksClips: true,
+    hideShare: false,
   },
 };
 

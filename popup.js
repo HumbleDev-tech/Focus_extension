@@ -1,7 +1,7 @@
 /**
  * Libertad - Popup Interaction Controller
  * Handles presets, custom configuration memory, dynamic themes (Dark, Light, OLED),
- * and bilingual internationalization (English, Spanish).
+ * bilingual internationalization (English, Spanish), tab navigation, and UI cleaner toggles.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,22 +13,45 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeButtons = document.querySelectorAll('.theme-btn');
   const langButtons = document.querySelectorAll('.lang-btn');
   const scaleButtons = document.querySelectorAll('.scale-btn');
+  const tabButtons = document.querySelectorAll('.tab-nav-btn');
+  const tabPanels = {
+    focus: document.getElementById('tabPanelFocus'),
+    cleaner: document.getElementById('tabPanelCleaner'),
+  };
   const i18nElements = document.querySelectorAll('[data-i18n]');
-
-  const customAccordionBtn = document.getElementById('customAccordionBtn');
-  const togglesList = document.getElementById('togglesList');
   const resetBtn = document.getElementById('resetBtn');
 
   // Toggle Checkboxes
   const toggles = {
+    // Focus Shields
     hideHomeFeed: document.getElementById('toggleHomeFeed'),
     hideSidebar: document.getElementById('toggleSidebar'),
     hideComments: document.getElementById('toggleComments'),
     hideShorts: document.getElementById('toggleShorts'),
     hideEndScreens: document.getElementById('toggleEndScreens'),
+    // Cleaner Shields
+    hideVoiceSearch: document.getElementById('toggleVoiceSearch'),
+    hideAskAi: document.getElementById('toggleAskAi'),
+    hideDownload: document.getElementById('toggleDownload'),
+    hideThanksClips: document.getElementById('toggleThanksClips'),
+    hideShare: document.getElementById('toggleShare'),
+    // Auxiliary Modules
     showDislikes: document.getElementById('toggleDislikes'),
     untranslateTitles: document.getElementById('toggleUntranslate'),
   };
+
+  const TOGGLE_KEYS = [
+    'hideHomeFeed',
+    'hideSidebar',
+    'hideComments',
+    'hideShorts',
+    'hideEndScreens',
+    'hideVoiceSearch',
+    'hideAskAi',
+    'hideDownload',
+    'hideThanksClips',
+    'hideShare',
+  ];
 
   // Preset Configurations
   const PRESET_MAP = {
@@ -38,6 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: false,
       hideShorts: false,
       hideEndScreens: false,
+      hideVoiceSearch: false,
+      hideAskAi: false,
+      hideDownload: false,
+      hideThanksClips: false,
+      hideShare: false,
       descKey: 'descOff',
     },
     basic: {
@@ -46,6 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: true,
       hideShorts: false,
       hideEndScreens: true,
+      hideVoiceSearch: false,
+      hideAskAi: true,
+      hideDownload: true,
+      hideThanksClips: false,
+      hideShare: false,
       descKey: 'descBasic',
     },
     balanced: {
@@ -54,6 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: true,
       hideShorts: true,
       hideEndScreens: true,
+      hideVoiceSearch: true,
+      hideAskAi: true,
+      hideDownload: true,
+      hideThanksClips: true,
+      hideShare: false,
       descKey: 'descBalanced',
     },
     extreme: {
@@ -62,6 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: true,
       hideShorts: true,
       hideEndScreens: true,
+      hideVoiceSearch: true,
+      hideAskAi: true,
+      hideDownload: true,
+      hideThanksClips: true,
+      hideShare: true,
       descKey: 'descExtreme',
     },
     custom: {
@@ -92,12 +135,18 @@ document.addEventListener('DOMContentLoaded', () => {
     theme: 'dark',
     lang: navigator.language?.startsWith('es') ? 'es' : 'en',
     scale: 'auto',
+    activeTab: 'focus',
     preset: 'balanced',
     hideHomeFeed: false,
     hideSidebar: true,
     hideComments: true,
     hideShorts: true,
     hideEndScreens: true,
+    hideVoiceSearch: true,
+    hideAskAi: true,
+    hideDownload: true,
+    hideThanksClips: true,
+    hideShare: false,
     showDislikes: true,
     untranslateTitles: true,
     customConfig: {
@@ -106,6 +155,11 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: true,
       hideShorts: true,
       hideEndScreens: true,
+      hideVoiceSearch: true,
+      hideAskAi: true,
+      hideDownload: true,
+      hideThanksClips: true,
+      hideShare: false,
     },
   };
 
@@ -127,56 +181,51 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!state.scale || state.scale === 'auto') {
         state.scale = detectDefaultScale();
       }
-      if (!state.customConfig) {
-        state.customConfig = {
-          hideHomeFeed: state.hideHomeFeed,
-          hideSidebar: state.hideSidebar,
-          hideComments: state.hideComments,
-          hideShorts: state.hideShorts,
-          hideEndScreens: state.hideEndScreens,
-        };
+      if (!state.activeTab) {
+        state.activeTab = 'focus';
       }
-    } else {
-      state.scale = detectDefaultScale();
+      if (!state.customConfig) {
+        state.customConfig = {};
+      }
+      const defaultCleaner = {
+        hideVoiceSearch: true,
+        hideAskAi: true,
+        hideDownload: true,
+        hideThanksClips: true,
+        hideShare: false,
+      };
+      let needsMigration = false;
+      for (const [k, v] of Object.entries(defaultCleaner)) {
+        if (state[k] === undefined) {
+          state[k] = v;
+          needsMigration = true;
+        }
+        if (state.customConfig[k] === undefined) {
+          state.customConfig[k] = v;
+          needsMigration = true;
+        }
+      }
+      if (needsMigration) {
+        chrome.storage.sync.set(state);
+      }
     }
+    applyThemeAndScale();
     renderUI();
   });
 
-  // Render UI to reflect current state
-  function renderUI() {
-    // Apply Theme
-    const activeTheme = state.theme || 'dark';
-    document.documentElement.setAttribute('data-theme', activeTheme);
-    themeButtons.forEach((btn) => {
-      if (btn.getAttribute('data-theme') === activeTheme) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
-
-    // Apply Language
-    const activeLang = state.lang || 'en';
-    langButtons.forEach((btn) => {
-      if (btn.getAttribute('data-lang') === activeLang) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
-
-    // Apply Scale
-    const activeScale = state.scale || detectDefaultScale();
+  // Apply visual theme and UI zoom to root
+  function applyThemeAndScale() {
+    document.documentElement.setAttribute('data-theme', state.theme);
+    const activeScale =
+      state.scale && state.scale !== 'auto'
+        ? state.scale
+        : detectDefaultScale();
     document.documentElement.setAttribute('data-scale', activeScale);
-    scaleButtons.forEach((btn) => {
-      if (btn.getAttribute('data-scale') === activeScale) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
+  }
 
-    // Update all elements with data-i18n
+  // Render all interactive elements and localized strings
+  function renderUI() {
+    // Internationalization update
     i18nElements.forEach((el) => {
       const key = el.getAttribute('data-i18n');
       if (key) {
@@ -184,20 +233,52 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Checkboxes
-    toggles.hideHomeFeed.checked = !!state.hideHomeFeed;
-    toggles.hideSidebar.checked = !!state.hideSidebar;
-    toggles.hideComments.checked = !!state.hideComments;
-    toggles.hideShorts.checked = !!state.hideShorts;
-    toggles.hideEndScreens.checked = !!state.hideEndScreens;
-    toggles.showDislikes.checked = !!state.showDislikes;
-    toggles.untranslateTitles.checked = !!state.untranslateTitles;
+    // Theme buttons active state
+    themeButtons.forEach((btn) => {
+      if (btn.getAttribute('data-theme') === state.theme) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
 
-    // Detect matched preset if not explicitly custom
-    if (state.preset !== 'custom') {
-      const detectedPreset = detectMatchingPreset();
-      if (detectedPreset) {
-        state.preset = detectedPreset;
+    // Language buttons active state
+    langButtons.forEach((btn) => {
+      if (btn.getAttribute('data-lang') === state.lang) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    // Scale buttons active state
+    const currentScale =
+      state.scale && state.scale !== 'auto'
+        ? state.scale
+        : detectDefaultScale();
+    scaleButtons.forEach((btn) => {
+      if (btn.getAttribute('data-scale') === currentScale) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    // Tab buttons and panels
+    tabButtons.forEach((btn) => {
+      const tab = btn.getAttribute('data-tab');
+      btn.classList.toggle('active', tab === state.activeTab);
+    });
+    Object.entries(tabPanels).forEach(([key, panel]) => {
+      if (panel) {
+        panel.classList.toggle('active', key === state.activeTab);
+      }
+    });
+
+    // Toggle checkboxes
+    for (const [key, el] of Object.entries(toggles)) {
+      if (el) {
+        el.checked = !!state[key];
       }
     }
 
@@ -243,29 +324,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Detect if current custom toggles match any preset
-  function detectMatchingPreset() {
-    for (const [key, config] of Object.entries(PRESET_MAP)) {
-      if (key === 'custom') continue;
-      if (
-        config.hideHomeFeed === state.hideHomeFeed &&
-        config.hideSidebar === state.hideSidebar &&
-        config.hideComments === state.hideComments &&
-        config.hideShorts === state.hideShorts &&
-        config.hideEndScreens === state.hideEndScreens
-      ) {
-        return key;
-      }
-    }
-    return null;
-  }
-
   // Save current state to storage
   function saveState() {
     chrome.storage.sync.set(state, () => {
       renderUI();
     });
   }
+
+  // Tab navigation clicks
+  tabButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const chosenTab = btn.getAttribute('data-tab');
+      state.activeTab = chosenTab;
+      saveState();
+    });
+  });
 
   // Theme button clicks
   themeButtons.forEach((btn) => {
@@ -303,41 +376,34 @@ document.addEventListener('DOMContentLoaded', () => {
       if (chosenPreset === 'custom') {
         state.preset = 'custom';
         if (!state.customConfig) {
-          state.customConfig = {
-            hideHomeFeed: state.hideHomeFeed,
-            hideSidebar: state.hideSidebar,
-            hideComments: state.hideComments,
-            hideShorts: state.hideShorts,
-            hideEndScreens: state.hideEndScreens,
-          };
+          state.customConfig = {};
+          TOGGLE_KEYS.forEach((key) => {
+            state.customConfig[key] = state[key];
+          });
         }
         // Restore custom preferences
-        state.hideHomeFeed = !!state.customConfig.hideHomeFeed;
-        state.hideSidebar = !!state.customConfig.hideSidebar;
-        state.hideComments = !!state.customConfig.hideComments;
-        state.hideShorts = !!state.customConfig.hideShorts;
-        state.hideEndScreens = !!state.customConfig.hideEndScreens;
+        TOGGLE_KEYS.forEach((key) => {
+          if (state.customConfig[key] !== undefined) {
+            state[key] = !!state.customConfig[key];
+          }
+        });
         saveState();
       } else if (PRESET_MAP[chosenPreset]) {
         state.preset = chosenPreset;
-        state.hideHomeFeed = PRESET_MAP[chosenPreset].hideHomeFeed;
-        state.hideSidebar = PRESET_MAP[chosenPreset].hideSidebar;
-        state.hideComments = PRESET_MAP[chosenPreset].hideComments;
-        state.hideShorts = PRESET_MAP[chosenPreset].hideShorts;
-        state.hideEndScreens = PRESET_MAP[chosenPreset].hideEndScreens;
+        const config = PRESET_MAP[chosenPreset];
+        TOGGLE_KEYS.forEach((key) => {
+          if (config[key] !== undefined) {
+            state[key] = config[key];
+          }
+        });
         saveState();
       }
     });
   });
 
-  // Individual toggle changes
-  [
-    'hideHomeFeed',
-    'hideSidebar',
-    'hideComments',
-    'hideShorts',
-    'hideEndScreens',
-  ].forEach((key) => {
+  // Individual toggle changes (both Focus and Cleaner tabs)
+  TOGGLE_KEYS.forEach((key) => {
+    if (!toggles[key]) return;
     toggles[key].addEventListener('change', (e) => {
       state[key] = e.target.checked;
       if (!state.customConfig) {
@@ -350,30 +416,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Dislikes toggle
-  toggles.showDislikes.addEventListener('change', (e) => {
+  toggles.showDislikes?.addEventListener('change', (e) => {
     state.showDislikes = e.target.checked;
     saveState();
   });
 
   // Untranslate titles toggle
-  toggles.untranslateTitles.addEventListener('change', (e) => {
+  toggles.untranslateTitles?.addEventListener('change', (e) => {
     state.untranslateTitles = e.target.checked;
     saveState();
-  });
-
-  // Accordion toggle with a11y support
-  function toggleAccordion() {
-    const isCollapsed = customAccordionBtn.classList.toggle('collapsed');
-    togglesList.classList.toggle('collapsed');
-    customAccordionBtn.setAttribute('aria-expanded', String(!isCollapsed));
-  }
-
-  customAccordionBtn.addEventListener('click', toggleAccordion);
-  customAccordionBtn.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      toggleAccordion();
-    }
   });
 
   // Reset to default
@@ -383,12 +434,18 @@ document.addEventListener('DOMContentLoaded', () => {
       theme: state.theme || 'dark',
       lang: state.lang || 'en',
       scale: currentScale,
+      activeTab: 'focus',
       preset: 'balanced',
       hideHomeFeed: false,
       hideSidebar: true,
       hideComments: true,
       hideShorts: true,
       hideEndScreens: true,
+      hideVoiceSearch: true,
+      hideAskAi: true,
+      hideDownload: true,
+      hideThanksClips: true,
+      hideShare: false,
       showDislikes: true,
       untranslateTitles: true,
       customConfig: {
@@ -397,6 +454,11 @@ document.addEventListener('DOMContentLoaded', () => {
         hideComments: true,
         hideShorts: true,
         hideEndScreens: true,
+        hideVoiceSearch: true,
+        hideAskAi: true,
+        hideDownload: true,
+        hideThanksClips: true,
+        hideShare: false,
       },
     };
     saveState();

@@ -271,6 +271,68 @@ body {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
+/* Navigation Tabs */
+.tab-nav-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: calc(4px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--border-hairline);
+  gap: calc(4px * var(--ui-scale));
+}
+
+.tab-nav-btn {
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: calc(9.5px * var(--ui-scale));
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: calc(5px * var(--ui-scale)) 0;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(5px * var(--ui-scale));
+}
+
+.tab-nav-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-hairline);
+}
+
+.tab-nav-btn.active {
+  background: var(--active-tab-bg);
+  color: var(--accent);
+  border-color: var(--active-tab-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+/* Tab Panels */
+.tab-panel {
+  display: none;
+  animation: tabFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* 2. Pane Sections */
 .pane-section {
   padding: calc(6px * var(--ui-scale)) calc(12px * var(--ui-scale));
@@ -347,34 +409,11 @@ body {
   padding: 0 2px;
 }
 
-/* Accordion Trigger */
-.accordion-trigger {
-  cursor: pointer;
-  user-select: none;
-  margin-bottom: calc(3px * var(--ui-scale));
-}
-
-.accordion-arrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  transition: transform 0.15s ease;
-}
-
-.accordion-trigger.collapsed .accordion-arrow {
-  transform: rotate(-90deg);
-}
-
 /* Settings List */
 .settings-list {
   display: flex;
   flex-direction: column;
   gap: 1px;
-}
-
-.settings-list.collapsed {
-  display: none;
 }
 
 .setting-row {

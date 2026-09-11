@@ -28,28 +28,33 @@ Whether you need a distraction-free environment for research and study, or a min
 
 ## Key Features
 
-### 1. Instant Focus Presets
-Switch between curated focus profiles with a single click or create your own:
-
-| Preset | Home Feed | Related Sidebar | Comments | Shorts | End Screens | Center Player |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **OFF** | Shown | Shown | Shown | Shown | Shown | No |
-| **BASIC** | Shown | Shown | **Hidden** | Shown | **Hidden** | No |
-| **BALANCED** | Shown | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Yes** |
-| **EXTREME (Zen)** | **Hidden (Zen)** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Yes** |
-| **CUSTOM** | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Conditional* |
-
-* **Off**: Clean passthrough mode; leaves YouTube unaltered.
-* **Basic**: Removes common watch clutter (comments and end-screen cards).
-* **Balanced** *(Recommended)*: Keeps search and navigation accessible while eliminating rabbit holes (sidebar recommendations, shorts, and comments).
-* **Extreme (Zen Mode)**: Complete distraction elimination. Replaces the algorithmic homepage with an intentional, centered search prompt.
-* **Custom**: Automatically remembers and persists your individual fine-tuned toggle preferences.
+### 1. Dual-Tab Ergonomic Navigation
+Libertad organizes controls into two purpose-built workspaces without vertical clutter:
+* **🛡️ Focus Shield**: Core presets and distraction-elimination shields for algorithmic feeds and comment sections.
+* **🧹 UI Cleaner**: Surgical removal of promotional, experimental, and secondary action buttons across YouTube's header and video player.
 
 ---
 
-### 2. Granular Distraction Shields (Fine-Tuning)
+### 2. Instant Focus Presets (Integrated Matrix)
+Switch between curated focus profiles with a single click or tailor your own:
 
-Every interface component can be independently controlled:
+| Preset | Home Feed | Sidebar | Comments | Shorts | Voice Search | Ask AI | Download | Thanks/Clips | Share | Center Player |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **OFF** | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown | No |
+| **BASIC** | Shown | Shown | **Hidden** | Shown | Shown | **Hidden** | **Hidden** | Shown | Shown | No |
+| **BALANCED** | Shown | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | Shown | **Yes** |
+| **EXTREME** | **Zen** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Yes** |
+| **CUSTOM** | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Conditional* |
+
+* **Off**: Clean passthrough mode; leaves YouTube unaltered.
+* **Basic**: Removes common watch clutter (comments, end-screens, promotional download buttons, and AI popups).
+* **Balanced** *(Recommended)*: Eliminates recommendation loops and bloat buttons (sidebar recommendations, shorts, comments, voice search mic, and clutter buttons).
+* **Extreme (Zen Mode)**: Complete distraction and clutter elimination. Replaces the homepage with an intentional search prompt and strips all auxiliary action buttons.
+* **Custom**: Automatically remembers and persists your individual fine-tuned preferences across all switches in both tabs.
+
+---
+
+### 3. Granular Distraction Shields (Focus Tab)
 
 * **Home Feed & Zen Mode**: Suppresses the infinite video recommendation grid on the homepage (`/`). When enabled, displays an intentional, minimalist search prompt that encourages purposeful searches rather than passive scrolling.
 * **Related Sidebar & Auto-Centering**: Removes watch-next suggestions and algorithmically recommended videos beside the player. Automatically centers the main video player in theater style to prevent awkward whitespace.
@@ -59,7 +64,17 @@ Every interface component can be independently controlled:
 
 ---
 
-### 3. Auxiliary Power Modules
+### 4. YouTube De-Bloating & Action Cleaner (Cleaner Tab)
+
+* **Header Voice Search Mic**: Removes the microphone icon beside the search bar for a clean, minimalist header.
+* **Ask AI Assistant Button**: Suppresses YouTube's experimental conversational AI button on video watch pages.
+* **Promotional Download Button**: Suppresses the download button that prompts users to purchase YouTube Premium.
+* **Engagement Clutter (Thanks, Clips & Remix)**: Strips monetization and remixing action buttons from the primary video control bar.
+* **Video Share Button**: Suppresses the share button for an ultra-focused, cinema-grade watch experience.
+
+---
+
+### 5. Auxiliary Power Modules
 
 * **Restore YouTube Dislikes**:
   * Seamlessly connects to the community-driven [Return YouTube Dislike API](https://returnyoutubedislikeapi.com).
@@ -72,7 +87,7 @@ Every interface component can be independently controlled:
 
 ---
 
-### 4. Interface & Ergonomics
+### 6. Interface & Ergonomics
 
 * **Tri-Theme Engine**:
   * **Dark**: Industrial graphite palette with high readability.

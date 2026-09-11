@@ -31,124 +31,207 @@
       </div>
     </header>
 
-    <!-- Preset Toolbar -->
-    <section class="pane-section preset-section">
-      <div class="pane-header">
-        <span class="pane-title" data-i18n="focusPresetLabel">FOCUS PRESET</span>
-      </div>
-      <div class="ide-segmented-track" id="presetGroup">
-        <button type="button" class="ide-tab preset-btn" data-preset="off" data-i18n="presetOff">OFF</button>
-        <button type="button" class="ide-tab preset-btn" data-preset="basic" data-i18n="presetBasic">BASIC</button>
-        <button type="button" class="ide-tab preset-btn" data-preset="balanced" data-i18n="presetBalanced">BALANCED</button>
-        <button type="button" class="ide-tab preset-btn" data-preset="extreme" data-i18n="presetExtreme">EXTREME</button>
-        <button type="button" class="ide-tab preset-btn" data-preset="custom" data-i18n="presetCustom">CUSTOM</button>
-      </div>
-      <div class="preset-status-line" id="presetDesc">
-        Suppresses sidebar recommendations, comments, shorts feeds, and endscreens.
-      </div>
-    </section>
+    <!-- Tab Navigation Bar -->
+    <nav class="tab-nav-bar" id="tabNavBar" aria-label="Sections">
+      <button type="button" class="tab-nav-btn active" data-tab="focus" id="tabBtnFocus" data-i18n="tabFocus">FOCUS SHIELD</button>
+      <button type="button" class="tab-nav-btn" data-tab="cleaner" id="tabBtnCleaner" data-i18n="tabCleaner">UI CLEANER</button>
+    </nav>
 
-    <!-- Main Shield Parameters List -->
-    <section class="pane-section">
-      <div class="pane-header accordion-trigger" id="customAccordionBtn" role="button" tabindex="0" aria-expanded="true" aria-controls="togglesList">
-        <span class="pane-title" data-i18n="parametersLabel">PARAMETERS // FINE-TUNE</span>
-        <span class="accordion-arrow" id="accordionIcon">
-          <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 6l5 5 5-5"/>
-          </svg>
-        </span>
-      </div>
-      <div class="settings-list" id="togglesList">
-        <!-- Setting: Home Feed -->
-        <label class="setting-row" for="toggleHomeFeed">
-          <div class="setting-meta">
-            <span class="setting-title" data-i18n="toggleHomeFeedTitle">Home Feed</span>
-            <span class="setting-hint" data-i18n="toggleHomeFeedDesc">Suppress infinite recommendations grid</span>
-          </div>
-          <div class="switch">
-            <input type="checkbox" id="toggleHomeFeed" aria-label="Suppress Home Feed" />
-            <span class="slider"></span>
-          </div>
-        </label>
+    <!-- Tab Panel 1: Focus Shield -->
+    <div class="tab-panel active" id="tabPanelFocus">
+      <!-- Preset Toolbar -->
+      <section class="pane-section preset-section">
+        <div class="pane-header">
+          <span class="pane-title" data-i18n="focusPresetLabel">FOCUS PRESET</span>
+        </div>
+        <div class="ide-segmented-track" id="presetGroup">
+          <button type="button" class="ide-tab preset-btn" data-preset="off" data-i18n="presetOff">OFF</button>
+          <button type="button" class="ide-tab preset-btn" data-preset="basic" data-i18n="presetBasic">BASIC</button>
+          <button type="button" class="ide-tab preset-btn" data-preset="balanced" data-i18n="presetBalanced">BALANCED</button>
+          <button type="button" class="ide-tab preset-btn" data-preset="extreme" data-i18n="presetExtreme">EXTREME</button>
+          <button type="button" class="ide-tab preset-btn" data-preset="custom" data-i18n="presetCustom">CUSTOM</button>
+        </div>
+        <div class="preset-status-line" id="presetDesc">
+          Suppresses sidebar recommendations, comments, shorts feeds, and endscreens.
+        </div>
+      </section>
 
-        <!-- Setting: Sidebar -->
-        <label class="setting-row" for="toggleSidebar">
-          <div class="setting-meta">
-            <span class="setting-title" data-i18n="toggleSidebarTitle">Related Sidebar</span>
-            <span class="setting-hint" data-i18n="toggleSidebarDesc">Suppress watch-next suggested videos</span>
-          </div>
-          <div class="switch">
-            <input type="checkbox" id="toggleSidebar" aria-label="Suppress Related Sidebar" />
-            <span class="slider"></span>
-          </div>
-        </label>
+      <!-- Main Shield Parameters List -->
+      <section class="pane-section">
+        <div class="pane-header">
+          <span class="pane-title" data-i18n="parametersLabel">PARAMETERS // FINE-TUNE</span>
+        </div>
+        <div class="settings-list" id="togglesList">
+          <!-- Setting: Home Feed -->
+          <label class="setting-row" for="toggleHomeFeed">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleHomeFeedTitle">Home Feed</span>
+              <span class="setting-hint" data-i18n="toggleHomeFeedDesc">Suppress infinite recommendations grid</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleHomeFeed" aria-label="Suppress Home Feed" />
+              <span class="slider"></span>
+            </div>
+          </label>
 
-        <!-- Setting: Comments -->
-        <label class="setting-row" for="toggleComments">
-          <div class="setting-meta">
-            <span class="setting-title" data-i18n="toggleCommentsTitle">Comments</span>
-            <span class="setting-hint" data-i18n="toggleCommentsDesc">Suppress video comments section</span>
-          </div>
-          <div class="switch">
-            <input type="checkbox" id="toggleComments" aria-label="Suppress Comments" />
-            <span class="slider"></span>
-          </div>
-        </label>
+          <!-- Setting: Sidebar -->
+          <label class="setting-row" for="toggleSidebar">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleSidebarTitle">Related Sidebar</span>
+              <span class="setting-hint" data-i18n="toggleSidebarDesc">Suppress watch-next suggested videos</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleSidebar" aria-label="Suppress Related Sidebar" />
+              <span class="slider"></span>
+            </div>
+          </label>
 
-        <!-- Setting: Shorts -->
-        <label class="setting-row" for="toggleShorts">
-          <div class="setting-meta">
-            <span class="setting-title" data-i18n="toggleShortsTitle">Shorts</span>
-            <span class="setting-hint" data-i18n="toggleShortsDesc">Suppress shorts tab, shelves, and navigation</span>
-          </div>
-          <div class="switch">
-            <input type="checkbox" id="toggleShorts" aria-label="Suppress Shorts" />
-            <span class="slider"></span>
-          </div>
-        </label>
+          <!-- Setting: Comments -->
+          <label class="setting-row" for="toggleComments">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleCommentsTitle">Comments</span>
+              <span class="setting-hint" data-i18n="toggleCommentsDesc">Suppress video comments section</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleComments" aria-label="Suppress Comments" />
+              <span class="slider"></span>
+            </div>
+          </label>
 
-        <!-- Setting: Endscreens -->
-        <label class="setting-row" for="toggleEndScreens">
-          <div class="setting-meta">
-            <span class="setting-title" data-i18n="toggleEndScreensTitle">End Screens</span>
-            <span class="setting-hint" data-i18n="toggleEndScreensDesc">Suppress popup cards at video conclusion</span>
-          </div>
-          <div class="switch">
-            <input type="checkbox" id="toggleEndScreens" aria-label="Suppress End Screens" />
-            <span class="slider"></span>
-          </div>
-        </label>
-      </div>
-    </section>
+          <!-- Setting: Shorts -->
+          <label class="setting-row" for="toggleShorts">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleShortsTitle">Shorts</span>
+              <span class="setting-hint" data-i18n="toggleShortsDesc">Suppress shorts tab, shelves, and navigation</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleShorts" aria-label="Suppress Shorts" />
+              <span class="slider"></span>
+            </div>
+          </label>
 
-    <!-- Auxiliary Modules List -->
-    <section class="pane-section">
-      <div class="pane-header">
-        <span class="pane-title" data-i18n="auxiliaryLabel">AUXILIARY MODULES</span>
-      </div>
-      <div class="settings-list">
-        <label class="setting-row" for="toggleDislikes">
-          <div class="setting-meta">
-            <span class="setting-title" data-i18n="toggleDislikesTitle">Restore Dislikes</span>
-            <span class="setting-hint" data-i18n="toggleDislikesDesc">Display public dislike count on action bar</span>
-          </div>
-          <div class="switch">
-            <input type="checkbox" id="toggleDislikes" aria-label="Restore Dislikes" />
-            <span class="slider"></span>
-          </div>
-        </label>
-        <label class="setting-row" for="toggleUntranslate">
-          <div class="setting-meta">
-            <span class="setting-title" data-i18n="toggleUntranslateTitle">Untranslate Titles</span>
-            <span class="setting-hint" data-i18n="toggleUntranslateDesc">Preserve creator's original video title</span>
-          </div>
-          <div class="switch">
-            <input type="checkbox" id="toggleUntranslate" aria-label="Untranslate Video Titles" />
-            <span class="slider"></span>
-          </div>
-        </label>
-      </div>
-    </section>
+          <!-- Setting: Endscreens -->
+          <label class="setting-row" for="toggleEndScreens">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleEndScreensTitle">End Screens</span>
+              <span class="setting-hint" data-i18n="toggleEndScreensDesc">Suppress popup cards at video conclusion</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleEndScreens" aria-label="Suppress End Screens" />
+              <span class="slider"></span>
+            </div>
+          </label>
+        </div>
+      </section>
+    </div>
+
+    <!-- Tab Panel 2: UI Cleaner -->
+    <div class="tab-panel" id="tabPanelCleaner">
+      <!-- Header Controls -->
+      <section class="pane-section">
+        <div class="pane-header">
+          <span class="pane-title" data-i18n="headerCleanerLabel">HEADER // SEARCH BAR</span>
+        </div>
+        <div class="settings-list">
+          <!-- Setting: Voice Search -->
+          <label class="setting-row" for="toggleVoiceSearch">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleVoiceSearchTitle">Voice Search</span>
+              <span class="setting-hint" data-i18n="toggleVoiceSearchDesc">Suppress microphone icon beside search bar</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleVoiceSearch" aria-label="Suppress Voice Search" />
+              <span class="slider"></span>
+            </div>
+          </label>
+        </div>
+      </section>
+
+      <!-- Player Action Bar Buttons -->
+      <section class="pane-section">
+        <div class="pane-header">
+          <span class="pane-title" data-i18n="playerActionsLabel">PLAYER // ACTION BUTTONS</span>
+        </div>
+        <div class="settings-list">
+          <!-- Setting: Ask AI -->
+          <label class="setting-row" for="toggleAskAi">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleAskAiTitle">Ask AI Assistant</span>
+              <span class="setting-hint" data-i18n="toggleAskAiDesc">Suppress experimental YouTube conversational AI button</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleAskAi" aria-label="Suppress Ask AI Assistant" />
+              <span class="slider"></span>
+            </div>
+          </label>
+
+          <!-- Setting: Download Button -->
+          <label class="setting-row" for="toggleDownload">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleDownloadTitle">Download Button</span>
+              <span class="setting-hint" data-i18n="toggleDownloadDesc">Suppress promotional Premium download prompt</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleDownload" aria-label="Suppress Download Button" />
+              <span class="slider"></span>
+            </div>
+          </label>
+
+          <!-- Setting: Thanks & Clips -->
+          <label class="setting-row" for="toggleThanksClips">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleThanksClipsTitle">Thanks & Clips</span>
+              <span class="setting-hint" data-i18n="toggleThanksClipsDesc">Suppress Super Thanks, Clips, and Remix actions</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleThanksClips" aria-label="Suppress Thanks and Clips" />
+              <span class="slider"></span>
+            </div>
+          </label>
+
+          <!-- Setting: Share Button -->
+          <label class="setting-row" for="toggleShare">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleShareTitle">Share Button</span>
+              <span class="setting-hint" data-i18n="toggleShareDesc">Suppress video share action button</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleShare" aria-label="Suppress Share Button" />
+              <span class="slider"></span>
+            </div>
+          </label>
+        </div>
+      </section>
+
+      <!-- Auxiliary Modules List (Dislikes & Untranslate) -->
+      <section class="pane-section">
+        <div class="pane-header">
+          <span class="pane-title" data-i18n="auxiliaryLabel">AUXILIARY MODULES</span>
+        </div>
+        <div class="settings-list">
+          <label class="setting-row" for="toggleDislikes">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleDislikesTitle">Restore Dislikes</span>
+              <span class="setting-hint" data-i18n="toggleDislikesDesc">Display public dislike count on action bar</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleDislikes" aria-label="Restore Dislikes" />
+              <span class="slider"></span>
+            </div>
+          </label>
+          <label class="setting-row" for="toggleUntranslate">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleUntranslateTitle">Untranslate Titles</span>
+              <span class="setting-hint" data-i18n="toggleUntranslateDesc">Preserve creator's original video title</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleUntranslate" aria-label="Untranslate Video Titles" />
+              <span class="slider"></span>
+            </div>
+          </label>
+        </div>
+      </section>
+    </div>
 
     <!-- Clean Footer -->
     <footer class="app-footer">
