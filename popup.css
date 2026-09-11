@@ -180,7 +180,7 @@ body {
 .brand-icon {
   width: calc(18px * var(--ui-scale));
   height: calc(18px * var(--ui-scale));
-  border-radius: 2px;
+  border-radius: 3px;
   display: block;
 }
 

@@ -176,16 +176,17 @@
         text-transform: uppercase;
       }
       .libertad-zen-icon-wrapper {
-        color: var(--yt-spec-text-secondary, #94a3b8);
+        color: #38bdf8;
         margin-bottom: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         width: 44px;
         height: 44px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(56, 189, 248, 0.06);
+        border: 1px solid rgba(56, 189, 248, 0.2);
         border-radius: 4px;
+        box-shadow: 0 0 16px rgba(56, 189, 248, 0.12);
       }
       .libertad-zen-svg {
         display: block;
