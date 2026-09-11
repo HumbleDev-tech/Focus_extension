@@ -42,8 +42,7 @@ Libertad values your privacy:
 - No analytics, tracking, or personal data collection.
 - Permissions requested:
   - `storage`: Saves your custom focus preferences locally.
-  - `activeTab` & `scripting`: Dynamically applies visual styles to YouTube.
-  - `returnyoutubedislikeapi.com`: Fetches public dislike statistics for the active video.
+  - Host permissions (`*.youtube.com`, `returnyoutubedislikeapi.com`): Applies focus styles and fetches dislike and original title data.
 
 ---
 

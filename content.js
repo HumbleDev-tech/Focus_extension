@@ -336,25 +336,11 @@
   async function fetchOriginalTitle(videoId) {
     if (!videoId) return null;
     if (titlesCache.has(videoId)) {
-      return titlesCache.get(videoId);
+      const cached = titlesCache.get(videoId);
+      return cached ? cached : null;
     }
 
-    // 1. If on watch page, check application/ld+json
-    if (window.location.pathname === '/watch') {
-      const ldJsonEl = document.querySelector('script[type="application/ld+json"]');
-      if (ldJsonEl && ldJsonEl.textContent) {
-        try {
-          const data = JSON.parse(ldJsonEl.textContent);
-          if (data && data.name && (location.search.includes(videoId) || data.url?.includes(videoId) || data.embedUrl?.includes(videoId))) {
-            const t = data.name.trim();
-            titlesCache.set(videoId, t);
-            return t;
-          }
-        } catch (e) {}
-      }
-    }
-
-    // 2. Direct same-origin oEmbed fetch (~25ms response, no IPC)
+    // 1. Direct same-origin oEmbed fetch (~25ms response, strictly bound to videoId)
     try {
       const oembedUrl = `/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`;
       const res = await fetch(oembedUrl);
@@ -368,7 +354,7 @@
       }
     } catch (e) {}
 
-    // 3. Fallback to background worker
+    // 2. Fallback to background worker
     return new Promise((resolve) => {
       chrome.runtime.sendMessage({ action: 'FETCH_ORIGINAL_TITLE', videoId }, (res) => {
         if (!chrome.runtime.lastError && res && res.success && res.title) {
@@ -376,6 +362,8 @@
           titlesCache.set(videoId, t);
           resolve(t);
         } else {
+          // Cache negative result to prevent infinite refetch loops
+          titlesCache.set(videoId, false);
           resolve(null);
         }
       });
@@ -413,8 +401,15 @@
   }
 
   // Apply original title to watch page
-  function applyWatchTitle(originalTitle) {
+  function applyWatchTitle(originalTitle, videoId) {
     if (!originalTitle || !originalTitle.trim()) return false;
+
+    // Strict guard: ensure we are still on the target video
+    const currentParam = new URLSearchParams(window.location.search).get('v');
+    if (videoId && currentParam && currentParam !== videoId) {
+      return false;
+    }
+
     const clean = originalTitle.trim();
     currentOriginalTitle = clean;
 
@@ -455,37 +450,50 @@
     }
 
     if (currentOriginalTitle) {
-      applyWatchTitle(currentOriginalTitle);
+      applyWatchTitle(currentOriginalTitle, videoId);
       return;
     }
 
     fetchOriginalTitle(videoId).then((orig) => {
-      if (orig) {
-        applyWatchTitle(orig);
+      // Guard against race conditions during SPA navigation
+      const currentParam = new URLSearchParams(window.location.search).get('v');
+      if (currentParam === videoId && orig) {
+        currentOriginalTitle = orig;
+        applyWatchTitle(orig, videoId);
       }
     });
   }
 
-  // Universal selector covering both legacy Polymer (#video-title) and modern Lockup ViewModels (Wiz)
+  // Universal selector covering classic Polymer and modern Lockup ViewModels (Wiz)
   function getAllVideoTitleNodes() {
     const nodes = [];
 
     // 1. Classic Polymer title elements
-    document.querySelectorAll('#video-title, yt-formatted-string#video-title, span#video-title, a#video-title').forEach((el) => {
-      if (!el.closest('ytd-watch-metadata, #above-the-fold') && !nodes.includes(el)) {
+    document.querySelectorAll('#video-title, yt-formatted-string#video-title, a#video-title-link, a#video-title').forEach((el) => {
+      // Exclude watch page main title, thumbnails, duration badges, and overlays
+      if (
+        !el.closest('ytd-watch-metadata, #above-the-fold') &&
+        !el.closest('#thumbnail, ytd-thumbnail, [class*="content-image"], [class*="thumbnail"], ytd-playlist-thumbnail') &&
+        !nodes.includes(el)
+      ) {
         nodes.push(el);
       }
     });
 
-    // 2. Modern YouTube Lockup ViewModels (2024+) & heading links
+    // 2. Modern YouTube Lockup ViewModels (2024+) & heading title links
     document.querySelectorAll(
-      'h3 a[href*="watch?v="], h3 a[href*="/shorts/"], [class*="lockup"] a[href*="watch?v="], [class*="lockup"] a[href*="/shorts/"], a.yt-lockup-metadata-view-model-wiz__title'
-    ).forEach((a) => {
-      if (a.closest('ytd-watch-metadata, #above-the-fold')) return;
+      'h3 a[href*="watch?v="], h3 a[href*="/shorts/"], [class*="lockup-metadata"] h3 a, [class*="lockup-metadata"] [role="heading"] a, a.yt-lockup-metadata-view-model-wiz__title, h3.yt-lockup-metadata-view-model-wiz__heading-reset'
+    ).forEach((el) => {
+      if (
+        el.closest('ytd-watch-metadata, #above-the-fold') ||
+        el.closest('#thumbnail, ytd-thumbnail, [class*="content-image"], [class*="thumbnail"], ytd-playlist-thumbnail')
+      ) {
+        return;
+      }
 
-      // Locate the innermost text-bearing element
-      const inner = a.querySelector('#video-title, yt-formatted-string, span[role="text"], .yt-core-attributed-string, span');
-      const target = inner || a;
+      // If it is a heading container, locate the innermost text-bearing span
+      const inner = el.querySelector('span.yt-core-attributed-string, span[role="text"], #video-title, yt-formatted-string');
+      const target = inner || el;
       if (!nodes.includes(target)) {
         nodes.push(target);
       }
@@ -498,25 +506,25 @@
   function extractVideoId(el) {
     if (!el) return null;
 
-    // Direct <a> tag with href
+    // Check direct anchor
     if (el.tagName === 'A' && el.href) {
       const m = el.href.match(/[?&]v=([^&]+)/) || el.href.match(/\/shorts\/([^?&]+)/);
       if (m) return m[1];
     }
 
-    // Closest <a> parent (e.g. Home feed: a#video-title-link or sidebar anchor)
+    // Check closest anchor
     const a = el.closest('a');
     if (a && a.href) {
       const m = a.href.match(/[?&]v=([^&]+)/) || a.href.match(/\/shorts\/([^?&]+)/);
       if (m) return m[1];
     }
 
-    // Check thumbnail link in the containing card
+    // Check containing card for watch/shorts link
     const card = el.closest(
-      'ytd-rich-item-renderer, ytd-rich-grid-media, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, ytd-playlist-video-renderer, ytd-reel-item-renderer, [class*="lockup"], [class*="item-section"]'
+      'ytd-rich-item-renderer, ytd-rich-grid-media, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, ytd-playlist-video-renderer, ytd-reel-item-renderer, yt-lockup-view-model, [class*="lockup"], [class*="item-section"]'
     );
     if (card) {
-      const link = card.querySelector('a[href*="watch?v="], a[href*="/shorts/"], a#thumbnail, a#video-title-link, a.ytd-thumbnail');
+      const link = card.querySelector('a[href*="watch?v="], a[href*="/shorts/"], a#video-title-link, a#thumbnail, a.ytd-thumbnail');
       if (link && link.href) {
         const m = link.href.match(/[?&]v=([^&]+)/) || link.href.match(/\/shorts\/([^?&]+)/);
         if (m) return m[1];
@@ -526,7 +534,7 @@
     return null;
   }
 
-  // Apply original title exclusively to the title text node (without destroying parent anchors)
+  // Apply original title exclusively to the title text node (without destroying parent structure)
   function applyTitleToNode(titleNode, cleanTitle, videoId) {
     if (!titleNode || !cleanTitle) return;
 
@@ -535,16 +543,23 @@
       return;
     }
 
-    // If titleNode contains an inner text-bearing span (e.g. yt-core-attributed-string)
-    const childSpan = titleNode.querySelector('span[role="text"], .yt-core-attributed-string, span');
-    if (childSpan && childSpan !== titleNode) {
-      childSpan.innerText = cleanTitle;
+    // 1. If titleNode has an inner text-bearing span (e.g. Wiz / attributed string / formatted string)
+    const childSpan = titleNode.querySelector('span.yt-core-attributed-string, span[role="text"]');
+    if (childSpan) {
       childSpan.textContent = cleanTitle;
+      childSpan.innerText = cleanTitle;
+    } else if (titleNode.children.length === 0 || titleNode.tagName === 'SPAN' || titleNode.tagName === 'YT-FORMATTED-STRING') {
+      titleNode.textContent = cleanTitle;
+      titleNode.innerText = cleanTitle;
+    } else {
+      const textSpan = titleNode.querySelector('span');
+      if (textSpan) {
+        textSpan.textContent = cleanTitle;
+      } else {
+        titleNode.textContent = cleanTitle;
+      }
     }
 
-    // Update inner text on the actual title container
-    titleNode.innerText = cleanTitle;
-    titleNode.textContent = cleanTitle;
     titleNode.setAttribute('title', cleanTitle);
     titleNode.removeAttribute('is-empty');
     titleNode.dataset.libertadApplied = videoId;
@@ -604,7 +619,10 @@
       if (!videoId) return;
 
       if (titlesCache.has(videoId)) {
-        applyTitleToNode(node, titlesCache.get(videoId), videoId);
+        const cached = titlesCache.get(videoId);
+        if (cached) {
+          applyTitleToNode(node, cached, videoId);
+        }
       } else if (!pendingFeedVideoIds.has(videoId)) {
         pendingFeedVideoIds.add(videoId);
         feedFetchQueue.push(videoId);
@@ -620,8 +638,9 @@
 
   // Regular heartbeat to catch virtual-scroll DOM re-use on YouTube
   setInterval(() => {
-    if (window.location.pathname === '/watch' && currentSettings.untranslateTitles && currentOriginalTitle) {
-      applyWatchTitle(currentOriginalTitle);
+    const vId = new URLSearchParams(window.location.search).get('v');
+    if (window.location.pathname === '/watch' && currentSettings.untranslateTitles && currentOriginalTitle && currentWatchVideoId === vId) {
+      applyWatchTitle(currentOriginalTitle, currentWatchVideoId);
     }
     if (currentSettings.untranslateTitles) {
       untranslateFeed();
@@ -677,6 +696,11 @@
   });
 
   // Handle YouTube SPA Navigation events
+  window.addEventListener('yt-navigate-start', () => {
+    currentOriginalTitle = null;
+    currentWatchVideoId = null;
+  });
+
   window.addEventListener('yt-navigate-finish', () => {
     currentOriginalTitle = null;
     currentWatchVideoId = null;
