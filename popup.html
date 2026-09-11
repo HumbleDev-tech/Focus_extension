@@ -7,74 +7,63 @@
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
-  <div class="app-container">
-    <!-- Header -->
-    <header class="header">
-      <div class="brand">
-        <div class="brand-logo">
-          <img src="icons/icon48.png" alt="Libertad Logo" />
-        </div>
-        <div class="brand-info">
-          <h1 class="brand-name">LIBERTAD</h1>
-          <span class="brand-tagline" data-i18n="brandTagline">FOCUS ENGINE // v1.0</span>
+  <div class="app-window">
+    <!-- Unified Top Bar -->
+    <header class="top-bar">
+      <div class="brand-group">
+        <img class="brand-icon" src="icons/icon48.png" alt="Libertad Logo" />
+        <span class="brand-title">LIBERTAD</span>
+        <div class="status-indicator" id="statusPill">
+          <span class="status-dot"></span>
+          <span class="status-label" id="statusText">ACTIVE</span>
         </div>
       </div>
-      <div class="status-pill" id="statusPill">
-        <span class="status-dot"></span>
-        <span class="status-text" id="statusText">ACTIVE</span>
+      <div class="tool-controls">
+        <div class="mini-segmented" id="themeGroup">
+          <button class="mini-btn theme-btn" data-theme="dark" title="Dark Theme">DRK</button>
+          <button class="mini-btn theme-btn" data-theme="light" title="Light Theme">LGT</button>
+          <button class="mini-btn theme-btn" data-theme="oled" title="OLED Theme">OLED</button>
+        </div>
+        <div class="mini-segmented" id="langGroup">
+          <button class="mini-btn lang-btn" data-lang="en" title="English">EN</button>
+          <button class="mini-btn lang-btn" data-lang="es" title="Español">ES</button>
+        </div>
       </div>
     </header>
 
-    <!-- Controls Toolbar (Theme & Language) -->
-    <div class="control-bar">
-      <div class="control-subgroup">
-        <span class="control-label" data-i18n="themeLabel">THEME</span>
-        <div class="segmented-control" id="themeGroup">
-          <button class="control-btn theme-btn" data-theme="dark" aria-label="Dark Theme">DARK</button>
-          <button class="control-btn theme-btn" data-theme="light" aria-label="Light Theme">LIGHT</button>
-          <button class="control-btn theme-btn" data-theme="oled" aria-label="OLED Theme">OLED</button>
-        </div>
+    <!-- Preset Toolbar -->
+    <section class="pane-section preset-section">
+      <div class="pane-header">
+        <span class="pane-title" data-i18n="focusPresetLabel">FOCUS PRESET</span>
       </div>
-      <div class="control-subgroup">
-        <span class="control-label" data-i18n="langLabel">LANG</span>
-        <div class="segmented-control" id="langGroup">
-          <button class="control-btn lang-btn" data-lang="en" aria-label="English">EN</button>
-          <button class="control-btn lang-btn" data-lang="es" aria-label="Español">ES</button>
-        </div>
+      <div class="ide-segmented-track" id="presetGroup">
+        <button class="ide-tab preset-btn" data-preset="off" data-i18n="presetOff">OFF</button>
+        <button class="ide-tab preset-btn" data-preset="basic" data-i18n="presetBasic">BASIC</button>
+        <button class="ide-tab preset-btn" data-preset="balanced" data-i18n="presetBalanced">BALANCED</button>
+        <button class="ide-tab preset-btn" data-preset="extreme" data-i18n="presetExtreme">EXTREME</button>
+        <button class="ide-tab preset-btn" data-preset="custom" data-i18n="presetCustom">CUSTOM</button>
       </div>
-    </div>
-
-    <!-- Presets Section -->
-    <section class="section">
-      <div class="section-label" data-i18n="focusPresetLabel">FOCUS PRESET</div>
-      <div class="preset-grid" id="presetGroup">
-        <button class="preset-btn" data-preset="off" data-i18n="presetOff">OFF</button>
-        <button class="preset-btn" data-preset="basic" data-i18n="presetBasic">BASIC</button>
-        <button class="preset-btn" data-preset="balanced" data-i18n="presetBalanced">BALANCED</button>
-        <button class="preset-btn" data-preset="extreme" data-i18n="presetExtreme">EXTREME</button>
-        <button class="preset-btn" data-preset="custom" data-i18n="presetCustom">CUSTOM</button>
-      </div>
-      <div class="preset-desc" id="presetDesc">
+      <div class="preset-status-line" id="presetDesc">
         Suppresses sidebar recommendations, comments, shorts feeds, and endscreens.
       </div>
     </section>
 
-    <!-- Custom Options Collapsible -->
-    <section class="section custom-section">
-      <div class="accordion-header" id="customAccordionBtn" role="button" tabindex="0" aria-expanded="true" aria-controls="togglesList">
-        <div class="section-label" data-i18n="parametersLabel">PARAMETERS // FINE-TUNE</div>
-        <span class="accordion-icon" id="accordionIcon">
-          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Main Shield Parameters List -->
+    <section class="pane-section">
+      <div class="pane-header accordion-trigger" id="customAccordionBtn" role="button" tabindex="0" aria-expanded="true" aria-controls="togglesList">
+        <span class="pane-title" data-i18n="parametersLabel">PARAMETERS // FINE-TUNE</span>
+        <span class="accordion-arrow" id="accordionIcon">
+          <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 6l5 5 5-5"/>
           </svg>
         </span>
       </div>
-      <div class="toggles-list" id="togglesList">
-        <!-- Toggle Item: Home Feed -->
-        <label class="toggle-item" for="toggleHomeFeed">
-          <div class="toggle-info">
-            <span class="toggle-title" data-i18n="toggleHomeFeedTitle">Home Feed</span>
-            <span class="toggle-desc" data-i18n="toggleHomeFeedDesc">Suppress infinite recommendations grid</span>
+      <div class="settings-list" id="togglesList">
+        <!-- Setting: Home Feed -->
+        <label class="setting-row" for="toggleHomeFeed">
+          <div class="setting-meta">
+            <span class="setting-title" data-i18n="toggleHomeFeedTitle">Home Feed</span>
+            <span class="setting-hint" data-i18n="toggleHomeFeedDesc">Suppress infinite recommendations grid</span>
           </div>
           <div class="switch">
             <input type="checkbox" id="toggleHomeFeed" aria-label="Suppress Home Feed" />
@@ -82,11 +71,11 @@
           </div>
         </label>
 
-        <!-- Toggle Item: Sidebar -->
-        <label class="toggle-item" for="toggleSidebar">
-          <div class="toggle-info">
-            <span class="toggle-title" data-i18n="toggleSidebarTitle">Related Sidebar</span>
-            <span class="toggle-desc" data-i18n="toggleSidebarDesc">Suppress watch-next suggested videos</span>
+        <!-- Setting: Sidebar -->
+        <label class="setting-row" for="toggleSidebar">
+          <div class="setting-meta">
+            <span class="setting-title" data-i18n="toggleSidebarTitle">Related Sidebar</span>
+            <span class="setting-hint" data-i18n="toggleSidebarDesc">Suppress watch-next suggested videos</span>
           </div>
           <div class="switch">
             <input type="checkbox" id="toggleSidebar" aria-label="Suppress Related Sidebar" />
@@ -94,11 +83,11 @@
           </div>
         </label>
 
-        <!-- Toggle Item: Comments -->
-        <label class="toggle-item" for="toggleComments">
-          <div class="toggle-info">
-            <span class="toggle-title" data-i18n="toggleCommentsTitle">Comments</span>
-            <span class="toggle-desc" data-i18n="toggleCommentsDesc">Suppress video comments section</span>
+        <!-- Setting: Comments -->
+        <label class="setting-row" for="toggleComments">
+          <div class="setting-meta">
+            <span class="setting-title" data-i18n="toggleCommentsTitle">Comments</span>
+            <span class="setting-hint" data-i18n="toggleCommentsDesc">Suppress video comments section</span>
           </div>
           <div class="switch">
             <input type="checkbox" id="toggleComments" aria-label="Suppress Comments" />
@@ -106,11 +95,11 @@
           </div>
         </label>
 
-        <!-- Toggle Item: Shorts -->
-        <label class="toggle-item" for="toggleShorts">
-          <div class="toggle-info">
-            <span class="toggle-title" data-i18n="toggleShortsTitle">Shorts</span>
-            <span class="toggle-desc" data-i18n="toggleShortsDesc">Suppress shorts tab, shelves, and navigation</span>
+        <!-- Setting: Shorts -->
+        <label class="setting-row" for="toggleShorts">
+          <div class="setting-meta">
+            <span class="setting-title" data-i18n="toggleShortsTitle">Shorts</span>
+            <span class="setting-hint" data-i18n="toggleShortsDesc">Suppress shorts tab, shelves, and navigation</span>
           </div>
           <div class="switch">
             <input type="checkbox" id="toggleShorts" aria-label="Suppress Shorts" />
@@ -118,11 +107,11 @@
           </div>
         </label>
 
-        <!-- Toggle Item: Endscreens -->
-        <label class="toggle-item" for="toggleEndScreens">
-          <div class="toggle-info">
-            <span class="toggle-title" data-i18n="toggleEndScreensTitle">End Screens</span>
-            <span class="toggle-desc" data-i18n="toggleEndScreensDesc">Suppress popup cards at video conclusion</span>
+        <!-- Setting: Endscreens -->
+        <label class="setting-row" for="toggleEndScreens">
+          <div class="setting-meta">
+            <span class="setting-title" data-i18n="toggleEndScreensTitle">End Screens</span>
+            <span class="setting-hint" data-i18n="toggleEndScreensDesc">Suppress popup cards at video conclusion</span>
           </div>
           <div class="switch">
             <input type="checkbox" id="toggleEndScreens" aria-label="Suppress End Screens" />
@@ -132,35 +121,46 @@
       </div>
     </section>
 
-    <!-- Extra Tools -->
-    <section class="section extra-section">
-      <div class="section-label" data-i18n="auxiliaryLabel">AUXILIARY MODULES</div>
-      <label class="toggle-item extra-item" for="toggleDislikes">
-        <div class="toggle-info">
-          <span class="toggle-title" data-i18n="toggleDislikesTitle">Restore Dislikes</span>
-          <span class="toggle-desc" data-i18n="toggleDislikesDesc">Display public dislike count on action bar</span>
-        </div>
-        <div class="switch">
-          <input type="checkbox" id="toggleDislikes" aria-label="Restore Dislikes" />
-          <span class="slider"></span>
-        </div>
-      </label>
-      <label class="toggle-item extra-item" for="toggleUntranslate">
-        <div class="toggle-info">
-          <span class="toggle-title" data-i18n="toggleUntranslateTitle">Untranslate Titles</span>
-          <span class="toggle-desc" data-i18n="toggleUntranslateDesc">Preserve creator's original video title</span>
-        </div>
-        <div class="switch">
-          <input type="checkbox" id="toggleUntranslate" aria-label="Untranslate Video Titles" />
-          <span class="slider"></span>
-        </div>
-      </label>
+    <!-- Auxiliary Modules List -->
+    <section class="pane-section">
+      <div class="pane-header">
+        <span class="pane-title" data-i18n="auxiliaryLabel">AUXILIARY MODULES</span>
+      </div>
+      <div class="settings-list">
+        <label class="setting-row" for="toggleDislikes">
+          <div class="setting-meta">
+            <span class="setting-title" data-i18n="toggleDislikesTitle">Restore Dislikes</span>
+            <span class="setting-hint" data-i18n="toggleDislikesDesc">Display public dislike count on action bar</span>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="toggleDislikes" aria-label="Restore Dislikes" />
+            <span class="slider"></span>
+          </div>
+        </label>
+        <label class="setting-row" for="toggleUntranslate">
+          <div class="setting-meta">
+            <span class="setting-title" data-i18n="toggleUntranslateTitle">Untranslate Titles</span>
+            <span class="setting-hint" data-i18n="toggleUntranslateDesc">Preserve creator's original video title</span>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="toggleUntranslate" aria-label="Untranslate Video Titles" />
+            <span class="slider"></span>
+          </div>
+        </label>
+      </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-      <span class="footer-meta" data-i18n="footerMeta">DISTRACTION-FREE SYSTEM</span>
-      <button class="reset-link" id="resetBtn" data-i18n="resetBtn">RESET CONFIG</button>
+    <!-- Clean Footer -->
+    <footer class="app-footer">
+      <div class="scale-box">
+        <span class="scale-label" data-i18n="scaleLabel">SCALE</span>
+        <div class="mini-segmented" id="scaleGroup">
+          <button class="mini-btn scale-btn" data-scale="100" title="Standard (100%)">1x</button>
+          <button class="mini-btn scale-btn" data-scale="115" title="Comfortable (115% - 27&quot;)">1.15x</button>
+          <button class="mini-btn scale-btn" data-scale="125" title="Expanded (125% - 4K)">1.25x</button>
+        </div>
+      </div>
+      <button class="reset-action" id="resetBtn" data-i18n="resetBtn">RESET CONFIG</button>
     </footer>
   </div>
 

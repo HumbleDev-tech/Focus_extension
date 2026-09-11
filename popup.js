@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const presetDesc = document.getElementById('presetDesc');
   const themeButtons = document.querySelectorAll('.theme-btn');
   const langButtons = document.querySelectorAll('.lang-btn');
+  const scaleButtons = document.querySelectorAll('.scale-btn');
   const i18nElements = document.querySelectorAll('[data-i18n]');
 
   const customAccordionBtn = document.getElementById('customAccordionBtn');
@@ -68,10 +69,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // Auto-detect optimal UI scale based on monitor resolution & DPI
+  function detectDefaultScale() {
+    const screenW = window.screen ? (window.screen.width || 1920) : 1920;
+    const dpr = window.devicePixelRatio || 1;
+    const effectiveW = screenW * dpr;
+
+    // 4K monitors (3840+ px physical or ultrawide >= 3440px) with low/medium OS scaling
+    if (screenW >= 3440 || (effectiveW >= 3840 && dpr < 1.5)) {
+      return '125';
+    }
+    // 27" 1440p monitors (2560x1440) or large 2K displays
+    if (screenW >= 2400 || (effectiveW >= 2560 && dpr <= 1.25)) {
+      return '115';
+    }
+    // Standard 1080p, 13"-15" laptops, and compact displays
+    return '100';
+  }
+
   // State
   let state = {
     theme: 'dark',
     lang: (navigator.language && navigator.language.startsWith('es')) ? 'es' : 'en',
+    scale: 'auto',
     preset: 'balanced',
     hideHomeFeed: false,
     hideSidebar: true,
@@ -104,6 +124,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!state.lang || state.lang === 'auto') {
         state.lang = (navigator.language && navigator.language.startsWith('es')) ? 'es' : 'en';
       }
+      if (!state.scale || state.scale === 'auto') {
+        state.scale = detectDefaultScale();
+      }
       if (!state.customConfig) {
         state.customConfig = {
           hideHomeFeed: state.hideHomeFeed,
@@ -113,6 +136,8 @@ document.addEventListener('DOMContentLoaded', () => {
           hideEndScreens: state.hideEndScreens
         };
       }
+    } else {
+      state.scale = detectDefaultScale();
     }
     renderUI();
   });
@@ -134,6 +159,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeLang = state.lang || 'en';
     langButtons.forEach((btn) => {
       if (btn.getAttribute('data-lang') === activeLang) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    // Apply Scale
+    const activeScale = state.scale || detectDefaultScale();
+    document.documentElement.setAttribute('data-scale', activeScale);
+    scaleButtons.forEach((btn) => {
+      if (btn.getAttribute('data-scale') === activeScale) {
         btn.classList.add('active');
       } else {
         btn.classList.remove('active');
@@ -244,6 +280,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Scale button clicks
+  scaleButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const chosenScale = btn.getAttribute('data-scale');
+      state.scale = chosenScale;
+      document.documentElement.setAttribute('data-scale', chosenScale);
+      saveState();
+    });
+  });
+
   // Preset button clicks
   presetButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -320,9 +366,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Reset to default
   resetBtn.addEventListener('click', () => {
+    const currentScale = state.scale || detectDefaultScale();
     state = {
       theme: state.theme || 'dark',
       lang: state.lang || 'en',
+      scale: currentScale,
       preset: 'balanced',
       hideHomeFeed: false,
       hideSidebar: true,
