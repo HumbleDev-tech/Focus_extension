@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: false,
       hideShorts: false,
       hideEndScreens: false,
-      desc: 'All elements visible. YouTube default experience.'
+      desc: 'Default YouTube state. All algorithmic feeds and recommendations visible.'
     },
     basic: {
       hideHomeFeed: false,
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: true,
       hideShorts: false,
       hideEndScreens: true,
-      desc: 'Hides distracting comments and end screen clutter.'
+      desc: 'Suppresses comments and endscreen interactive video overlays.'
     },
     balanced: {
       hideHomeFeed: false,
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: true,
       hideShorts: true,
       hideEndScreens: true,
-      desc: 'Hides sidebar recommendations, comments, shorts, and end screens.'
+      desc: 'Suppresses sidebar recommendations, comments, shorts feeds, and endscreens.'
     },
     extreme: {
       hideHomeFeed: true,
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: true,
       hideShorts: true,
       hideEndScreens: true,
-      desc: 'Pure Zen. Home feed, sidebar, comments, and shorts completely hidden.'
+      desc: 'Zero clutter. Suppresses home feed, sidebar, comments, and shorts. Focus reticle active.'
     }
   };
 
@@ -109,17 +109,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (PRESET_MAP[state.preset]) {
       presetDesc.textContent = PRESET_MAP[state.preset].desc;
     } else {
-      presetDesc.textContent = 'Custom configuration active with personalized settings.';
+      presetDesc.textContent = 'Custom parameter matrix active.';
     }
 
     // Status pill
     const isOff = state.preset === 'off' || (!state.hideHomeFeed && !state.hideSidebar && !state.hideComments && !state.hideShorts && !state.hideEndScreens);
     if (isOff) {
       statusPill.classList.add('is-off');
-      statusText.textContent = 'Disabled';
+      statusText.textContent = 'OFF';
     } else {
       statusPill.classList.remove('is-off');
-      statusText.textContent = state.preset.charAt(0).toUpperCase() + state.preset.slice(1);
+      statusText.textContent = state.preset.toUpperCase();
     }
   }
 

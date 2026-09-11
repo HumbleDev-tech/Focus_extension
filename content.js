@@ -139,42 +139,67 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        min-height: 55vh;
+        min-height: 52vh;
         text-align: center;
-        font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         color: var(--yt-spec-text-primary, #f1f1f1);
         padding: 40px 20px;
-        animation: libertadFadeIn 0.35s ease-out;
+        animation: libertadFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       }
       @keyframes libertadFadeIn {
-        from { opacity: 0; transform: translateY(10px); }
+        from { opacity: 0; transform: translateY(6px); }
         to { opacity: 1; transform: translateY(0); }
       }
       .libertad-zen-card {
-        background: var(--yt-spec-brand-background-primary, rgba(255, 255, 255, 0.04));
+        background: var(--yt-spec-brand-background-primary, #0e1219);
         border: 1px solid var(--yt-spec-10-percent-layer, rgba(255, 255, 255, 0.1));
-        border-radius: 20px;
-        padding: 36px 44px;
-        max-width: 480px;
-        backdrop-filter: blur(12px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        border-radius: 6px;
+        padding: 32px 36px;
+        max-width: 440px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
-      .libertad-zen-icon {
-        font-size: 42px;
-        margin-bottom: 12px;
-        display: inline-block;
+      .libertad-zen-badge {
+        font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, monospace;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 1.2px;
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        border-radius: 3px;
+        padding: 2px 8px;
+        margin-bottom: 16px;
+        text-transform: uppercase;
+      }
+      .libertad-zen-icon-wrapper {
+        color: var(--yt-spec-text-secondary, #94a3b8);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 4px;
+      }
+      .libertad-zen-svg {
+        display: block;
       }
       .libertad-zen-title {
-        font-size: 22px;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-        margin-bottom: 10px;
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.2px;
+        margin: 0 0 8px 0;
         color: var(--yt-spec-text-primary, #ffffff);
       }
       .libertad-zen-desc {
-        font-size: 14px;
+        font-size: 13px;
         line-height: 1.5;
-        color: var(--yt-spec-text-secondary, #aaaaaa);
+        color: var(--yt-spec-text-secondary, #8b949e);
         margin: 0;
       }
     `);
@@ -209,9 +234,19 @@
           zen.id = ZEN_CONTAINER_ID;
           zen.innerHTML = `
             <div class="libertad-zen-card">
-              <span class="libertad-zen-icon">🕊️</span>
-              <div class="libertad-zen-title">Focus Mode Active</div>
-              <p class="libertad-zen-desc">Home feed is hidden so you can focus on what matters. Search above to find what you came for.</p>
+              <div class="libertad-zen-badge">SYSTEM // FOCUS_ENGAGED</div>
+              <div class="libertad-zen-icon-wrapper">
+                <svg class="libertad-zen-svg" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9"/>
+                  <line x1="12" y1="2" x2="12" y2="6"/>
+                  <line x1="12" y1="18" x2="12" y2="22"/>
+                  <line x1="2" y1="12" x2="6" y2="12"/>
+                  <line x1="18" y1="12" x2="22" y2="12"/>
+                  <circle cx="12" cy="12" r="2.5"/>
+                </svg>
+              </div>
+              <div class="libertad-zen-title">Intentional Mode Active</div>
+              <p class="libertad-zen-desc">Feed recommendations suppressed. Execute a search query above to locate specific content.</p>
             </div>
           `;
           targetContainer.prepend(zen);

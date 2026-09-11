@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Libertad</title>
+  <title>Libertad Focus</title>
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
@@ -15,45 +15,49 @@
           <img src="icons/icon48.png" alt="Libertad Logo" />
         </div>
         <div class="brand-info">
-          <h1 class="brand-name">Libertad</h1>
-          <span class="brand-tagline">YouTube Focus</span>
+          <h1 class="brand-name">LIBERTAD</h1>
+          <span class="brand-tagline">FOCUS ENGINE // v1.0</span>
         </div>
       </div>
       <div class="status-pill" id="statusPill">
         <span class="status-dot"></span>
-        <span class="status-text" id="statusText">Active</span>
+        <span class="status-text" id="statusText">ACTIVE</span>
       </div>
     </header>
 
     <!-- Presets Section -->
     <section class="section">
-      <div class="section-label">Focus Mode</div>
+      <div class="section-label">FOCUS PRESET</div>
       <div class="preset-grid" id="presetGroup">
-        <button class="preset-btn" data-preset="off">Off</button>
-        <button class="preset-btn" data-preset="basic">Basic</button>
-        <button class="preset-btn" data-preset="balanced">Balanced</button>
-        <button class="preset-btn" data-preset="extreme">Extreme</button>
+        <button class="preset-btn" data-preset="off">OFF</button>
+        <button class="preset-btn" data-preset="basic">BASIC</button>
+        <button class="preset-btn" data-preset="balanced">BALANCED</button>
+        <button class="preset-btn" data-preset="extreme">EXTREME</button>
       </div>
       <div class="preset-desc" id="presetDesc">
-        Hides sidebar, comments, shorts, and end screens.
+        Suppresses sidebar recommendations, comments, shorts feeds, and endscreens.
       </div>
     </section>
 
     <!-- Custom Options Collapsible -->
     <section class="section custom-section">
       <div class="accordion-header" id="customAccordionBtn" role="button" tabindex="0" aria-expanded="true" aria-controls="togglesList">
-        <div class="section-label">Fine-tune Features</div>
-        <span class="accordion-icon" id="accordionIcon">▾</span>
+        <div class="section-label">PARAMETERS // FINE-TUNE</div>
+        <span class="accordion-icon" id="accordionIcon">
+          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6l5 5 5-5"/>
+          </svg>
+        </span>
       </div>
       <div class="toggles-list" id="togglesList">
         <!-- Toggle Item: Home Feed -->
         <label class="toggle-item" for="toggleHomeFeed">
           <div class="toggle-info">
             <span class="toggle-title">Home Feed</span>
-            <span class="toggle-desc">Hide infinite home page recommendations</span>
+            <span class="toggle-desc">Suppress infinite recommendations grid</span>
           </div>
           <div class="switch">
-            <input type="checkbox" id="toggleHomeFeed" aria-label="Hide Home Feed" />
+            <input type="checkbox" id="toggleHomeFeed" aria-label="Suppress Home Feed" />
             <span class="slider"></span>
           </div>
         </label>
@@ -62,10 +66,10 @@
         <label class="toggle-item" for="toggleSidebar">
           <div class="toggle-info">
             <span class="toggle-title">Related Sidebar</span>
-            <span class="toggle-desc">Hide watch-next suggested videos</span>
+            <span class="toggle-desc">Suppress watch-next suggested videos</span>
           </div>
           <div class="switch">
-            <input type="checkbox" id="toggleSidebar" aria-label="Hide Related Sidebar" />
+            <input type="checkbox" id="toggleSidebar" aria-label="Suppress Related Sidebar" />
             <span class="slider"></span>
           </div>
         </label>
@@ -74,10 +78,10 @@
         <label class="toggle-item" for="toggleComments">
           <div class="toggle-info">
             <span class="toggle-title">Comments</span>
-            <span class="toggle-desc">Hide video comments section</span>
+            <span class="toggle-desc">Suppress video comments section</span>
           </div>
           <div class="switch">
-            <input type="checkbox" id="toggleComments" aria-label="Hide Comments" />
+            <input type="checkbox" id="toggleComments" aria-label="Suppress Comments" />
             <span class="slider"></span>
           </div>
         </label>
@@ -86,10 +90,10 @@
         <label class="toggle-item" for="toggleShorts">
           <div class="toggle-info">
             <span class="toggle-title">Shorts</span>
-            <span class="toggle-desc">Hide shorts tab, links, and shelves</span>
+            <span class="toggle-desc">Suppress shorts tab, shelves, and navigation</span>
           </div>
           <div class="switch">
-            <input type="checkbox" id="toggleShorts" aria-label="Hide Shorts" />
+            <input type="checkbox" id="toggleShorts" aria-label="Suppress Shorts" />
             <span class="slider"></span>
           </div>
         </label>
@@ -98,10 +102,10 @@
         <label class="toggle-item" for="toggleEndScreens">
           <div class="toggle-info">
             <span class="toggle-title">End Screens</span>
-            <span class="toggle-desc">Hide popups and cards at the end of videos</span>
+            <span class="toggle-desc">Suppress popup cards at video conclusion</span>
           </div>
           <div class="switch">
-            <input type="checkbox" id="toggleEndScreens" aria-label="Hide End Screens" />
+            <input type="checkbox" id="toggleEndScreens" aria-label="Suppress End Screens" />
             <span class="slider"></span>
           </div>
         </label>
@@ -110,11 +114,11 @@
 
     <!-- Extra Tools -->
     <section class="section extra-section">
-      <div class="section-label">Extras</div>
+      <div class="section-label">AUXILIARY MODULES</div>
       <label class="toggle-item extra-item" for="toggleDislikes">
         <div class="toggle-info">
           <span class="toggle-title">Restore Dislikes</span>
-          <span class="toggle-desc">Show dislike count under videos</span>
+          <span class="toggle-desc">Display public dislike count on action bar</span>
         </div>
         <div class="switch">
           <input type="checkbox" id="toggleDislikes" aria-label="Restore Dislikes" />
@@ -124,7 +128,7 @@
       <label class="toggle-item extra-item" for="toggleUntranslate">
         <div class="toggle-info">
           <span class="toggle-title">Untranslate Titles</span>
-          <span class="toggle-desc">Prevent automatic video title translation</span>
+          <span class="toggle-desc">Preserve creator's original video title</span>
         </div>
         <div class="switch">
           <input type="checkbox" id="toggleUntranslate" aria-label="Untranslate Video Titles" />
@@ -135,8 +139,8 @@
 
     <!-- Footer -->
     <footer class="footer">
-      <span>Reclaim your time</span>
-      <button class="reset-link" id="resetBtn">Reset</button>
+      <span class="footer-meta">DISTRACTION-FREE SYSTEM</span>
+      <button class="reset-link" id="resetBtn">RESET CONFIG</button>
     </footer>
   </div>
 
