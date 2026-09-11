@@ -466,9 +466,33 @@
     });
   }
 
-  // -----------------------------------------------------------
-  // Feed & Thumbnail Untranslation Engine
-  // -----------------------------------------------------------
+  // Universal selector covering both legacy Polymer (#video-title) and modern Lockup ViewModels (Wiz)
+  function getAllVideoTitleNodes() {
+    const nodes = [];
+
+    // 1. Classic Polymer title elements
+    document.querySelectorAll('#video-title, yt-formatted-string#video-title, span#video-title, a#video-title').forEach((el) => {
+      if (!el.closest('ytd-watch-metadata, #above-the-fold') && !nodes.includes(el)) {
+        nodes.push(el);
+      }
+    });
+
+    // 2. Modern YouTube Lockup ViewModels (2024+) & heading links
+    document.querySelectorAll(
+      'h3 a[href*="watch?v="], h3 a[href*="/shorts/"], [class*="lockup"] a[href*="watch?v="], [class*="lockup"] a[href*="/shorts/"], a.yt-lockup-metadata-view-model-wiz__title'
+    ).forEach((a) => {
+      if (a.closest('ytd-watch-metadata, #above-the-fold')) return;
+
+      // Locate the innermost text-bearing element
+      const inner = a.querySelector('#video-title, yt-formatted-string, span[role="text"], .yt-core-attributed-string, span');
+      const target = inner || a;
+      if (!nodes.includes(target)) {
+        nodes.push(target);
+      }
+    });
+
+    return nodes;
+  }
 
   // Extract video ID accurately from a title element or its parent card
   function extractVideoId(el) {
@@ -489,10 +513,10 @@
 
     // Check thumbnail link in the containing card
     const card = el.closest(
-      'ytd-rich-item-renderer, ytd-rich-grid-media, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, ytd-playlist-video-renderer, ytd-reel-item-renderer, ytd-item-section-renderer'
+      'ytd-rich-item-renderer, ytd-rich-grid-media, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, ytd-playlist-video-renderer, ytd-reel-item-renderer, [class*="lockup"], [class*="item-section"]'
     );
     if (card) {
-      const link = card.querySelector('a#thumbnail, a#video-title-link, a.ytd-thumbnail, a[href*="watch?v="], a[href*="/shorts/"]');
+      const link = card.querySelector('a[href*="watch?v="], a[href*="/shorts/"], a#thumbnail, a#video-title-link, a.ytd-thumbnail');
       if (link && link.href) {
         const m = link.href.match(/[?&]v=([^&]+)/) || link.href.match(/\/shorts\/([^?&]+)/);
         if (m) return m[1];
@@ -509,6 +533,13 @@
     // Avoid redundant work if already applied
     if (titleNode.dataset.libertadApplied === videoId && titleNode.textContent.trim() === cleanTitle) {
       return;
+    }
+
+    // If titleNode contains an inner text-bearing span (e.g. yt-core-attributed-string)
+    const childSpan = titleNode.querySelector('span[role="text"], .yt-core-attributed-string, span');
+    if (childSpan && childSpan !== titleNode) {
+      childSpan.innerText = cleanTitle;
+      childSpan.textContent = cleanTitle;
     }
 
     // Update inner text on the actual title container
@@ -529,15 +560,9 @@
   // Update all matching elements in the DOM for a given video ID
   function updateFeedElementsForVideoId(videoId, origTitle) {
     const clean = origTitle.trim();
-
-    // Query all video title containers
-    const titleNodes = document.querySelectorAll(
-      '#video-title, yt-formatted-string#video-title, span#video-title, a#video-title'
-    );
+    const titleNodes = getAllVideoTitleNodes();
 
     titleNodes.forEach((node) => {
-      if (node.closest('ytd-watch-metadata, #above-the-fold')) return;
-
       const vId = extractVideoId(node);
       if (vId === videoId) {
         applyTitleToNode(node, clean, videoId);
@@ -572,15 +597,9 @@
   function untranslateFeed() {
     if (!currentSettings.untranslateTitles) return;
 
-    // Target ONLY actual text containers across YouTube
-    const titleNodes = document.querySelectorAll(
-      '#video-title, yt-formatted-string#video-title, span#video-title, a#video-title'
-    );
+    const titleNodes = getAllVideoTitleNodes();
 
     titleNodes.forEach((node) => {
-      // Skip watch page primary title
-      if (node.closest('ytd-watch-metadata, #above-the-fold')) return;
-
       const videoId = extractVideoId(node);
       if (!videoId) return;
 
