@@ -4,9 +4,7 @@
   "version": "1.0",
   "description": "Reclaim your attention. Eliminate distractions, recommendations, shorts, and customize your YouTube experience.",
   "permissions": [
-    "storage",
-    "activeTab",
-    "scripting"
+    "storage"
   ],
   "host_permissions": [
     "*://*.youtube.com/*",

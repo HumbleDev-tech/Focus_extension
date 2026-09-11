@@ -9,38 +9,6 @@ const DEFAULT_SETTINGS = {
   showDislikes: true
 };
 
-// Preset definition mappings
-const PRESETS = {
-  off: {
-    hideHomeFeed: false,
-    hideSidebar: false,
-    hideComments: false,
-    hideShorts: false,
-    hideEndScreens: false
-  },
-  basic: {
-    hideHomeFeed: false,
-    hideSidebar: false,
-    hideComments: true,
-    hideShorts: false,
-    hideEndScreens: true
-  },
-  balanced: {
-    hideHomeFeed: false,
-    hideSidebar: true,
-    hideComments: true,
-    hideShorts: true,
-    hideEndScreens: true
-  },
-  extreme: {
-    hideHomeFeed: true,
-    hideSidebar: true,
-    hideComments: true,
-    hideShorts: true,
-    hideEndScreens: true
-  }
-};
-
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     chrome.storage.sync.set(DEFAULT_SETTINGS, () => {

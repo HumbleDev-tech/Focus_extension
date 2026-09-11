@@ -173,10 +173,19 @@ document.addEventListener('DOMContentLoaded', () => {
     saveState();
   });
 
-  // Accordion toggle
-  customAccordionBtn.addEventListener('click', () => {
-    customAccordionBtn.classList.toggle('collapsed');
+  // Accordion toggle with a11y support
+  function toggleAccordion() {
+    const isCollapsed = customAccordionBtn.classList.toggle('collapsed');
     togglesList.classList.toggle('collapsed');
+    customAccordionBtn.setAttribute('aria-expanded', String(!isCollapsed));
+  }
+
+  customAccordionBtn.addEventListener('click', toggleAccordion);
+  customAccordionBtn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleAccordion();
+    }
   });
 
   // Reset to default

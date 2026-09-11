@@ -41,67 +41,67 @@
 
     <!-- Custom Options Collapsible -->
     <section class="section custom-section">
-      <div class="accordion-header" id="customAccordionBtn">
+      <div class="accordion-header" id="customAccordionBtn" role="button" tabindex="0" aria-expanded="true" aria-controls="togglesList">
         <div class="section-label">Fine-tune Features</div>
         <span class="accordion-icon" id="accordionIcon">▾</span>
       </div>
       <div class="toggles-list" id="togglesList">
         <!-- Toggle Item: Home Feed -->
-        <label class="toggle-item">
+        <label class="toggle-item" for="toggleHomeFeed">
           <div class="toggle-info">
             <span class="toggle-title">Home Feed</span>
             <span class="toggle-desc">Hide infinite home page recommendations</span>
           </div>
           <div class="switch">
-            <input type="checkbox" id="toggleHomeFeed" />
+            <input type="checkbox" id="toggleHomeFeed" aria-label="Hide Home Feed" />
             <span class="slider"></span>
           </div>
         </label>
 
         <!-- Toggle Item: Sidebar -->
-        <label class="toggle-item">
+        <label class="toggle-item" for="toggleSidebar">
           <div class="toggle-info">
             <span class="toggle-title">Related Sidebar</span>
             <span class="toggle-desc">Hide watch-next suggested videos</span>
           </div>
           <div class="switch">
-            <input type="checkbox" id="toggleSidebar" />
+            <input type="checkbox" id="toggleSidebar" aria-label="Hide Related Sidebar" />
             <span class="slider"></span>
           </div>
         </label>
 
         <!-- Toggle Item: Comments -->
-        <label class="toggle-item">
+        <label class="toggle-item" for="toggleComments">
           <div class="toggle-info">
             <span class="toggle-title">Comments</span>
             <span class="toggle-desc">Hide video comments section</span>
           </div>
           <div class="switch">
-            <input type="checkbox" id="toggleComments" />
+            <input type="checkbox" id="toggleComments" aria-label="Hide Comments" />
             <span class="slider"></span>
           </div>
         </label>
 
         <!-- Toggle Item: Shorts -->
-        <label class="toggle-item">
+        <label class="toggle-item" for="toggleShorts">
           <div class="toggle-info">
             <span class="toggle-title">Shorts</span>
             <span class="toggle-desc">Hide shorts tab, links, and shelves</span>
           </div>
           <div class="switch">
-            <input type="checkbox" id="toggleShorts" />
+            <input type="checkbox" id="toggleShorts" aria-label="Hide Shorts" />
             <span class="slider"></span>
           </div>
         </label>
 
         <!-- Toggle Item: Endscreens -->
-        <label class="toggle-item">
+        <label class="toggle-item" for="toggleEndScreens">
           <div class="toggle-info">
             <span class="toggle-title">End Screens</span>
             <span class="toggle-desc">Hide popups and cards at the end of videos</span>
           </div>
           <div class="switch">
-            <input type="checkbox" id="toggleEndScreens" />
+            <input type="checkbox" id="toggleEndScreens" aria-label="Hide End Screens" />
             <span class="slider"></span>
           </div>
         </label>
@@ -111,13 +111,13 @@
     <!-- Extra Tools -->
     <section class="section extra-section">
       <div class="section-label">Extras</div>
-      <label class="toggle-item extra-item">
+      <label class="toggle-item extra-item" for="toggleDislikes">
         <div class="toggle-info">
           <span class="toggle-title">Restore Dislikes</span>
           <span class="toggle-desc">Show dislike count under videos</span>
         </div>
         <div class="switch">
-          <input type="checkbox" id="toggleDislikes" />
+          <input type="checkbox" id="toggleDislikes" aria-label="Restore Dislikes" />
           <span class="slider"></span>
         </div>
       </label>

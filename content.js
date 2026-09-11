@@ -285,15 +285,25 @@
     setTimeout(updateDislikeCount, 1500);
   });
 
-  // Fallback observer for dynamically loaded elements
+  // Optimized observer for dynamically loaded elements (throttled with requestAnimationFrame)
+  let isCheckingMutation = false;
   const observer = new MutationObserver(() => {
-    updateZenBanner(currentSettings);
-    if (currentSettings.showDislikes && window.location.pathname === '/watch') {
-      const dislikeBtn = document.querySelector('#segmented-dislike-button button');
-      if (dislikeBtn && !dislikeBtn.querySelector('.libertad-dislike-badge')) {
-        updateDislikeCount();
+    if (isCheckingMutation) return;
+    isCheckingMutation = true;
+
+    window.requestAnimationFrame(() => {
+      isCheckingMutation = false;
+      updateZenBanner(currentSettings);
+
+      if (currentSettings.showDislikes && window.location.pathname === '/watch') {
+        const dislikeBtn = document.querySelector('ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button') ||
+                            document.querySelector('dislike-button-view-model button') ||
+                            document.querySelector('#segmented-dislike-button button');
+        if (dislikeBtn && !dislikeBtn.querySelector('.libertad-dislike-badge')) {
+          updateDislikeCount();
+        }
       }
-    }
+    });
   });
 
   observer.observe(document.documentElement, {
