@@ -1,6 +1,6 @@
 /**
  * Libertad - YouTube Content Engine
- * Injects dynamic CSS rules, manages Zen mode, and displays dislike counts.
+ * Injects dynamic CSS rules, manages Zen mode, restores Dislikes, and untranslates video titles.
  */
 
 (function () {
@@ -17,8 +17,15 @@
     hideComments: true,
     hideShorts: true,
     hideEndScreens: true,
-    showDislikes: true
+    showDislikes: true,
+    untranslateTitles: true
   };
+
+  // Caches to prevent duplicate network calls
+  const dislikeCache = new Map();
+  const titlesCache = new Map();
+  let isFetchingDislikes = false;
+  let isFetchingTitle = false;
 
   // Build high-efficiency CSS rules based on settings
   function buildStylesheet(settings) {
@@ -88,6 +95,37 @@
       `);
     }
 
+    // Dislike Button Fix & Expansion
+    rules.push(`
+      /* Ensure Dislike button container allows text expansion and proper padding */
+      ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button,
+      segmented-like-dislike-button-view-model dislike-button-view-model button,
+      dislike-button-view-model button,
+      #segmented-dislike-button button,
+      #dislike-button button {
+        width: auto !important;
+        min-width: 48px !important;
+        padding-left: 8px !important;
+        padding-right: 12px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      .libertad-dislike-badge {
+        display: inline-flex !important;
+        align-items: center !important;
+        font-family: "Roboto", "Segoe UI", Arial, sans-serif !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        line-height: 1 !important;
+        color: inherit !important;
+        margin-left: 6px !important;
+        pointer-events: none !important;
+        white-space: nowrap !important;
+      }
+    `);
+
     // Libertad UI Elements styling
     rules.push(`
       #libertad-zen-container {
@@ -132,15 +170,6 @@
         line-height: 1.5;
         color: var(--yt-spec-text-secondary, #aaaaaa);
         margin: 0;
-      }
-      .libertad-dislike-badge {
-        display: inline-flex;
-        align-items: center;
-        font-size: 14px;
-        font-weight: 500;
-        margin-left: 6px;
-        color: inherit;
-        pointer-events: none;
       }
     `);
 
@@ -189,7 +218,7 @@
     }
   }
 
-  // Format dislike count (e.g. 1500 -> 1.5K)
+  // Format number (e.g. 1500 -> 1.5K)
   function formatNumber(num) {
     if (typeof num !== 'number') return '';
     if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
@@ -197,8 +226,49 @@
     return num.toString();
   }
 
+  // Find modern YouTube dislike button
+  function findDislikeButton() {
+    return (
+      document.querySelector('ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button') ||
+      document.querySelector('segmented-like-dislike-button-view-model dislike-button-view-model button') ||
+      document.querySelector('dislike-button-view-model button') ||
+      document.querySelector('#segmented-dislike-button button') ||
+      document.querySelector('like-button-view-model + dislike-button-view-model button') ||
+      document.querySelector('#dislike-button button')
+    );
+  }
+
+  // Inject or update the dislike badge
+  function injectDislikeBadge(button, formattedCount) {
+    // Remove icon-only constraint class so YouTube's flex layout accommodates text
+    button.classList.remove('yt-spec-button-shape-next--icon-button');
+    button.classList.add('yt-spec-button-shape-next--icon-leading');
+
+    let textWrapper = button.querySelector('.yt-spec-button-shape-next__button-text-content');
+    if (!textWrapper) {
+      textWrapper = button.querySelector('.libertad-dislike-badge');
+    }
+
+    if (!textWrapper) {
+      textWrapper = document.createElement('div');
+      textWrapper.className = 'yt-spec-button-shape-next__button-text-content libertad-dislike-badge';
+      button.appendChild(textWrapper);
+    } else {
+      textWrapper.classList.add('libertad-dislike-badge');
+    }
+
+    if (textWrapper.textContent !== formattedCount) {
+      textWrapper.textContent = formattedCount;
+    }
+    button.setAttribute('aria-label', `Dislike (${formattedCount})`);
+  }
+
+  function removeDislikeBadge() {
+    const badges = document.querySelectorAll('.libertad-dislike-badge');
+    badges.forEach((b) => b.remove());
+  }
+
   // Dislike restoration logic
-  let lastFetchedVideoId = null;
   function updateDislikeCount() {
     if (!currentSettings.showDislikes) {
       removeDislikeBadge();
@@ -212,48 +282,130 @@
       return;
     }
 
-    // Try finding the dislike button container
-    const dislikeButton = document.querySelector('ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button') ||
-                          document.querySelector('dislike-button-view-model button') ||
-                          document.querySelector('#segmented-dislike-button button');
+    const dislikeButton = findDislikeButton();
+    if (!dislikeButton) return;
 
-    if (!dislikeButton) {
+    // Fast path: use cache
+    if (dislikeCache.has(videoId)) {
+      injectDislikeBadge(dislikeButton, dislikeCache.get(videoId));
       return;
     }
 
-    if (lastFetchedVideoId === videoId && dislikeButton.querySelector('.libertad-dislike-badge')) {
-      return;
-    }
+    if (isFetchingDislikes) return;
+    isFetchingDislikes = true;
 
-    lastFetchedVideoId = videoId;
-
-    // Fetch dislike count via background service worker
-    chrome.runtime.sendMessage({ action: 'FETCH_DISLIKES', videoId }, (response) => {
-      if (chrome.runtime.lastError || !response || !response.success || !response.data) {
-        return;
-      }
-
-      const dislikes = response.data.dislikes;
-      if (dislikes === undefined) return;
-
-      const formatted = formatNumber(dislikes);
-      injectDislikeBadge(dislikeButton, formatted);
+    // Query via background service worker, with direct fetch fallback
+    const fetchPromise = new Promise((resolve) => {
+      chrome.runtime.sendMessage({ action: 'FETCH_DISLIKES', videoId }, (res) => {
+        if (!chrome.runtime.lastError && res && res.success && res.data) {
+          resolve(res.data);
+        } else {
+          // Direct fetch fallback
+          fetch(`https://returnyoutubedislikeapi.com/votes?videoId=${encodeURIComponent(videoId)}`)
+            .then((r) => r.json())
+            .then((data) => resolve(data))
+            .catch(() => resolve(null));
+        }
+      });
     });
+
+    fetchPromise
+      .then((data) => {
+        isFetchingDislikes = false;
+        if (data && typeof data.dislikes === 'number') {
+          const formatted = formatNumber(data.dislikes);
+          dislikeCache.set(videoId, formatted);
+          const currentBtn = findDislikeButton();
+          if (currentBtn) {
+            injectDislikeBadge(currentBtn, formatted);
+          }
+        }
+      })
+      .catch(() => {
+        isFetchingDislikes = false;
+      });
   }
 
-  function injectDislikeBadge(button, formattedCount) {
-    let badge = button.querySelector('.libertad-dislike-badge');
-    if (!badge) {
-      badge = document.createElement('span');
-      badge.className = 'libertad-dislike-badge';
-      button.appendChild(badge);
+  // Find video title element on watch page
+  function findTitleElement() {
+    return (
+      document.querySelector('h1.ytd-watch-metadata yt-formatted-string') ||
+      document.querySelector('#title.ytd-watch-metadata yt-formatted-string') ||
+      document.querySelector('ytd-watch-metadata h1 yt-formatted-string') ||
+      document.querySelector('#title.ytd-watch-flexy h1') ||
+      document.querySelector('#container > h1 > yt-formatted-string')
+    );
+  }
+
+  // Apply original untranslated title
+  function applyFoundTitle(videoId, title) {
+    if (!title || !title.trim()) return;
+    const cleanTitle = title.trim();
+    titlesCache.set(videoId, cleanTitle);
+
+    const titleEl = findTitleElement();
+    if (titleEl && titleEl.textContent.trim() !== cleanTitle) {
+      titleEl.textContent = cleanTitle;
+      titleEl.setAttribute('title', cleanTitle);
     }
-    badge.textContent = formattedCount;
+    if (document.title && !document.title.startsWith(cleanTitle)) {
+      document.title = `${cleanTitle} - YouTube`;
+    }
   }
 
-  function removeDislikeBadge() {
-    const badges = document.querySelectorAll('.libertad-dislike-badge');
-    badges.forEach(b => b.remove());
+  // Untranslate title logic
+  function updateUntranslatedTitle() {
+    if (!currentSettings.untranslateTitles) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoId = urlParams.get('v');
+    if (!videoId) return;
+
+    const titleEl = findTitleElement();
+
+    // Fast path: cached original title
+    if (titlesCache.has(videoId)) {
+      const original = titlesCache.get(videoId);
+      if (titleEl && titleEl.textContent.trim() !== original) {
+        titleEl.textContent = original;
+        titleEl.setAttribute('title', original);
+      }
+      if (document.title && !document.title.startsWith(original)) {
+        document.title = `${original} - YouTube`;
+      }
+      return;
+    }
+
+    // Try reading page meta tags (often loaded initially with the original title)
+    const metaTitle = document.querySelector('meta[name="title"]')?.getAttribute('content');
+    const metaOg = document.querySelector('meta[property="og:title"]')?.getAttribute('content');
+    const candidate = metaTitle || metaOg;
+
+    if (candidate && candidate.trim() && candidate !== 'YouTube' && !candidate.endsWith(' - YouTube')) {
+      applyFoundTitle(videoId, candidate);
+      return;
+    }
+
+    if (isFetchingTitle) return;
+    isFetchingTitle = true;
+
+    // Fetch official oEmbed (returns the author's original untranslated title)
+    chrome.runtime.sendMessage({ action: 'FETCH_ORIGINAL_TITLE', videoId }, (res) => {
+      isFetchingTitle = false;
+      if (!chrome.runtime.lastError && res && res.success && res.title) {
+        applyFoundTitle(videoId, res.title);
+      } else {
+        // Direct oEmbed fallback
+        fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}&format=json`)
+          .then((r) => r.json())
+          .then((data) => {
+            if (data && data.title) {
+              applyFoundTitle(videoId, data.title);
+            }
+          })
+          .catch(() => {});
+      }
+    });
   }
 
   // Initialize and load saved settings
@@ -263,6 +415,7 @@
     }
     applyStyles(currentSettings);
     updateDislikeCount();
+    updateUntranslatedTitle();
   });
 
   // Listen for storage changes in real time (e.g. from popup clicks)
@@ -273,16 +426,22 @@
       }
       applyStyles(currentSettings);
       updateDislikeCount();
+      updateUntranslatedTitle();
     }
   });
 
   // Handle YouTube SPA Navigation events
   window.addEventListener('yt-navigate-finish', () => {
-    lastFetchedVideoId = null;
     applyStyles(currentSettings);
-    // Give YouTube a short moment to render the action buttons
-    setTimeout(updateDislikeCount, 500);
-    setTimeout(updateDislikeCount, 1500);
+    // Give YouTube a moment to mount the watch UI components
+    setTimeout(() => {
+      updateDislikeCount();
+      updateUntranslatedTitle();
+    }, 400);
+    setTimeout(() => {
+      updateDislikeCount();
+      updateUntranslatedTitle();
+    }, 1200);
   });
 
   // Optimized observer for dynamically loaded elements (throttled with requestAnimationFrame)
@@ -295,12 +454,15 @@
       isCheckingMutation = false;
       updateZenBanner(currentSettings);
 
-      if (currentSettings.showDislikes && window.location.pathname === '/watch') {
-        const dislikeBtn = document.querySelector('ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button') ||
-                            document.querySelector('dislike-button-view-model button') ||
-                            document.querySelector('#segmented-dislike-button button');
-        if (dislikeBtn && !dislikeBtn.querySelector('.libertad-dislike-badge')) {
-          updateDislikeCount();
+      if (window.location.pathname === '/watch') {
+        if (currentSettings.showDislikes) {
+          const dislikeBtn = findDislikeButton();
+          if (dislikeBtn && !dislikeBtn.querySelector('.libertad-dislike-badge')) {
+            updateDislikeCount();
+          }
+        }
+        if (currentSettings.untranslateTitles) {
+          updateUntranslatedTitle();
         }
       }
     });

@@ -20,7 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     hideComments: document.getElementById('toggleComments'),
     hideShorts: document.getElementById('toggleShorts'),
     hideEndScreens: document.getElementById('toggleEndScreens'),
-    showDislikes: document.getElementById('toggleDislikes')
+    showDislikes: document.getElementById('toggleDislikes'),
+    untranslateTitles: document.getElementById('toggleUntranslate')
   };
 
   // Preset Configurations
@@ -67,7 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
     hideComments: true,
     hideShorts: true,
     hideEndScreens: true,
-    showDislikes: true
+    showDislikes: true,
+    untranslateTitles: true
   };
 
   // Load state from chrome.storage.sync
@@ -87,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     toggles.hideShorts.checked = !!state.hideShorts;
     toggles.hideEndScreens.checked = !!state.hideEndScreens;
     toggles.showDislikes.checked = !!state.showDislikes;
+    toggles.untranslateTitles.checked = !!state.untranslateTitles;
 
     // Detect matched preset
     const detectedPreset = detectMatchingPreset();
@@ -173,6 +176,12 @@ document.addEventListener('DOMContentLoaded', () => {
     saveState();
   });
 
+  // Untranslate titles toggle
+  toggles.untranslateTitles.addEventListener('change', (e) => {
+    state.untranslateTitles = e.target.checked;
+    saveState();
+  });
+
   // Accordion toggle with a11y support
   function toggleAccordion() {
     const isCollapsed = customAccordionBtn.classList.toggle('collapsed');
@@ -197,7 +206,8 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: true,
       hideShorts: true,
       hideEndScreens: true,
-      showDislikes: true
+      showDislikes: true,
+      untranslateTitles: true
     };
     saveState();
   });

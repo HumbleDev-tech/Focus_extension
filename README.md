@@ -15,6 +15,8 @@
   - Toggle individual components (Home Feed, Related Sidebar, Comments, Shorts, Endscreens).
 - **👎 Return YouTube Dislikes**:
   - Restores dislike counts directly on the video action bar using the official Return YouTube Dislike API.
+- **🌐 Anti-Auto-Translate (Untranslate Titles)**:
+  - Prevents YouTube from automatically translating video titles into your local language, preserving original creator titles and video intent.
 - **🚀 Ultra-fast & Zero-Flicker**:
   - Injects dynamic CSS at `document_start` to prevent content flashing (FOUC).
   - Listens to YouTube SPA navigation events (`yt-navigate-finish`) for seamless single-page application browsing.
