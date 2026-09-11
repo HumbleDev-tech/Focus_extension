@@ -1,6 +1,7 @@
 /**
  * Libertad - Popup Interaction Controller
- * Handles presets, custom configuration memory, and dynamic themes (Dark, Light, OLED).
+ * Handles presets, custom configuration memory, dynamic themes (Dark, Light, OLED),
+ * and bilingual internationalization (English, Spanish).
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -10,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const presetButtons = document.querySelectorAll('.preset-btn');
   const presetDesc = document.getElementById('presetDesc');
   const themeButtons = document.querySelectorAll('.theme-btn');
+  const langButtons = document.querySelectorAll('.lang-btn');
+  const i18nElements = document.querySelectorAll('[data-i18n]');
 
   const customAccordionBtn = document.getElementById('customAccordionBtn');
   const togglesList = document.getElementById('togglesList');
@@ -34,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: false,
       hideShorts: false,
       hideEndScreens: false,
-      desc: 'Default YouTube state. All algorithmic feeds and recommendations visible.'
+      descKey: 'descOff'
     },
     basic: {
       hideHomeFeed: false,
@@ -42,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: true,
       hideShorts: false,
       hideEndScreens: true,
-      desc: 'Suppresses comments and endscreen interactive video overlays.'
+      descKey: 'descBasic'
     },
     balanced: {
       hideHomeFeed: false,
@@ -50,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: true,
       hideShorts: true,
       hideEndScreens: true,
-      desc: 'Suppresses sidebar recommendations, comments, shorts feeds, and endscreens.'
+      descKey: 'descBalanced'
     },
     extreme: {
       hideHomeFeed: true,
@@ -58,16 +61,17 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: true,
       hideShorts: true,
       hideEndScreens: true,
-      desc: 'Zero clutter. Suppresses home feed, sidebar, comments, and shorts. Focus reticle active.'
+      descKey: 'descExtreme'
     },
     custom: {
-      desc: 'User tailored configuration. Remembers your personalized preference matrix.'
+      descKey: 'descCustom'
     }
   };
 
   // State
   let state = {
     theme: 'dark',
+    lang: (navigator.language && navigator.language.startsWith('es')) ? 'es' : 'en',
     preset: 'balanced',
     hideHomeFeed: false,
     hideSidebar: true,
@@ -85,10 +89,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // Helper for safe translation
+  function t(key) {
+    if (typeof getTranslation === 'function') {
+      return getTranslation(key, state.lang);
+    }
+    return key;
+  }
+
   // Load state from chrome.storage.sync
   chrome.storage.sync.get(null, (saved) => {
     if (saved && Object.keys(saved).length > 0) {
       state = { ...state, ...saved };
+      if (!state.lang || state.lang === 'auto') {
+        state.lang = (navigator.language && navigator.language.startsWith('es')) ? 'es' : 'en';
+      }
       if (!state.customConfig) {
         state.customConfig = {
           hideHomeFeed: state.hideHomeFeed,
@@ -112,6 +127,24 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.classList.add('active');
       } else {
         btn.classList.remove('active');
+      }
+    });
+
+    // Apply Language
+    const activeLang = state.lang || 'en';
+    langButtons.forEach((btn) => {
+      if (btn.getAttribute('data-lang') === activeLang) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    // Update all elements with data-i18n
+    i18nElements.forEach((el) => {
+      const key = el.getAttribute('data-i18n');
+      if (key) {
+        el.textContent = t(key);
       }
     });
 
@@ -144,19 +177,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Preset description
     if (PRESET_MAP[state.preset]) {
-      presetDesc.textContent = PRESET_MAP[state.preset].desc;
+      presetDesc.textContent = t(PRESET_MAP[state.preset].descKey);
     } else {
-      presetDesc.textContent = 'Custom parameter matrix active.';
+      presetDesc.textContent = t('descCustom');
     }
 
     // Status pill
     const isOff = state.preset === 'off' || (!state.hideHomeFeed && !state.hideSidebar && !state.hideComments && !state.hideShorts && !state.hideEndScreens);
     if (isOff) {
       statusPill.classList.add('is-off');
-      statusText.textContent = 'OFF';
+      statusText.textContent = t('statusOff');
     } else {
       statusPill.classList.remove('is-off');
-      statusText.textContent = state.preset.toUpperCase();
+      const presetKeyMap = {
+        off: 'presetOff',
+        basic: 'presetBasic',
+        balanced: 'presetBalanced',
+        extreme: 'presetExtreme',
+        custom: 'presetCustom'
+      };
+      const pKey = presetKeyMap[state.preset];
+      statusText.textContent = pKey ? t(pKey) : state.preset.toUpperCase();
     }
   }
 
@@ -190,6 +231,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const chosenTheme = btn.getAttribute('data-theme');
       state.theme = chosenTheme;
       document.documentElement.setAttribute('data-theme', chosenTheme);
+      saveState();
+    });
+  });
+
+  // Language button clicks
+  langButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const chosenLang = btn.getAttribute('data-lang');
+      state.lang = chosenLang;
       saveState();
     });
   });
@@ -272,6 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
   resetBtn.addEventListener('click', () => {
     state = {
       theme: state.theme || 'dark',
+      lang: state.lang || 'en',
       preset: 'balanced',
       hideHomeFeed: false,
       hideSidebar: true,

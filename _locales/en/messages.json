@@ -1,0 +1,14 @@
+{
+  "appName": {
+    "message": "Libertad - YouTube Focus & Distraction Free",
+    "description": "The name of the extension."
+  },
+  "appDesc": {
+    "message": "Reclaim your attention. Eliminate algorithmic traps, suppress distractions, and customize your YouTube experience.",
+    "description": "The description of the extension."
+  },
+  "actionTitle": {
+    "message": "Libertad Focus Controls",
+    "description": "The title shown on hover over the extension toolbar icon."
+  }
+}

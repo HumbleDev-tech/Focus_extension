@@ -231,8 +231,8 @@ body {
   box-shadow: none;
 }
 
-/* Theme Switcher Toolbar */
-.theme-bar {
+/* Controls Toolbar (Theme & Language) */
+.control-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -240,9 +240,16 @@ body {
   background: var(--bg-panel);
   border: 1px solid var(--border-line);
   border-radius: var(--radius-panel);
+  gap: 8px;
 }
 
-.theme-label {
+.control-subgroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.control-label {
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 700;
@@ -251,7 +258,7 @@ body {
   color: var(--text-muted);
 }
 
-.theme-grid {
+.segmented-control {
   display: flex;
   gap: 2px;
   background: var(--bg-inset);
@@ -260,7 +267,7 @@ body {
   border: 1px solid var(--border-subtle);
 }
 
-.theme-btn {
+.control-btn {
   background: transparent;
   border: 1px solid transparent;
   color: var(--text-secondary);
@@ -274,11 +281,11 @@ body {
   transition: var(--transition-tactile);
 }
 
-.theme-btn:hover {
+.control-btn:hover {
   color: var(--text-primary);
 }
 
-.theme-btn.active {
+.control-btn.active {
   background: var(--btn-active-bg);
   color: var(--btn-active-text);
   border-color: var(--btn-active-border);

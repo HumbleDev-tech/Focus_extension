@@ -18,7 +18,8 @@
     hideShorts: true,
     hideEndScreens: true,
     showDislikes: true,
-    untranslateTitles: true
+    untranslateTitles: true,
+    lang: 'auto'
   };
 
   // Caches and queues
@@ -225,30 +226,41 @@
     const existing = document.getElementById(ZEN_CONTAINER_ID);
 
     if (settings.hideHomeFeed && isHomePage) {
-      if (!existing) {
+      const isSpanish = settings.lang === 'es' || (!settings.lang && typeof navigator !== 'undefined' && navigator.language && navigator.language.startsWith('es'));
+      const badgeText = isSpanish ? 'SISTEMA // ENFOQUE_ACTIVO' : 'SYSTEM // FOCUS_ENGAGED';
+      const titleText = isSpanish ? 'Modo Intencional Activo' : 'Intentional Mode Active';
+      const descText = isSpanish
+        ? 'Recomendaciones de feed suprimidas. Realiza una búsqueda arriba para encontrar contenido específico.'
+        : 'Feed recommendations suppressed. Execute a search query above to locate specific content.';
+
+      const cardHtml = `
+        <div class="libertad-zen-card">
+          <div class="libertad-zen-badge">${badgeText}</div>
+          <div class="libertad-zen-icon-wrapper">
+            <svg class="libertad-zen-svg" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <line x1="12" y1="2" x2="12" y2="6"/>
+              <line x1="12" y1="18" x2="12" y2="22"/>
+              <line x1="2" y1="12" x2="6" y2="12"/>
+              <line x1="18" y1="12" x2="22" y2="12"/>
+              <circle cx="12" cy="12" r="2.5"/>
+            </svg>
+          </div>
+          <div class="libertad-zen-title">${titleText}</div>
+          <p class="libertad-zen-desc">${descText}</p>
+        </div>
+      `;
+
+      if (existing) {
+        existing.innerHTML = cardHtml;
+      } else {
         const targetContainer = document.querySelector('ytd-browse[page-subtype="home"] #primary') ||
                                 document.querySelector('ytd-browse[page-subtype="home"]') ||
                                 document.querySelector('ytd-page-manager');
         if (targetContainer) {
           const zen = document.createElement('div');
           zen.id = ZEN_CONTAINER_ID;
-          zen.innerHTML = `
-            <div class="libertad-zen-card">
-              <div class="libertad-zen-badge">SYSTEM // FOCUS_ENGAGED</div>
-              <div class="libertad-zen-icon-wrapper">
-                <svg class="libertad-zen-svg" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="9"/>
-                  <line x1="12" y1="2" x2="12" y2="6"/>
-                  <line x1="12" y1="18" x2="12" y2="22"/>
-                  <line x1="2" y1="12" x2="6" y2="12"/>
-                  <line x1="18" y1="12" x2="22" y2="12"/>
-                  <circle cx="12" cy="12" r="2.5"/>
-                </svg>
-              </div>
-              <div class="libertad-zen-title">Intentional Mode Active</div>
-              <p class="libertad-zen-desc">Feed recommendations suppressed. Execute a search query above to locate specific content.</p>
-            </div>
-          `;
+          zen.innerHTML = cardHtml;
           targetContainer.prepend(zen);
         }
       }

@@ -15,9 +15,11 @@ FILES_TO_INCLUDE = [
     "popup.html",
     "popup.css",
     "popup.js",
+    "i18n.js",
 ]
 DIRS_TO_INCLUDE = [
     "icons",
+    "_locales",
 ]
 
 def create_package():

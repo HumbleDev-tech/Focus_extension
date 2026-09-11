@@ -2,6 +2,7 @@
 const DEFAULT_SETTINGS = {
   preset: 'balanced', // 'off', 'basic', 'balanced', 'extreme', 'custom'
   theme: 'dark',      // 'dark', 'light', 'oled'
+  lang: 'auto',       // 'auto', 'en', 'es'
   hideHomeFeed: false,
   hideSidebar: true,
   hideComments: true,

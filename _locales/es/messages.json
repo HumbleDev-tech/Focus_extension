@@ -1,0 +1,14 @@
+{
+  "appName": {
+    "message": "Libertad - Enfoque en YouTube sin Distracciones",
+    "description": "El nombre de la extensión."
+  },
+  "appDesc": {
+    "message": "Recupera tu atención. Elimina trampas algorítmicas, suprime distracciones y personaliza tu experiencia en YouTube.",
+    "description": "La descripción de la extensión."
+  },
+  "actionTitle": {
+    "message": "Controles de Enfoque Libertad",
+    "description": "El título que se muestra al pasar el cursor sobre el icono de la barra de herramientas."
+  }
+}
