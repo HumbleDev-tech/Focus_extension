@@ -10,7 +10,10 @@ A high-performance, distraction-free browser extension for YouTube. Eliminates a
   - **Off**: Default YouTube experience without interference.
   - **Basic**: Suppresses comments and endscreen interactive cards.
   - **Balanced**: Suppresses sidebar recommendations, comments, shorts feeds, and endscreens.
-  - **Extreme (Zen)**: Complete distraction elimination. Home feed, sidebar, comments, and shorts are fully disabled. Activates an intentional search prompt on the homepage.
+  - **Extreme**: Complete distraction elimination. Home feed, sidebar, comments, and shorts are fully disabled. Activates an intentional search prompt on the homepage.
+  - **Custom**: Tailored preference memory. Automatically retains and restores your personalized toggle configuration.
+- **Tri-Theme Engine (Dark, Light, OLED)**:
+  - Instant dynamic theme switching between **Dark** (industrial graphite), **Light** (clean high-contrast laboratory), and **OLED** (pure `#000000` pitch black for maximum battery efficiency).
 - **Granular Component Controls**:
   - Independent toggles for Home Feed, Related Sidebar, Comments, Shorts, and Endscreens.
 - **Return YouTube Dislikes**:
@@ -21,7 +24,7 @@ A high-performance, distraction-free browser extension for YouTube. Eliminates a
   - Dynamic stylesheet injection at `document_start` to prevent Flash of Unstyled Content (FOUC).
   - Listens to YouTube SPA navigation lifecycle events (`yt-navigate-finish`) for seamless client-side routing.
 - **Industrial Minimalist Interface**:
-  - High-contrast, tactile popup interface engineered with pure CSS, zero external dependencies, and low memory overhead.
+  - High-contrast, tactile popup interface engineered with pure CSS, mechanical switches, zero external dependencies, and low memory overhead.
 
 ---
 

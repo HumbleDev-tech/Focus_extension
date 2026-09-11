@@ -166,9 +166,9 @@
         font-size: 10px;
         font-weight: 600;
         letter-spacing: 1.2px;
-        color: #10b981;
-        background: rgba(16, 185, 129, 0.08);
-        border: 1px solid rgba(16, 185, 129, 0.25);
+        color: #38bdf8;
+        background: rgba(56, 189, 248, 0.08);
+        border: 1px solid rgba(56, 189, 248, 0.28);
         border-radius: 3px;
         padding: 2px 8px;
         margin-bottom: 16px;

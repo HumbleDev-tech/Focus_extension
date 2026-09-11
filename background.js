@@ -1,13 +1,21 @@
 // Libertad Service Worker
 const DEFAULT_SETTINGS = {
   preset: 'balanced', // 'off', 'basic', 'balanced', 'extreme', 'custom'
+  theme: 'dark',      // 'dark', 'light', 'oled'
   hideHomeFeed: false,
   hideSidebar: true,
   hideComments: true,
   hideShorts: true,
   hideEndScreens: true,
   showDislikes: true,
-  untranslateTitles: true
+  untranslateTitles: true,
+  customConfig: {
+    hideHomeFeed: false,
+    hideSidebar: true,
+    hideComments: true,
+    hideShorts: true,
+    hideEndScreens: true
+  }
 };
 
 chrome.runtime.onInstalled.addListener((details) => {
