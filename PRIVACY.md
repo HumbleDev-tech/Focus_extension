@@ -28,6 +28,10 @@ If we update this Privacy Policy in the future, revisions will be published dire
 
 ---
 
-## 4. Contact
+## 4. Contact & Transparency
 
-If you have questions or feedback regarding this policy, please submit an issue on our GitHub repository.
+Libertad is an open-source project created and maintained by **[HumbleDev-tech](https://github.com/HumbleDev-tech)**.
+
+For questions, security disclosures, or feedback regarding this policy, please open an issue on the official GitHub repository:
+- **Repository**: [https://github.com/HumbleDev-tech/Focus_extension](https://github.com/HumbleDev-tech/Focus_extension)
+
