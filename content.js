@@ -1,6 +1,6 @@
 /**
  * Libertad - YouTube Content Engine
- * Injects dynamic CSS rules, manages Zen mode, restores Dislikes, and untranslates video titles.
+ * Injects dynamic CSS rules, manages Zen mode, restores Dislikes, and untranslates video titles across Watch page and Feeds.
  */
 
 (function () {
@@ -21,12 +21,17 @@
     untranslateTitles: true
   };
 
-  // Caches to prevent duplicate network calls
+  // Caches and queues
   const dislikeCache = new Map();
   const titlesCache = new Map();
   let isFetchingDislikes = false;
   let currentWatchVideoId = null;
   let currentOriginalTitle = null;
+
+  const feedFetchQueue = [];
+  const pendingFeedVideoIds = new Set();
+  let activeFeedFetches = 0;
+  const MAX_CONCURRENT_FEED_FETCHES = 8;
 
   // Build high-efficiency CSS rules based on settings
   function buildStylesheet(settings) {
@@ -241,7 +246,6 @@
 
   // Inject or update the dislike badge
   function injectDislikeBadge(button, formattedCount) {
-    // Remove icon-only constraint class so YouTube's flex layout accommodates text
     button.classList.remove('yt-spec-button-shape-next--icon-button');
     button.classList.add('yt-spec-button-shape-next--icon-leading');
 
@@ -286,7 +290,6 @@
     const dislikeButton = findDislikeButton();
     if (!dislikeButton) return;
 
-    // Fast path: use cache
     if (dislikeCache.has(videoId)) {
       injectDislikeBadge(dislikeButton, dislikeCache.get(videoId));
       return;
@@ -295,13 +298,11 @@
     if (isFetchingDislikes) return;
     isFetchingDislikes = true;
 
-    // Query via background service worker, with direct fetch fallback
     const fetchPromise = new Promise((resolve) => {
       chrome.runtime.sendMessage({ action: 'FETCH_DISLIKES', videoId }, (res) => {
         if (!chrome.runtime.lastError && res && res.success && res.data) {
           resolve(res.data);
         } else {
-          // Direct fetch fallback
           fetch(`https://returnyoutubedislikeapi.com/votes?videoId=${encodeURIComponent(videoId)}`)
             .then((r) => r.json())
             .then((data) => resolve(data))
@@ -327,7 +328,61 @@
       });
   }
 
-  // Comprehensive watch title selector
+  // -----------------------------------------------------------
+  // Untranslate Engine: Watch Page & Feeds
+  // -----------------------------------------------------------
+
+  // Fetch true original title (direct same-origin oEmbed + background fallback)
+  async function fetchOriginalTitle(videoId) {
+    if (!videoId) return null;
+    if (titlesCache.has(videoId)) {
+      return titlesCache.get(videoId);
+    }
+
+    // 1. If on watch page, check application/ld+json
+    if (window.location.pathname === '/watch') {
+      const ldJsonEl = document.querySelector('script[type="application/ld+json"]');
+      if (ldJsonEl && ldJsonEl.textContent) {
+        try {
+          const data = JSON.parse(ldJsonEl.textContent);
+          if (data && data.name && (location.search.includes(videoId) || data.url?.includes(videoId) || data.embedUrl?.includes(videoId))) {
+            const t = data.name.trim();
+            titlesCache.set(videoId, t);
+            return t;
+          }
+        } catch (e) {}
+      }
+    }
+
+    // 2. Direct same-origin oEmbed fetch (~25ms response, no IPC)
+    try {
+      const oembedUrl = `/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`;
+      const res = await fetch(oembedUrl);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.title) {
+          const t = data.title.trim();
+          titlesCache.set(videoId, t);
+          return t;
+        }
+      }
+    } catch (e) {}
+
+    // 3. Fallback to background worker
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({ action: 'FETCH_ORIGINAL_TITLE', videoId }, (res) => {
+        if (!chrome.runtime.lastError && res && res.success && res.title) {
+          const t = res.title.trim();
+          titlesCache.set(videoId, t);
+          resolve(t);
+        } else {
+          resolve(null);
+        }
+      });
+    });
+  }
+
+  // Comprehensive watch title selectors
   function getWatchTitleElements() {
     const elements = [];
     const selectors = [
@@ -357,7 +412,7 @@
     return elements;
   }
 
-  // Apply original untranslated title to watch page
+  // Apply original title to watch page
   function applyWatchTitle(originalTitle) {
     if (!originalTitle || !originalTitle.trim()) return false;
     const clean = originalTitle.trim();
@@ -385,54 +440,6 @@
     return modified;
   }
 
-  // Fetch true original title via oEmbed / ld+json
-  async function fetchOriginalTitle(videoId) {
-    if (!videoId) return null;
-    if (titlesCache.has(videoId)) {
-      return titlesCache.get(videoId);
-    }
-
-    // 1. Try application/ld+json tag if it matches current video
-    const ldJsonEl = document.querySelector('script[type="application/ld+json"]');
-    if (ldJsonEl && ldJsonEl.textContent) {
-      try {
-        const data = JSON.parse(ldJsonEl.textContent);
-        if (data && data.name && (location.search.includes(videoId) || data.url?.includes(videoId) || data.embedUrl?.includes(videoId))) {
-          const t = data.name.trim();
-          titlesCache.set(videoId, t);
-          return t;
-        }
-      } catch (e) {}
-    }
-
-    // 2. Fetch official oEmbed (returns creator's original untranslated title)
-    return new Promise((resolve) => {
-      chrome.runtime.sendMessage({ action: 'FETCH_ORIGINAL_TITLE', videoId }, (res) => {
-        if (!chrome.runtime.lastError && res && res.success && res.title) {
-          const t = res.title.trim();
-          titlesCache.set(videoId, t);
-          resolve(t);
-        } else {
-          // Fallback direct oEmbed fetch
-          const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
-          const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(watchUrl)}&format=json`;
-          fetch(oembedUrl)
-            .then((r) => r.json())
-            .then((data) => {
-              if (data && data.title) {
-                const t = data.title.trim();
-                titlesCache.set(videoId, t);
-                resolve(t);
-              } else {
-                resolve(null);
-              }
-            })
-            .catch(() => resolve(null));
-        }
-      });
-    });
-  }
-
   // Untranslate title on watch page
   function updateWatchTitle() {
     if (!currentSettings.untranslateTitles) return;
@@ -447,13 +454,11 @@
       currentOriginalTitle = null;
     }
 
-    // Fast path: if we already have the original title, enforce it immediately
     if (currentOriginalTitle) {
       applyWatchTitle(currentOriginalTitle);
       return;
     }
 
-    // Fetch and apply
     fetchOriginalTitle(videoId).then((orig) => {
       if (orig) {
         applyWatchTitle(orig);
@@ -461,12 +466,86 @@
     });
   }
 
-  // Queue and concurrency manager for feed titles
-  const feedFetchQueue = [];
-  const pendingFeedVideoIds = new Set();
-  let activeFeedFetches = 0;
-  const MAX_CONCURRENT_FEED_FETCHES = 6;
+  // -----------------------------------------------------------
+  // Feed & Thumbnail Untranslation Engine
+  // -----------------------------------------------------------
 
+  // Extract video ID accurately from a title element or its parent card
+  function extractVideoId(el) {
+    if (!el) return null;
+
+    // Direct <a> tag with href
+    if (el.tagName === 'A' && el.href) {
+      const m = el.href.match(/[?&]v=([^&]+)/) || el.href.match(/\/shorts\/([^?&]+)/);
+      if (m) return m[1];
+    }
+
+    // Closest <a> parent (e.g. Home feed: a#video-title-link or sidebar anchor)
+    const a = el.closest('a');
+    if (a && a.href) {
+      const m = a.href.match(/[?&]v=([^&]+)/) || a.href.match(/\/shorts\/([^?&]+)/);
+      if (m) return m[1];
+    }
+
+    // Check thumbnail link in the containing card
+    const card = el.closest(
+      'ytd-rich-item-renderer, ytd-rich-grid-media, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, ytd-playlist-video-renderer, ytd-reel-item-renderer, ytd-item-section-renderer'
+    );
+    if (card) {
+      const link = card.querySelector('a#thumbnail, a#video-title-link, a.ytd-thumbnail, a[href*="watch?v="], a[href*="/shorts/"]');
+      if (link && link.href) {
+        const m = link.href.match(/[?&]v=([^&]+)/) || link.href.match(/\/shorts\/([^?&]+)/);
+        if (m) return m[1];
+      }
+    }
+
+    return null;
+  }
+
+  // Apply original title exclusively to the title text node (without destroying parent anchors)
+  function applyTitleToNode(titleNode, cleanTitle, videoId) {
+    if (!titleNode || !cleanTitle) return;
+
+    // Avoid redundant work if already applied
+    if (titleNode.dataset.libertadApplied === videoId && titleNode.textContent.trim() === cleanTitle) {
+      return;
+    }
+
+    // Update inner text on the actual title container
+    titleNode.innerText = cleanTitle;
+    titleNode.textContent = cleanTitle;
+    titleNode.setAttribute('title', cleanTitle);
+    titleNode.removeAttribute('is-empty');
+    titleNode.dataset.libertadApplied = videoId;
+
+    // Update title/aria-label tooltip on parent anchor if present
+    const parentA = titleNode.tagName === 'A' ? titleNode : titleNode.closest('a');
+    if (parentA) {
+      parentA.setAttribute('title', cleanTitle);
+      parentA.setAttribute('aria-label', cleanTitle);
+    }
+  }
+
+  // Update all matching elements in the DOM for a given video ID
+  function updateFeedElementsForVideoId(videoId, origTitle) {
+    const clean = origTitle.trim();
+
+    // Query all video title containers
+    const titleNodes = document.querySelectorAll(
+      '#video-title, yt-formatted-string#video-title, span#video-title, a#video-title'
+    );
+
+    titleNodes.forEach((node) => {
+      if (node.closest('ytd-watch-metadata, #above-the-fold')) return;
+
+      const vId = extractVideoId(node);
+      if (vId === videoId) {
+        applyTitleToNode(node, clean, videoId);
+      }
+    });
+  }
+
+  // Concurrency queue processor
   function processFeedFetchQueue() {
     while (activeFeedFetches < MAX_CONCURRENT_FEED_FETCHES && feedFetchQueue.length > 0) {
       const videoId = feedFetchQueue.shift();
@@ -489,108 +568,48 @@
     }
   }
 
-  // Extract video ID from any element or its surrounding card
-  function extractVideoId(el) {
-    if (!el) return null;
-    if (el.tagName === 'A' && el.href) {
-      const m = el.href.match(/[?&]v=([^&]+)/) || el.href.match(/\/shorts\/([^?&]+)/);
-      if (m) return m[1];
-    }
-    const a = el.closest('a');
-    if (a && a.href) {
-      const m = a.href.match(/[?&]v=([^&]+)/) || a.href.match(/\/shorts\/([^?&]+)/);
-      if (m) return m[1];
-    }
-    const card = el.closest('ytd-rich-item-renderer, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, ytd-playlist-video-renderer');
-    if (card) {
-      const thumb = card.querySelector('a#thumbnail, a#video-title-link, a.ytd-thumbnail, a[href*="watch?v="]');
-      if (thumb && thumb.href) {
-        const m = thumb.href.match(/[?&]v=([^&]+)/) || thumb.href.match(/\/shorts\/([^?&]+)/);
-        if (m) return m[1];
-      }
-    }
-    return null;
-  }
-
-  // Apply original title directly to a DOM element
-  function applyTitleToElement(el, title) {
-    if (!el || !title) return;
-    const clean = title.trim();
-    if (el.innerText !== clean || el.textContent !== clean) {
-      el.innerText = clean;
-      el.textContent = clean;
-      el.setAttribute('title', clean);
-      el.removeAttribute('is-empty');
-    }
-    const a = el.tagName === 'A' ? el : el.closest('a');
-    if (a) {
-      a.setAttribute('title', clean);
-      a.setAttribute('aria-label', clean);
-    }
-  }
-
-  // Update all matching elements in the DOM for a given video ID
-  function updateFeedElementsForVideoId(videoId, origTitle) {
-    const clean = origTitle.trim();
-
-    // 1. Direct anchor links
-    const anchors = document.querySelectorAll(`a[href*="v=${videoId}"], a[href*="/shorts/${videoId}"]`);
-    anchors.forEach((a) => {
-      a.setAttribute('title', clean);
-      a.setAttribute('aria-label', clean);
-      if (a.id === 'video-title' || a.id === 'video-title-link') {
-        if (a.innerText !== clean || a.textContent !== clean) {
-          a.innerText = clean;
-          a.textContent = clean;
-        }
-      }
-      const titleSpan = a.querySelector('#video-title, yt-formatted-string');
-      if (titleSpan && (titleSpan.innerText !== clean || titleSpan.textContent !== clean)) {
-        titleSpan.innerText = clean;
-        titleSpan.textContent = clean;
-        titleSpan.setAttribute('title', clean);
-      }
-    });
-
-    // 2. Video cards
-    const cardSelectors = 'ytd-rich-item-renderer, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer';
-    anchors.forEach((a) => {
-      const card = a.closest(cardSelectors);
-      if (card) {
-        const titleEl = card.querySelector('#video-title, a#video-title-link, yt-formatted-string#video-title');
-        if (titleEl && (titleEl.innerText !== clean || titleEl.textContent !== clean)) {
-          titleEl.innerText = clean;
-          titleEl.textContent = clean;
-          titleEl.setAttribute('title', clean);
-          titleEl.removeAttribute('is-empty');
-        }
-      }
-    });
-  }
-
-  // Automatically untranslate all video titles visible in feed, search, and sidebar
+  // Automatically untranslate all video titles visible in Home, Search, and Recommendations
   function untranslateFeed() {
     if (!currentSettings.untranslateTitles) return;
 
-    const titleElements = document.querySelectorAll(
-      '#video-title, a#video-title-link, yt-formatted-string#video-title, span#video-title'
+    // Target ONLY actual text containers across YouTube
+    const titleNodes = document.querySelectorAll(
+      '#video-title, yt-formatted-string#video-title, span#video-title, a#video-title'
     );
 
-    titleElements.forEach((el) => {
-      const videoId = extractVideoId(el);
+    titleNodes.forEach((node) => {
+      // Skip watch page primary title
+      if (node.closest('ytd-watch-metadata, #above-the-fold')) return;
+
+      const videoId = extractVideoId(node);
       if (!videoId) return;
 
       if (titlesCache.has(videoId)) {
-        applyTitleToElement(el, titlesCache.get(videoId));
+        applyTitleToNode(node, titlesCache.get(videoId), videoId);
       } else if (!pendingFeedVideoIds.has(videoId)) {
         pendingFeedVideoIds.add(videoId);
         feedFetchQueue.push(videoId);
-        processFeedFetchQueue();
       }
     });
+
+    processFeedFetchQueue();
   }
 
-  // Throttled scroll listener to smoothly process feed cards as they appear
+  // -----------------------------------------------------------
+  // Lifecycle & Watchdogs
+  // -----------------------------------------------------------
+
+  // Regular heartbeat to catch virtual-scroll DOM re-use on YouTube
+  setInterval(() => {
+    if (window.location.pathname === '/watch' && currentSettings.untranslateTitles && currentOriginalTitle) {
+      applyWatchTitle(currentOriginalTitle);
+    }
+    if (currentSettings.untranslateTitles) {
+      untranslateFeed();
+    }
+  }, 700);
+
+  // Throttled scroll listener
   let scrollThrottleTimer = null;
   window.addEventListener(
     'scroll',
@@ -601,17 +620,18 @@
         if (currentSettings.untranslateTitles) {
           untranslateFeed();
         }
-      }, 180);
+      }, 150);
     },
     { passive: true }
   );
 
-  // Active watch watchdog: YouTube Polymer re-renders after video loads / ads finish
-  setInterval(() => {
-    if (window.location.pathname === '/watch' && currentSettings.untranslateTitles && currentOriginalTitle) {
-      applyWatchTitle(currentOriginalTitle);
-    }
-  }, 450);
+  // Page load listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    untranslateFeed();
+  });
+  window.addEventListener('load', () => {
+    untranslateFeed();
+  });
 
   // Initialize and load saved settings
   chrome.storage.sync.get(null, (saved) => {
@@ -644,27 +664,26 @@
 
     applyStyles(currentSettings);
 
-    // Initial check and retries to accommodate YouTube Polymer mounting
     setTimeout(() => {
       updateDislikeCount();
       updateWatchTitle();
       untranslateFeed();
-    }, 250);
+    }, 200);
 
     setTimeout(() => {
       updateDislikeCount();
       updateWatchTitle();
       untranslateFeed();
-    }, 800);
+    }, 600);
 
     setTimeout(() => {
       updateDislikeCount();
       updateWatchTitle();
       untranslateFeed();
-    }, 1800);
+    }, 1500);
   });
 
-  // Optimized observer for dynamically loaded elements (throttled with requestAnimationFrame)
+  // Throttled MutationObserver
   let isCheckingMutation = false;
   const observer = new MutationObserver(() => {
     if (isCheckingMutation) return;
