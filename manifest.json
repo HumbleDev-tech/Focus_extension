@@ -1,16 +1,44 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Focus Extension",
+  "name": "Libertad - YouTube Focus & Distraction Free",
   "version": "1.0",
-  "description": "Oculta elementos en YouTube para mejorar el enfoque.",
-  "permissions": ["storage", "scripting", "activeTab"],
+  "description": "Reclaim your attention. Eliminate distractions, recommendations, shorts, and customize your YouTube experience.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*.youtube.com/*",
+    "https://returnyoutubedislikeapi.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
-      "matches": ["*://www.youtube.com/*"],
-      "js": ["content.js"]
+      "matches": [
+        "*://www.youtube.com/*",
+        "*://youtube.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start"
     }
   ],
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_title": "Libertad Focus Controls",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   }
 }

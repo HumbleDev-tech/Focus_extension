@@ -1,32 +1,134 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>YouTube Focus</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      width: 200px;
-      padding: 10px;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #eee;
-      border: 1px solid #ccc;
-      transition: background-color 0.3s;
-    }
-    button.active {
-      background-color: #4caf50;
-      color: white;
-      border-color: #4caf50;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Libertad</title>
+  <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
-  <button id="toggleSubscribeBtn">Ocultar botón Suscribirse</button>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="brand-logo">
+          <img src="icons/icon48.png" alt="Libertad Logo" />
+        </div>
+        <div class="brand-info">
+          <h1 class="brand-name">Libertad</h1>
+          <span class="brand-tagline">YouTube Focus</span>
+        </div>
+      </div>
+      <div class="status-pill" id="statusPill">
+        <span class="status-dot"></span>
+        <span class="status-text" id="statusText">Active</span>
+      </div>
+    </header>
+
+    <!-- Presets Section -->
+    <section class="section">
+      <div class="section-label">Focus Mode</div>
+      <div class="preset-grid" id="presetGroup">
+        <button class="preset-btn" data-preset="off">Off</button>
+        <button class="preset-btn" data-preset="basic">Basic</button>
+        <button class="preset-btn" data-preset="balanced">Balanced</button>
+        <button class="preset-btn" data-preset="extreme">Extreme</button>
+      </div>
+      <div class="preset-desc" id="presetDesc">
+        Hides sidebar, comments, shorts, and end screens.
+      </div>
+    </section>
+
+    <!-- Custom Options Collapsible -->
+    <section class="section custom-section">
+      <div class="accordion-header" id="customAccordionBtn">
+        <div class="section-label">Fine-tune Features</div>
+        <span class="accordion-icon" id="accordionIcon">▾</span>
+      </div>
+      <div class="toggles-list" id="togglesList">
+        <!-- Toggle Item: Home Feed -->
+        <label class="toggle-item">
+          <div class="toggle-info">
+            <span class="toggle-title">Home Feed</span>
+            <span class="toggle-desc">Hide infinite home page recommendations</span>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="toggleHomeFeed" />
+            <span class="slider"></span>
+          </div>
+        </label>
+
+        <!-- Toggle Item: Sidebar -->
+        <label class="toggle-item">
+          <div class="toggle-info">
+            <span class="toggle-title">Related Sidebar</span>
+            <span class="toggle-desc">Hide watch-next suggested videos</span>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="toggleSidebar" />
+            <span class="slider"></span>
+          </div>
+        </label>
+
+        <!-- Toggle Item: Comments -->
+        <label class="toggle-item">
+          <div class="toggle-info">
+            <span class="toggle-title">Comments</span>
+            <span class="toggle-desc">Hide video comments section</span>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="toggleComments" />
+            <span class="slider"></span>
+          </div>
+        </label>
+
+        <!-- Toggle Item: Shorts -->
+        <label class="toggle-item">
+          <div class="toggle-info">
+            <span class="toggle-title">Shorts</span>
+            <span class="toggle-desc">Hide shorts tab, links, and shelves</span>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="toggleShorts" />
+            <span class="slider"></span>
+          </div>
+        </label>
+
+        <!-- Toggle Item: Endscreens -->
+        <label class="toggle-item">
+          <div class="toggle-info">
+            <span class="toggle-title">End Screens</span>
+            <span class="toggle-desc">Hide popups and cards at the end of videos</span>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="toggleEndScreens" />
+            <span class="slider"></span>
+          </div>
+        </label>
+      </div>
+    </section>
+
+    <!-- Extra Tools -->
+    <section class="section extra-section">
+      <div class="section-label">Extras</div>
+      <label class="toggle-item extra-item">
+        <div class="toggle-info">
+          <span class="toggle-title">Restore Dislikes</span>
+          <span class="toggle-desc">Show dislike count under videos</span>
+        </div>
+        <div class="switch">
+          <input type="checkbox" id="toggleDislikes" />
+          <span class="slider"></span>
+        </div>
+      </label>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>Reclaim your time</span>
+      <button class="reset-link" id="resetBtn">Reset</button>
+    </footer>
+  </div>
 
   <script src="popup.js"></script>
 </body>
