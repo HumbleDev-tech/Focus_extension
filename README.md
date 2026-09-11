@@ -38,18 +38,18 @@ Libertad organizes controls into two purpose-built workspaces without vertical c
 ### 2. Instant Focus Presets (Integrated Matrix)
 Switch between curated focus profiles with a single click or tailor your own:
 
-| Preset | Home Feed | Sidebar | Comments | Shorts | Voice Search | Ask AI | Download | Thanks/Clips | Share | Center Player |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **OFF** | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown | No |
-| **BASIC** | Shown | Shown | **Hidden** | Shown | Shown | **Hidden** | **Hidden** | Shown | Shown | No |
-| **BALANCED** | Shown | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | Shown | **Yes** |
-| **EXTREME** | **Zen** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Yes** |
-| **CUSTOM** | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Conditional* |
+| Preset | Home Feed | Sidebar | Comments | Shorts | Voice Search | Create (+) | Notifications | Ask AI | Download | Thanks/Clips | Join | Share | Merch |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **OFF** | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown |
+| **BASIC** | Shown | Shown | **Hidden** | Shown | Shown | Shown | Shown | **Hidden** | **Hidden** | Shown | Shown | Shown | **Hidden** |
+| **BALANCED** | Shown | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | Shown | **Hidden** |
+| **EXTREME** | **Zen** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** |
+| **CUSTOM** | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* |
 
 * **Off**: Clean passthrough mode; leaves YouTube unaltered.
-* **Basic**: Removes common watch clutter (comments, end-screens, promotional download buttons, and AI popups).
-* **Balanced** *(Recommended)*: Eliminates recommendation loops and bloat buttons (sidebar recommendations, shorts, comments, voice search mic, and clutter buttons).
-* **Extreme (Zen Mode)**: Complete distraction and clutter elimination. Replaces the homepage with an intentional search prompt and strips all auxiliary action buttons.
+* **Basic**: Removes common watch clutter (comments, end-screens, promotional download buttons, AI popups, and product shelves).
+* **Balanced** *(Recommended)*: Eliminates recommendation loops and bloat buttons (sidebar recommendations, shorts, comments, voice search mic, create button, notifications bell, channel memberships, and clutter buttons).
+* **Extreme (Zen Mode)**: Complete distraction and clutter elimination. Replaces the homepage with an intentional search prompt and strips all auxiliary action and sharing buttons.
 * **Custom**: Automatically remembers and persists your individual fine-tuned preferences across all switches in both tabs.
 
 ---
@@ -67,10 +67,14 @@ Switch between curated focus profiles with a single click or tailor your own:
 ### 4. YouTube De-Bloating & Action Cleaner (Cleaner Tab)
 
 * **Header Voice Search Mic**: Removes the microphone icon beside the search bar for a clean, minimalist header.
+* **Create / Upload Button**: Suppresses the video creation and live broadcast button (`+`) in YouTube's top masthead bar.
+* **Notifications Bell**: Suppresses the notification bell and alert badges to prevent anxiety and notification-driven rabbit holes.
 * **Ask AI Assistant Button**: Suppresses YouTube's experimental conversational AI button on video watch pages.
 * **Promotional Download Button**: Suppresses the download button that prompts users to purchase YouTube Premium.
 * **Engagement Clutter (Thanks, Clips & Remix)**: Strips monetization and remixing action buttons from the primary video control bar.
+* **Channel Memberships (Join Button)**: Suppresses the promotional "Join" / "Unirse" button beside the Subscribe button.
 * **Video Share Button**: Suppresses the share button for an ultra-focused, cinema-grade watch experience.
+* **Merch & Products**: Suppresses shopping carousels, affiliate product shelves, and store banners below videos.
 
 ---
 

@@ -130,7 +130,7 @@
       <!-- Header Controls -->
       <section class="pane-section">
         <div class="pane-header">
-          <span class="pane-title" data-i18n="headerCleanerLabel">HEADER // SEARCH BAR</span>
+          <span class="pane-title" data-i18n="headerCleanerLabel">HEADER // SEARCH & TOPBAR</span>
         </div>
         <div class="settings-list">
           <!-- Setting: Voice Search -->
@@ -141,6 +141,30 @@
             </div>
             <div class="switch">
               <input type="checkbox" id="toggleVoiceSearch" aria-label="Suppress Voice Search" />
+              <span class="slider"></span>
+            </div>
+          </label>
+
+          <!-- Setting: Create Button -->
+          <label class="setting-row" for="toggleCreateButton">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleCreateTitle">Create Button (+)</span>
+              <span class="setting-hint" data-i18n="toggleCreateDesc">Suppress video creation & upload button in top bar</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleCreateButton" aria-label="Suppress Create Button" />
+              <span class="slider"></span>
+            </div>
+          </label>
+
+          <!-- Setting: Notifications Bell -->
+          <label class="setting-row" for="toggleNotifications">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleNotificationsTitle">Notifications Bell</span>
+              <span class="setting-hint" data-i18n="toggleNotificationsDesc">Suppress notification bell and FOMO red badge alerts</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleNotifications" aria-label="Suppress Notifications Bell" />
               <span class="slider"></span>
             </div>
           </label>
@@ -189,6 +213,18 @@
             </div>
           </label>
 
+          <!-- Setting: Channel Memberships / Join -->
+          <label class="setting-row" for="toggleJoinButton">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleJoinTitle">Channel Memberships</span>
+              <span class="setting-hint" data-i18n="toggleJoinDesc">Suppress promotional Join button beside Subscribe</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleJoinButton" aria-label="Suppress Join Button" />
+              <span class="slider"></span>
+            </div>
+          </label>
+
           <!-- Setting: Share Button -->
           <label class="setting-row" for="toggleShare">
             <div class="setting-meta">
@@ -197,6 +233,26 @@
             </div>
             <div class="switch">
               <input type="checkbox" id="toggleShare" aria-label="Suppress Share Button" />
+              <span class="slider"></span>
+            </div>
+          </label>
+        </div>
+      </section>
+
+      <!-- Commercial & Shopping Clutter -->
+      <section class="pane-section">
+        <div class="pane-header">
+          <span class="pane-title" data-i18n="commercialClutterLabel">PAGE // SHOPPING & COMMERCIAL</span>
+        </div>
+        <div class="settings-list">
+          <!-- Setting: Merch Shelf -->
+          <label class="setting-row" for="toggleMerchShelf">
+            <div class="setting-meta">
+              <span class="setting-title" data-i18n="toggleMerchTitle">Merch & Products</span>
+              <span class="setting-hint" data-i18n="toggleMerchDesc">Suppress product shelves, affiliate stores, and shopping panels</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleMerchShelf" aria-label="Suppress Merch and Products" />
               <span class="slider"></span>
             </div>
           </label>

@@ -18,10 +18,14 @@
     hideShorts: true,
     hideEndScreens: true,
     hideVoiceSearch: true,
+    hideCreateButton: true,
+    hideNotifications: true,
     hideAskAi: true,
     hideDownload: true,
     hideThanksClips: true,
+    hideJoinButton: true,
     hideShare: false,
+    hideMerchShelf: true,
     showDislikes: true,
     untranslateTitles: true,
     lang: 'auto',
@@ -134,6 +138,41 @@
       `);
     }
 
+    // Create / Upload Button in Masthead
+    if (settings.hideCreateButton) {
+      rules.push(`
+        ytd-masthead ytd-button-renderer:has([aria-label*="create" i]),
+        ytd-masthead yt-button-view-model:has([aria-label*="create" i]),
+        ytd-masthead yt-button-shape:has([aria-label*="create" i]),
+        ytd-masthead ytd-button-renderer:has([aria-label*="crear" i]),
+        ytd-masthead yt-button-view-model:has([aria-label*="crear" i]),
+        ytd-masthead yt-button-shape:has([aria-label*="crear" i]),
+        ytd-masthead ytd-topbar-menu-button-renderer:has([aria-label*="create" i]),
+        ytd-masthead ytd-topbar-menu-button-renderer:has([aria-label*="crear" i]),
+        ytd-masthead button:has(svg path[d*="14 13h-3v3"]),
+        ytd-masthead button:has(svg path[d*="14 13"]),
+        ytd-masthead yt-icon-button:has(svg path[d*="14 13"]),
+        ytd-masthead yt-button-view-model:has(svg path[d*="14 13"]) {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Notification Bell in Masthead
+    if (settings.hideNotifications) {
+      rules.push(`
+        ytd-notification-topbar-button-renderer,
+        notification-topbar-button-view-model,
+        ytd-masthead [aria-label*="notification" i],
+        ytd-masthead [aria-label*="notificaci" i],
+        ytd-masthead yt-icon-button:has([aria-label*="notif" i]),
+        ytd-masthead button:has(svg path[d*="10 20h4"]),
+        ytd-masthead yt-icon-button:has(svg path[d*="10 20h4"]) {
+          display: none !important;
+        }
+      `);
+    }
+
     // Ask AI Assistant Button (Supports conversational-ai models, tags, and search labels)
     if (settings.hideAskAi) {
       rules.push(`
@@ -229,6 +268,43 @@
         yt-button-view-model:has(svg path[d*="15 16.37"]),
         yt-button-shape:has(svg path[d*="15 5.63"]),
         button:has(svg path[d*="15 5.63"]) {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Channel Memberships / Join Button
+    if (settings.hideJoinButton) {
+      rules.push(`
+        #sponsor-button,
+        ytd-sponsor-button-renderer,
+        sponsor-button-view-model,
+        ytd-button-renderer:has([aria-label*="unirse" i]),
+        ytd-button-renderer:has([aria-label*="join" i]),
+        yt-button-view-model:has([aria-label*="unirse" i]),
+        yt-button-view-model:has([aria-label*="join" i]),
+        yt-button-shape:has([aria-label*="unirse" i]),
+        yt-button-shape:has([aria-label*="join" i]),
+        ytd-watch-metadata #sponsor-button {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Merchandise, Shopping & Products Shelves
+    if (settings.hideMerchShelf) {
+      rules.push(`
+        ytd-merch-shelf-renderer,
+        merch-shelf-view-model,
+        ytd-shopping-item-card-list-renderer,
+        ytd-vertical-product-shelf-renderer,
+        ytd-rich-shelf-renderer:has(ytd-shopping-item-card-list-renderer),
+        ytd-engagement-panel-section-list-renderer[target-id*="shopping"],
+        ytd-engagement-panel-section-list-renderer:has(#shopping),
+        #shopping-panel,
+        [target-id*="shopping"],
+        [target-id*="merch"],
+        ytd-product-shelf-renderer {
           display: none !important;
         }
       `);
