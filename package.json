@@ -1,0 +1,34 @@
+{
+  "name": "libertad-extension",
+  "version": "1.0.0",
+  "description": "High-performance, distraction-free browser extension for YouTube.",
+  "author": "HumbleDev-tech",
+  "license": "MIT",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "pack": "python3 pack.py"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HumbleDev-tech/Focus_extension.git"
+  },
+  "keywords": [
+    "chrome-extension",
+    "youtube-focus",
+    "distraction-free",
+    "manifest-v3",
+    "zen-mode"
+  ],
+  "bugs": {
+    "url": "https://github.com/HumbleDev-tech/Focus_extension/issues"
+  },
+  "homepage": "https://github.com/HumbleDev-tech/Focus_extension#readme",
+  "devDependencies": {
+    "@biomejs/biome": "2.5.13"
+  }
+}

@@ -16,11 +16,15 @@ const LIBERTAD_I18N = {
     presetBalanced: 'BALANCED',
     presetExtreme: 'EXTREME',
     presetCustom: 'CUSTOM',
-    descOff: 'Default YouTube state. All algorithmic feeds and recommendations visible.',
+    descOff:
+      'Default YouTube state. All algorithmic feeds and recommendations visible.',
     descBasic: 'Suppresses comments and endscreen interactive video overlays.',
-    descBalanced: 'Suppresses sidebar recommendations, comments, shorts feeds, and endscreens.',
-    descExtreme: 'Zero clutter. Suppresses home feed, sidebar, comments, and shorts. Focus reticle active.',
-    descCustom: 'User tailored configuration. Remembers your personalized preference matrix.',
+    descBalanced:
+      'Suppresses sidebar recommendations, comments, shorts feeds, and endscreens.',
+    descExtreme:
+      'Zero clutter. Suppresses home feed, sidebar, comments, and shorts. Focus reticle active.',
+    descCustom:
+      'User tailored configuration. Remembers your personalized preference matrix.',
     parametersLabel: 'PARAMETERS // FINE-TUNE',
     toggleHomeFeedTitle: 'Home Feed',
     toggleHomeFeedDesc: 'Suppress infinite recommendations grid',
@@ -42,7 +46,8 @@ const LIBERTAD_I18N = {
     resetBtn: 'RESET CONFIG',
     zenBadge: 'SYSTEM // FOCUS_ENGAGED',
     zenTitle: 'Intentional Mode Active',
-    zenDesc: 'Feed recommendations suppressed. Execute a search query above to locate specific content.'
+    zenDesc:
+      'Feed recommendations suppressed. Execute a search query above to locate specific content.',
   },
   es: {
     brandTagline: 'MOTOR DE ENFOQUE // v1.0',
@@ -56,11 +61,15 @@ const LIBERTAD_I18N = {
     presetBalanced: 'BALANCE',
     presetExtreme: 'EXTREMO',
     presetCustom: 'CUSTOM',
-    descOff: 'Estado estándar de YouTube. Todos los feeds y recomendaciones visibles.',
+    descOff:
+      'Estado estándar de YouTube. Todos los feeds y recomendaciones visibles.',
     descBasic: 'Suprime comentarios y tarjetas interactivas de final de video.',
-    descBalanced: 'Suprime recomendaciones laterales, comentarios, shorts y pantallas finales.',
-    descExtreme: 'Cero distracciones. Suprime feed de inicio, barra lateral, comentarios y shorts. Retícula activa.',
-    descCustom: 'Configuración personalizada. Recuerda tu matriz de preferencias propia.',
+    descBalanced:
+      'Suprime recomendaciones laterales, comentarios, shorts y pantallas finales.',
+    descExtreme:
+      'Cero distracciones. Suprime feed de inicio, barra lateral, comentarios y shorts. Retícula activa.',
+    descCustom:
+      'Configuración personalizada. Recuerda tu matriz de preferencias propia.',
     parametersLabel: 'PARÁMETROS // AJUSTE FINO',
     toggleHomeFeedTitle: 'Feed Principal',
     toggleHomeFeedDesc: 'Suprime la cuadrícula infinita de recomendaciones',
@@ -74,16 +83,19 @@ const LIBERTAD_I18N = {
     toggleEndScreensDesc: 'Suprime tarjetas emergentes al final del video',
     auxiliaryLabel: 'MÓDULOS AUXILIARES',
     toggleDislikesTitle: 'Restaurar Dislikes',
-    toggleDislikesDesc: 'Muestra el conteo público de dislikes en la barra de acciones',
+    toggleDislikesDesc:
+      'Muestra el conteo público de dislikes en la barra de acciones',
     toggleUntranslateTitle: 'No Traducir Títulos',
-    toggleUntranslateDesc: 'Conserva el título original en el idioma del creador',
+    toggleUntranslateDesc:
+      'Conserva el título original en el idioma del creador',
     footerMeta: 'SISTEMA LIBRE DE DISTRACCIONES',
     scaleLabel: 'ESCALA',
     resetBtn: 'REINICIAR',
     zenBadge: 'SISTEMA // ENFOQUE_ACTIVO',
     zenTitle: 'Modo Intencional Activo',
-    zenDesc: 'Recomendaciones de feed suprimidas. Realiza una búsqueda arriba para encontrar contenido específico.'
-  }
+    zenDesc:
+      'Recomendaciones de feed suprimidas. Realiza una búsqueda arriba para encontrar contenido específico.',
+  },
 };
 
 /**

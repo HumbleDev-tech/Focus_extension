@@ -112,9 +112,31 @@ To install and test Libertad locally in any Chromium-based browser (Google Chrom
 
 ---
 
+## Development & Quality Checks
+
+This project uses **[Biome](https://biomejs.dev)** for ultra-fast linting, formatting, and accessibility checks:
+
+```bash
+# Check formatting, linter rules, and syntax standards
+npm run check
+
+# Automatically format all source files
+npm run format
+
+# Run linter only
+npm run lint
+```
+
+---
+
 ## Building & Packaging
 
 The repository includes automated packaging scripts to build clean distribution `.zip` archives ready for upload to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole):
+
+### Using npm:
+```bash
+npm run pack
+```
 
 ### Using Python:
 ```bash

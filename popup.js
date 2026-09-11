@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hideShorts: document.getElementById('toggleShorts'),
     hideEndScreens: document.getElementById('toggleEndScreens'),
     showDislikes: document.getElementById('toggleDislikes'),
-    untranslateTitles: document.getElementById('toggleUntranslate')
+    untranslateTitles: document.getElementById('toggleUntranslate'),
   };
 
   // Preset Configurations
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: false,
       hideShorts: false,
       hideEndScreens: false,
-      descKey: 'descOff'
+      descKey: 'descOff',
     },
     basic: {
       hideHomeFeed: false,
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: true,
       hideShorts: false,
       hideEndScreens: true,
-      descKey: 'descBasic'
+      descKey: 'descBasic',
     },
     balanced: {
       hideHomeFeed: false,
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: true,
       hideShorts: true,
       hideEndScreens: true,
-      descKey: 'descBalanced'
+      descKey: 'descBalanced',
     },
     extreme: {
       hideHomeFeed: true,
@@ -62,16 +62,16 @@ document.addEventListener('DOMContentLoaded', () => {
       hideComments: true,
       hideShorts: true,
       hideEndScreens: true,
-      descKey: 'descExtreme'
+      descKey: 'descExtreme',
     },
     custom: {
-      descKey: 'descCustom'
-    }
+      descKey: 'descCustom',
+    },
   };
 
   // Auto-detect optimal UI scale based on monitor resolution & DPI
   function detectDefaultScale() {
-    const screenW = window.screen ? (window.screen.width || 1920) : 1920;
+    const screenW = window.screen ? window.screen.width || 1920 : 1920;
     const dpr = window.devicePixelRatio || 1;
     const effectiveW = screenW * dpr;
 
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // State
   let state = {
     theme: 'dark',
-    lang: (navigator.language && navigator.language.startsWith('es')) ? 'es' : 'en',
+    lang: navigator.language?.startsWith('es') ? 'es' : 'en',
     scale: 'auto',
     preset: 'balanced',
     hideHomeFeed: false,
@@ -105,8 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
       hideSidebar: true,
       hideComments: true,
       hideShorts: true,
-      hideEndScreens: true
-    }
+      hideEndScreens: true,
+    },
   };
 
   // Helper for safe translation
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved && Object.keys(saved).length > 0) {
       state = { ...state, ...saved };
       if (!state.lang || state.lang === 'auto') {
-        state.lang = (navigator.language && navigator.language.startsWith('es')) ? 'es' : 'en';
+        state.lang = navigator.language?.startsWith('es') ? 'es' : 'en';
       }
       if (!state.scale || state.scale === 'auto') {
         state.scale = detectDefaultScale();
@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
           hideSidebar: state.hideSidebar,
           hideComments: state.hideComments,
           hideShorts: state.hideShorts,
-          hideEndScreens: state.hideEndScreens
+          hideEndScreens: state.hideEndScreens,
         };
       }
     } else {
@@ -219,7 +219,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Status pill
-    const isOff = state.preset === 'off' || (!state.hideHomeFeed && !state.hideSidebar && !state.hideComments && !state.hideShorts && !state.hideEndScreens);
+    const isOff =
+      state.preset === 'off' ||
+      (!state.hideHomeFeed &&
+        !state.hideSidebar &&
+        !state.hideComments &&
+        !state.hideShorts &&
+        !state.hideEndScreens);
     if (isOff) {
       statusPill.classList.add('is-off');
       statusText.textContent = t('statusOff');
@@ -230,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         basic: 'presetBasic',
         balanced: 'presetBalanced',
         extreme: 'presetExtreme',
-        custom: 'presetCustom'
+        custom: 'presetCustom',
       };
       const pKey = presetKeyMap[state.preset];
       statusText.textContent = pKey ? t(pKey) : state.preset.toUpperCase();
@@ -302,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hideSidebar: state.hideSidebar,
             hideComments: state.hideComments,
             hideShorts: state.hideShorts,
-            hideEndScreens: state.hideEndScreens
+            hideEndScreens: state.hideEndScreens,
           };
         }
         // Restore custom preferences
@@ -325,7 +331,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Individual toggle changes
-  ['hideHomeFeed', 'hideSidebar', 'hideComments', 'hideShorts', 'hideEndScreens'].forEach((key) => {
+  [
+    'hideHomeFeed',
+    'hideSidebar',
+    'hideComments',
+    'hideShorts',
+    'hideEndScreens',
+  ].forEach((key) => {
     toggles[key].addEventListener('change', (e) => {
       state[key] = e.target.checked;
       if (!state.customConfig) {
@@ -384,8 +396,8 @@ document.addEventListener('DOMContentLoaded', () => {
         hideSidebar: true,
         hideComments: true,
         hideShorts: true,
-        hideEndScreens: true
-      }
+        hideEndScreens: true,
+      },
     };
     saveState();
   });

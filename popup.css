@@ -21,7 +21,7 @@
   --bg-canvas: #12151b;
   --surface-subtle: #181c24;
   --row-hover: rgba(255, 255, 255, 0.04);
-  
+
   --border-hairline: rgba(255, 255, 255, 0.08);
   --border-subtle: rgba(255, 255, 255, 0.04);
 
@@ -56,7 +56,7 @@
   --bg-canvas: #000000;
   --surface-subtle: #080808;
   --row-hover: rgba(255, 255, 255, 0.05);
-  
+
   --border-hairline: #1c1c1f;
   --border-subtle: #121214;
 
@@ -91,7 +91,7 @@
   --bg-canvas: #f8fafc;
   --surface-subtle: #edf2f7;
   --row-hover: rgba(0, 0, 0, 0.035);
-  
+
   --border-hairline: #e2e8f0;
   --border-subtle: #edf2f7;
 
@@ -123,8 +123,11 @@
 }
 
 :root {
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter",
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
   --transition-fast: 0.12s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -152,7 +155,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .app-window {

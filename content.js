@@ -19,7 +19,7 @@
     hideEndScreens: true,
     showDislikes: true,
     untranslateTitles: true,
-    lang: 'auto'
+    lang: 'auto',
   };
 
   // Caches and queues
@@ -223,13 +223,22 @@
 
   // Show a calm, intentional screen on YouTube home if home feed is disabled
   function updateZenBanner(settings) {
-    const isHomePage = window.location.pathname === '/' || window.location.pathname === '';
+    const isHomePage =
+      window.location.pathname === '/' || window.location.pathname === '';
     const existing = document.getElementById(ZEN_CONTAINER_ID);
 
     if (settings.hideHomeFeed && isHomePage) {
-      const isSpanish = settings.lang === 'es' || (!settings.lang && typeof navigator !== 'undefined' && navigator.language && navigator.language.startsWith('es'));
-      const badgeText = isSpanish ? 'SISTEMA // ENFOQUE_ACTIVO' : 'SYSTEM // FOCUS_ENGAGED';
-      const titleText = isSpanish ? 'Modo Intencional Activo' : 'Intentional Mode Active';
+      const isSpanish =
+        settings.lang === 'es' ||
+        (!settings.lang &&
+          typeof navigator !== 'undefined' &&
+          navigator.language?.startsWith('es'));
+      const badgeText = isSpanish
+        ? 'SISTEMA // ENFOQUE_ACTIVO'
+        : 'SYSTEM // FOCUS_ENGAGED';
+      const titleText = isSpanish
+        ? 'Modo Intencional Activo'
+        : 'Intentional Mode Active';
       const descText = isSpanish
         ? 'Recomendaciones de feed suprimidas. Realiza una búsqueda arriba para encontrar contenido específico.'
         : 'Feed recommendations suppressed. Execute a search query above to locate specific content.';
@@ -255,9 +264,10 @@
       if (existing) {
         existing.innerHTML = cardHtml;
       } else {
-        const targetContainer = document.querySelector('ytd-browse[page-subtype="home"] #primary') ||
-                                document.querySelector('ytd-browse[page-subtype="home"]') ||
-                                document.querySelector('ytd-page-manager');
+        const targetContainer =
+          document.querySelector('ytd-browse[page-subtype="home"] #primary') ||
+          document.querySelector('ytd-browse[page-subtype="home"]') ||
+          document.querySelector('ytd-page-manager');
         if (targetContainer) {
           const zen = document.createElement('div');
           zen.id = ZEN_CONTAINER_ID;
@@ -275,7 +285,8 @@
   // Format number (e.g. 1500 -> 1.5K)
   function formatNumber(num) {
     if (typeof num !== 'number') return '';
-    if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (num >= 1000000)
+      return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
     return num.toString();
   }
@@ -283,11 +294,17 @@
   // Find modern YouTube dislike button
   function findDislikeButton() {
     return (
-      document.querySelector('ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button') ||
-      document.querySelector('segmented-like-dislike-button-view-model dislike-button-view-model button') ||
+      document.querySelector(
+        'ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button',
+      ) ||
+      document.querySelector(
+        'segmented-like-dislike-button-view-model dislike-button-view-model button',
+      ) ||
       document.querySelector('dislike-button-view-model button') ||
       document.querySelector('#segmented-dislike-button button') ||
-      document.querySelector('like-button-view-model + dislike-button-view-model button') ||
+      document.querySelector(
+        'like-button-view-model + dislike-button-view-model button',
+      ) ||
       document.querySelector('#dislike-button button')
     );
   }
@@ -297,14 +314,17 @@
     button.classList.remove('yt-spec-button-shape-next--icon-button');
     button.classList.add('yt-spec-button-shape-next--icon-leading');
 
-    let textWrapper = button.querySelector('.yt-spec-button-shape-next__button-text-content');
+    let textWrapper = button.querySelector(
+      '.yt-spec-button-shape-next__button-text-content',
+    );
     if (!textWrapper) {
       textWrapper = button.querySelector('.libertad-dislike-badge');
     }
 
     if (!textWrapper) {
       textWrapper = document.createElement('div');
-      textWrapper.className = 'yt-spec-button-shape-next__button-text-content libertad-dislike-badge';
+      textWrapper.className =
+        'yt-spec-button-shape-next__button-text-content libertad-dislike-badge';
       button.appendChild(textWrapper);
     } else {
       textWrapper.classList.add('libertad-dislike-badge');
@@ -318,7 +338,9 @@
 
   function removeDislikeBadge() {
     const badges = document.querySelectorAll('.libertad-dislike-badge');
-    badges.forEach((b) => b.remove());
+    badges.forEach((b) => {
+      b.remove();
+    });
   }
 
   // Dislike restoration logic
@@ -347,16 +369,21 @@
     isFetchingDislikes = true;
 
     const fetchPromise = new Promise((resolve) => {
-      chrome.runtime.sendMessage({ action: 'FETCH_DISLIKES', videoId }, (res) => {
-        if (!chrome.runtime.lastError && res && res.success && res.data) {
-          resolve(res.data);
-        } else {
-          fetch(`https://returnyoutubedislikeapi.com/votes?videoId=${encodeURIComponent(videoId)}`)
-            .then((r) => r.json())
-            .then((data) => resolve(data))
-            .catch(() => resolve(null));
-        }
-      });
+      chrome.runtime.sendMessage(
+        { action: 'FETCH_DISLIKES', videoId },
+        (res) => {
+          if (!chrome.runtime.lastError && res && res.success && res.data) {
+            resolve(res.data);
+          } else {
+            fetch(
+              `https://returnyoutubedislikeapi.com/votes?videoId=${encodeURIComponent(videoId)}`,
+            )
+              .then((r) => r.json())
+              .then((data) => resolve(data))
+              .catch(() => resolve(null));
+          }
+        },
+      );
     });
 
     fetchPromise
@@ -394,27 +421,30 @@
       const res = await fetch(oembedUrl);
       if (res.ok) {
         const data = await res.json();
-        if (data && data.title) {
+        if (data?.title) {
           const t = data.title.trim();
           titlesCache.set(videoId, t);
           return t;
         }
       }
-    } catch (e) {}
+    } catch (_e) {}
 
     // 2. Fallback to background worker
     return new Promise((resolve) => {
-      chrome.runtime.sendMessage({ action: 'FETCH_ORIGINAL_TITLE', videoId }, (res) => {
-        if (!chrome.runtime.lastError && res && res.success && res.title) {
-          const t = res.title.trim();
-          titlesCache.set(videoId, t);
-          resolve(t);
-        } else {
-          // Cache negative result to prevent infinite refetch loops
-          titlesCache.set(videoId, false);
-          resolve(null);
-        }
-      });
+      chrome.runtime.sendMessage(
+        { action: 'FETCH_ORIGINAL_TITLE', videoId },
+        (res) => {
+          if (!chrome.runtime.lastError && res && res.success && res.title) {
+            const t = res.title.trim();
+            titlesCache.set(videoId, t);
+            resolve(t);
+          } else {
+            // Cache negative result to prevent infinite refetch loops
+            titlesCache.set(videoId, false);
+            resolve(null);
+          }
+        },
+      );
     });
   }
 
@@ -434,7 +464,7 @@
       'ytd-watch-flexy:not([hidden]) #container > h1 > yt-formatted-string',
       'ytd-video-primary-info-renderer h1.title yt-formatted-string',
       'h1.title yt-formatted-string',
-      'h1.title > *'
+      'h1.title > *',
     ];
 
     for (const sel of selectors) {
@@ -450,7 +480,7 @@
 
   // Apply original title to watch page
   function applyWatchTitle(originalTitle, videoId) {
-    if (!originalTitle || !originalTitle.trim()) return false;
+    if (!originalTitle?.trim()) return false;
 
     // Strict guard: ensure we are still on the target video
     const currentParam = new URLSearchParams(window.location.search).get('v');
@@ -517,35 +547,47 @@
     const nodes = [];
 
     // 1. Classic Polymer title elements
-    document.querySelectorAll('#video-title, yt-formatted-string#video-title, a#video-title-link, a#video-title').forEach((el) => {
-      // Exclude watch page main title, thumbnails, duration badges, and overlays
-      if (
-        !el.closest('ytd-watch-metadata, #above-the-fold') &&
-        !el.closest('#thumbnail, ytd-thumbnail, [class*="content-image"], [class*="thumbnail"], ytd-playlist-thumbnail') &&
-        !nodes.includes(el)
-      ) {
-        nodes.push(el);
-      }
-    });
+    document
+      .querySelectorAll(
+        '#video-title, yt-formatted-string#video-title, a#video-title-link, a#video-title',
+      )
+      .forEach((el) => {
+        // Exclude watch page main title, thumbnails, duration badges, and overlays
+        if (
+          !el.closest('ytd-watch-metadata, #above-the-fold') &&
+          !el.closest(
+            '#thumbnail, ytd-thumbnail, [class*="content-image"], [class*="thumbnail"], ytd-playlist-thumbnail',
+          ) &&
+          !nodes.includes(el)
+        ) {
+          nodes.push(el);
+        }
+      });
 
     // 2. Modern YouTube Lockup ViewModels (2024+) & heading title links
-    document.querySelectorAll(
-      'h3 a[href*="watch?v="], h3 a[href*="/shorts/"], [class*="lockup-metadata"] h3 a, [class*="lockup-metadata"] [role="heading"] a, a.yt-lockup-metadata-view-model-wiz__title, h3.yt-lockup-metadata-view-model-wiz__heading-reset'
-    ).forEach((el) => {
-      if (
-        el.closest('ytd-watch-metadata, #above-the-fold') ||
-        el.closest('#thumbnail, ytd-thumbnail, [class*="content-image"], [class*="thumbnail"], ytd-playlist-thumbnail')
-      ) {
-        return;
-      }
+    document
+      .querySelectorAll(
+        'h3 a[href*="watch?v="], h3 a[href*="/shorts/"], [class*="lockup-metadata"] h3 a, [class*="lockup-metadata"] [role="heading"] a, a.yt-lockup-metadata-view-model-wiz__title, h3.yt-lockup-metadata-view-model-wiz__heading-reset',
+      )
+      .forEach((el) => {
+        if (
+          el.closest('ytd-watch-metadata, #above-the-fold') ||
+          el.closest(
+            '#thumbnail, ytd-thumbnail, [class*="content-image"], [class*="thumbnail"], ytd-playlist-thumbnail',
+          )
+        ) {
+          return;
+        }
 
-      // If it is a heading container, locate the innermost text-bearing span
-      const inner = el.querySelector('span.yt-core-attributed-string, span[role="text"], #video-title, yt-formatted-string');
-      const target = inner || el;
-      if (!nodes.includes(target)) {
-        nodes.push(target);
-      }
-    });
+        // If it is a heading container, locate the innermost text-bearing span
+        const inner = el.querySelector(
+          'span.yt-core-attributed-string, span[role="text"], #video-title, yt-formatted-string',
+        );
+        const target = inner || el;
+        if (!nodes.includes(target)) {
+          nodes.push(target);
+        }
+      });
 
     return nodes;
   }
@@ -556,25 +598,31 @@
 
     // Check direct anchor
     if (el.tagName === 'A' && el.href) {
-      const m = el.href.match(/[?&]v=([^&]+)/) || el.href.match(/\/shorts\/([^?&]+)/);
+      const m =
+        el.href.match(/[?&]v=([^&]+)/) || el.href.match(/\/shorts\/([^?&]+)/);
       if (m) return m[1];
     }
 
     // Check closest anchor
     const a = el.closest('a');
-    if (a && a.href) {
-      const m = a.href.match(/[?&]v=([^&]+)/) || a.href.match(/\/shorts\/([^?&]+)/);
+    if (a?.href) {
+      const m =
+        a.href.match(/[?&]v=([^&]+)/) || a.href.match(/\/shorts\/([^?&]+)/);
       if (m) return m[1];
     }
 
     // Check containing card for watch/shorts link
     const card = el.closest(
-      'ytd-rich-item-renderer, ytd-rich-grid-media, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, ytd-playlist-video-renderer, ytd-reel-item-renderer, yt-lockup-view-model, [class*="lockup"], [class*="item-section"]'
+      'ytd-rich-item-renderer, ytd-rich-grid-media, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, ytd-playlist-video-renderer, ytd-reel-item-renderer, yt-lockup-view-model, [class*="lockup"], [class*="item-section"]',
     );
     if (card) {
-      const link = card.querySelector('a[href*="watch?v="], a[href*="/shorts/"], a#video-title-link, a#thumbnail, a.ytd-thumbnail');
-      if (link && link.href) {
-        const m = link.href.match(/[?&]v=([^&]+)/) || link.href.match(/\/shorts\/([^?&]+)/);
+      const link = card.querySelector(
+        'a[href*="watch?v="], a[href*="/shorts/"], a#video-title-link, a#thumbnail, a.ytd-thumbnail',
+      );
+      if (link?.href) {
+        const m =
+          link.href.match(/[?&]v=([^&]+)/) ||
+          link.href.match(/\/shorts\/([^?&]+)/);
         if (m) return m[1];
       }
     }
@@ -587,16 +635,25 @@
     if (!titleNode || !cleanTitle) return;
 
     // Avoid redundant work if already applied
-    if (titleNode.dataset.libertadApplied === videoId && titleNode.textContent.trim() === cleanTitle) {
+    if (
+      titleNode.dataset.libertadApplied === videoId &&
+      titleNode.textContent.trim() === cleanTitle
+    ) {
       return;
     }
 
     // 1. If titleNode has an inner text-bearing span (e.g. Wiz / attributed string / formatted string)
-    const childSpan = titleNode.querySelector('span.yt-core-attributed-string, span[role="text"]');
+    const childSpan = titleNode.querySelector(
+      'span.yt-core-attributed-string, span[role="text"]',
+    );
     if (childSpan) {
       childSpan.textContent = cleanTitle;
       childSpan.innerText = cleanTitle;
-    } else if (titleNode.children.length === 0 || titleNode.tagName === 'SPAN' || titleNode.tagName === 'YT-FORMATTED-STRING') {
+    } else if (
+      titleNode.children.length === 0 ||
+      titleNode.tagName === 'SPAN' ||
+      titleNode.tagName === 'YT-FORMATTED-STRING'
+    ) {
       titleNode.textContent = cleanTitle;
       titleNode.innerText = cleanTitle;
     } else {
@@ -613,7 +670,8 @@
     titleNode.dataset.libertadApplied = videoId;
 
     // Update title/aria-label tooltip on parent anchor if present
-    const parentA = titleNode.tagName === 'A' ? titleNode : titleNode.closest('a');
+    const parentA =
+      titleNode.tagName === 'A' ? titleNode : titleNode.closest('a');
     if (parentA) {
       parentA.setAttribute('title', cleanTitle);
       parentA.setAttribute('aria-label', cleanTitle);
@@ -635,7 +693,10 @@
 
   // Concurrency queue processor
   function processFeedFetchQueue() {
-    while (activeFeedFetches < MAX_CONCURRENT_FEED_FETCHES && feedFetchQueue.length > 0) {
+    while (
+      activeFeedFetches < MAX_CONCURRENT_FEED_FETCHES &&
+      feedFetchQueue.length > 0
+    ) {
       const videoId = feedFetchQueue.shift();
       activeFeedFetches++;
 
@@ -687,7 +748,12 @@
   // Regular heartbeat to catch virtual-scroll DOM re-use on YouTube
   setInterval(() => {
     const vId = new URLSearchParams(window.location.search).get('v');
-    if (window.location.pathname === '/watch' && currentSettings.untranslateTitles && currentOriginalTitle && currentWatchVideoId === vId) {
+    if (
+      window.location.pathname === '/watch' &&
+      currentSettings.untranslateTitles &&
+      currentOriginalTitle &&
+      currentWatchVideoId === vId
+    ) {
       applyWatchTitle(currentOriginalTitle, currentWatchVideoId);
     }
     if (currentSettings.untranslateTitles) {
@@ -708,7 +774,7 @@
         }
       }, 150);
     },
-    { passive: true }
+    { passive: true },
   );
 
   // Page load listeners
@@ -787,7 +853,10 @@
       if (window.location.pathname === '/watch') {
         if (currentSettings.showDislikes) {
           const dislikeBtn = findDislikeButton();
-          if (dislikeBtn && !dislikeBtn.querySelector('.libertad-dislike-badge')) {
+          if (
+            dislikeBtn &&
+            !dislikeBtn.querySelector('.libertad-dislike-badge')
+          ) {
             updateDislikeCount();
           }
         }
@@ -804,6 +873,6 @@
 
   observer.observe(document.documentElement, {
     childList: true,
-    subtree: true
+    subtree: true,
   });
 })();

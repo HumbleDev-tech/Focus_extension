@@ -4,9 +4,7 @@
   "name": "__MSG_appName__",
   "version": "1.0",
   "description": "__MSG_appDesc__",
-  "permissions": [
-    "storage"
-  ],
+  "permissions": ["storage"],
   "host_permissions": [
     "*://*.youtube.com/*",
     "https://returnyoutubedislikeapi.com/*"
@@ -16,13 +14,8 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "*://www.youtube.com/*",
-        "*://youtube.com/*"
-      ],
-      "js": [
-        "content.js"
-      ],
+      "matches": ["*://www.youtube.com/*", "*://youtube.com/*"],
+      "js": ["content.js"],
       "run_at": "document_start"
     }
   ],

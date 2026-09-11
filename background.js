@@ -1,9 +1,9 @@
 // Libertad Service Worker
 const DEFAULT_SETTINGS = {
   preset: 'balanced', // 'off', 'basic', 'balanced', 'extreme', 'custom'
-  theme: 'dark',      // 'dark', 'light', 'oled'
-  lang: 'auto',       // 'auto', 'en', 'es'
-  scale: 'auto',      // 'auto', '100', '115', '125'
+  theme: 'dark', // 'dark', 'light', 'oled'
+  lang: 'auto', // 'auto', 'en', 'es'
+  scale: 'auto', // 'auto', '100', '115', '125'
   hideHomeFeed: false,
   hideSidebar: true,
   hideComments: true,
@@ -16,8 +16,8 @@ const DEFAULT_SETTINGS = {
     hideSidebar: true,
     hideComments: true,
     hideShorts: true,
-    hideEndScreens: true
-  }
+    hideEndScreens: true,
+  },
 };
 
 chrome.runtime.onInstalled.addListener((details) => {
@@ -27,7 +27,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 });
 
 // Relay external requests to prevent CSP/CORS issues
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   if (request.action === 'FETCH_DISLIKES') {
     const videoId = request.videoId;
     if (!videoId) {
@@ -35,7 +35,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       return;
     }
 
-    fetch(`https://returnyoutubedislikeapi.com/votes?videoId=${encodeURIComponent(videoId)}`)
+    fetch(
+      `https://returnyoutubedislikeapi.com/votes?videoId=${encodeURIComponent(videoId)}`,
+    )
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -65,7 +67,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return res.json();
       })
       .then((data) => {
-        sendResponse({ success: true, title: data.title, author: data.author_name });
+        sendResponse({
+          success: true,
+          title: data.title,
+          author: data.author_name,
+        });
       })
       .catch((err) => {
         sendResponse({ success: false, error: err.message });
