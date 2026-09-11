@@ -48,7 +48,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 
     // YouTube oEmbed endpoint returns untranslated original title
-    fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}&format=json`)
+    const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`;
+    fetch(oembedUrl)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
