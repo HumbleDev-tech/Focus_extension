@@ -338,19 +338,6 @@
         pointer-events: none !important;
         white-space: nowrap !important;
       }
-
-      /* Safety Lock: Ensure Video Player playback & volume controls are NEVER suppressed */
-      .html5-video-player .ytp-mute-button,
-      .html5-video-player .ytp-volume-area,
-      .html5-video-player .ytp-volume-panel,
-      .html5-video-player .ytp-volume-slider,
-      .html5-video-player .ytp-play-button,
-      .ytp-chrome-bottom .ytp-mute-button,
-      .ytp-chrome-bottom .ytp-volume-panel {
-        display: inline-block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-      }
     `);
 
     // Libertad UI Elements styling
