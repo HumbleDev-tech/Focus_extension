@@ -112,27 +112,27 @@
     }
 
     // Voice Search Microphone (Supports old ytd-searchbox, new yt-searchbox, Lit components, and SVG fallback)
+    // Voice Search Microphone (Strictly scoped to masthead and searchbox)
     if (settings.hideVoiceSearch) {
       rules.push(`
         #voice-search-button,
         ytd-searchbox #voice-search-button,
+        yt-searchbox #voice-search-button,
         ytd-masthead #voice-search-button,
         ytd-voice-search-dialog-renderer,
-        [class*="VoiceSearchButton"],
-        [class*="voice-search-button"],
-        [class*="voiceSearch"],
-        yt-icon-button:has([aria-label*="voice" i]),
-        yt-icon-button:has([aria-label*="voz" i]),
-        button[aria-label*="voice" i],
-        button[aria-label*="voz" i],
-        button[title*="voice" i],
-        button[title*="voz" i],
-        button:has(svg path[d*="M12 3c-1.66"]),
-        button:has(svg path[d*="12 3c-1.66"]),
-        button:has(svg path[d*="M12 14c1.66"]),
-        button:has(svg path[d*="12 14c1.66"]),
-        yt-icon-button:has(svg path[d*="12 3c-1.66"]),
-        yt-icon-button:has(svg path[d*="12 14c1.66"]) {
+        ytd-masthead [class*="VoiceSearchButton"],
+        ytd-masthead [class*="voice-search-button"],
+        ytd-masthead [class*="voiceSearch"],
+        ytd-masthead yt-icon-button:has([aria-label*="voice" i]),
+        ytd-masthead yt-icon-button:has([aria-label*="voz" i]),
+        ytd-masthead button[aria-label*="voice" i],
+        ytd-masthead button[aria-label*="voz" i],
+        ytd-masthead button[title*="voice" i],
+        ytd-masthead button[title*="voz" i],
+        ytd-searchbox button:has(svg path[d*="M12 3c-1.66"]),
+        yt-searchbox button:has(svg path[d*="M12 3c-1.66"]),
+        ytd-masthead button:has(svg path[d*="M12 3c-1.66"]),
+        ytd-masthead yt-icon-button:has(svg path[d*="12 3c-1.66"]) {
           display: none !important;
         }
       `);
@@ -173,7 +173,7 @@
       `);
     }
 
-    // Ask AI Assistant Button (Supports conversational-ai models, tags, and search labels)
+    // Ask AI Assistant Button (Scoped strictly to watch metadata and conversational AI elements)
     if (settings.hideAskAi) {
       rules.push(`
         ytd-conversational-ai-view-model,
@@ -182,92 +182,91 @@
         [target-id*="conversational_ai"],
         [target-id*="conversational-ai"],
         #conversational-ai,
-        yt-button-view-model:has([aria-label*="ask" i]),
-        yt-button-view-model:has([aria-label*="pregunt" i]),
-        yt-button-shape:has([aria-label*="ask" i]),
-        yt-button-shape:has([aria-label*="pregunt" i]),
-        ytd-button-renderer:has([aria-label*="ask" i]),
-        ytd-button-renderer:has([aria-label*="pregunt" i]),
-        button[aria-label*="ask" i],
-        button[aria-label*="pregunt" i],
-        yt-button-view-model:has(svg path[d*="19 9"]),
-        yt-button-shape:has(svg path[d*="19 9"]),
-        button:has(svg path[d*="19 9"]) {
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="ask" i]),
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="pregunt" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="ask" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="pregunt" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="ask" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="pregunt" i]),
+        #actions yt-button-view-model:has([aria-label*="ask" i]),
+        #actions yt-button-view-model:has([aria-label*="pregunt" i]),
+        #actions yt-button-view-model:has(svg path[d*="19 9"]),
+        #actions yt-button-shape:has(svg path[d*="19 9"]) {
           display: none !important;
         }
       `);
     }
 
-    // Promotional Premium Download Button (Supports custom elements, view models, and universal SVG download icon)
+    // Promotional Premium Download Button (Scoped strictly to watch metadata)
     if (settings.hideDownload) {
       rules.push(`
         download-button-view-model,
         ytd-download-button-renderer,
-        yt-button-view-model:has([aria-label*="download" i]),
-        yt-button-view-model:has([aria-label*="descarg" i]),
-        yt-button-shape:has([aria-label*="download" i]),
-        yt-button-shape:has([aria-label*="descarg" i]),
-        ytd-button-renderer:has([aria-label*="download" i]),
-        ytd-button-renderer:has([aria-label*="descarg" i]),
-        ytd-button-renderer:has(a[href*="premium"]),
-        button[aria-label*="download" i],
-        button[aria-label*="descarg" i],
-        yt-button-view-model:has(svg path[d*="17 18"]),
-        yt-button-view-model:has(svg path[d*="v1H6v-1h11"]),
-        yt-button-view-model:has(svg path[d*="3.8 3.7V4"]),
-        yt-button-shape:has(svg path[d*="17 18"]),
-        yt-button-shape:has(svg path[d*="v1H6v-1h11"]),
-        button:has(svg path[d*="17 18"]),
-        button:has(svg path[d*="v1H6v-1h11"]) {
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="download" i]),
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="descarg" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="download" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="descarg" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="download" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="descarg" i]),
+        ytd-watch-metadata ytd-button-renderer:has(a[href*="premium"]),
+        #actions yt-button-view-model:has(svg path[d*="17 18"]),
+        #actions yt-button-view-model:has(svg path[d*="v1H6v-1h11"]),
+        #actions yt-button-view-model:has(svg path[d*="3.8 3.7V4"]),
+        #actions yt-button-shape:has(svg path[d*="17 18"]),
+        #actions yt-button-shape:has(svg path[d*="v1H6v-1h11"]) {
           display: none !important;
         }
       `);
     }
 
-    // Thanks, Clips, and Remix Buttons
+    // Thanks, Clips, and Remix Buttons (Scoped strictly to watch metadata)
     if (settings.hideThanksClips) {
       rules.push(`
-        yt-button-view-model:has([aria-label*="thank" i]),
-        yt-button-view-model:has([aria-label*="gracia" i]),
-        yt-button-shape:has([aria-label*="thank" i]),
-        yt-button-shape:has([aria-label*="gracia" i]),
-        ytd-button-renderer:has([aria-label*="thank" i]),
-        ytd-button-renderer:has([aria-label*="gracia" i]),
-        button[aria-label*="thank" i],
-        button[aria-label*="gracia" i],
-        yt-button-view-model:has([aria-label*="clip" i]),
-        yt-button-shape:has([aria-label*="clip" i]),
-        ytd-button-renderer:has([aria-label*="clip" i]),
-        button[aria-label*="clip" i],
-        yt-button-view-model:has([aria-label*="remix" i]),
-        yt-button-shape:has([aria-label*="remix" i]),
-        ytd-button-renderer:has([aria-label*="remix" i]),
-        button[aria-label*="remix" i],
-        ytd-button-renderer:has(yt-icon[icon*="super-thanks"]),
-        ytd-button-renderer:has(yt-icon[icon*="clip"]),
-        ytd-button-renderer:has(yt-icon[icon*="remix"]) {
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="thank" i]),
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="gracia" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="thank" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="gracia" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="thank" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="gracia" i]),
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="clip" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="clip" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="clip" i]),
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="remix" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="remix" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="remix" i]),
+        #actions yt-button-view-model:has([aria-label*="thank" i]),
+        #actions yt-button-view-model:has([aria-label*="gracia" i]),
+        #actions yt-button-view-model:has([aria-label*="clip" i]),
+        #actions yt-button-view-model:has([aria-label*="remix" i]),
+        #actions button[aria-label*="thank" i],
+        #actions button[aria-label*="gracia" i],
+        #actions button[aria-label*="clip" i],
+        #actions button[aria-label*="remix" i],
+        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="super-thanks"]),
+        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="clip"]),
+        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="remix"]) {
           display: none !important;
         }
       `);
     }
 
-    // Share Button
+    // Share Button (Scoped strictly to watch metadata)
     if (settings.hideShare) {
       rules.push(`
         share-button-view-model,
         ytd-share-target-renderer,
-        yt-button-view-model:has([aria-label*="share" i]),
-        yt-button-view-model:has([aria-label*="compart" i]),
-        yt-button-shape:has([aria-label*="share" i]),
-        yt-button-shape:has([aria-label*="compart" i]),
-        ytd-button-renderer:has([aria-label*="share" i]),
-        ytd-button-renderer:has([aria-label*="compart" i]),
-        button[aria-label*="share" i],
-        button[aria-label*="compart" i],
-        yt-button-view-model:has(svg path[d*="15 5.63"]),
-        yt-button-view-model:has(svg path[d*="15 16.37"]),
-        yt-button-shape:has(svg path[d*="15 5.63"]),
-        button:has(svg path[d*="15 5.63"]) {
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="share" i]),
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="compart" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="share" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="compart" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="share" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="compart" i]),
+        #actions yt-button-view-model:has([aria-label*="share" i]),
+        #actions yt-button-view-model:has([aria-label*="compart" i]),
+        #actions yt-button-view-model:has(svg path[d*="15 5.63"]),
+        #actions yt-button-view-model:has(svg path[d*="15 16.37"]),
+        #actions yt-button-shape:has(svg path[d*="15 5.63"]),
+        #actions yt-button-shape:has(svg path[d*="15 16.37"]) {
           display: none !important;
         }
       `);
@@ -279,12 +278,12 @@
         #sponsor-button,
         ytd-sponsor-button-renderer,
         sponsor-button-view-model,
-        ytd-button-renderer:has([aria-label*="unirse" i]),
-        ytd-button-renderer:has([aria-label*="join" i]),
-        yt-button-view-model:has([aria-label*="unirse" i]),
-        yt-button-view-model:has([aria-label*="join" i]),
-        yt-button-shape:has([aria-label*="unirse" i]),
-        yt-button-shape:has([aria-label*="join" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="unirse" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="join" i]),
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="unirse" i]),
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="join" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="unirse" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="join" i]),
         ytd-watch-metadata #sponsor-button {
           display: none !important;
         }
@@ -338,6 +337,19 @@
         margin-left: 6px !important;
         pointer-events: none !important;
         white-space: nowrap !important;
+      }
+
+      /* Safety Lock: Ensure Video Player playback & volume controls are NEVER suppressed */
+      .html5-video-player .ytp-mute-button,
+      .html5-video-player .ytp-volume-area,
+      .html5-video-player .ytp-volume-panel,
+      .html5-video-player .ytp-volume-slider,
+      .html5-video-player .ytp-play-button,
+      .ytp-chrome-bottom .ytp-mute-button,
+      .ytp-chrome-bottom .ytp-volume-panel {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
       }
     `);
 
