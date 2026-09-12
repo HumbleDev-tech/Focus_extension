@@ -252,11 +252,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Apply visual theme and UI zoom to root
   function applyThemeAndScale() {
     document.documentElement.setAttribute('data-theme', state.theme);
+    try {
+      localStorage.setItem('libertad_theme', state.theme);
+    } catch (_) {}
     const activeScale =
       state.scale && state.scale !== 'auto'
         ? state.scale
         : detectDefaultScale();
     document.documentElement.setAttribute('data-scale', activeScale);
+    try {
+      localStorage.setItem('libertad_scale', activeScale);
+    } catch (_) {}
   }
 
   // Render all interactive elements and localized strings
@@ -382,6 +388,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const chosenTheme = btn.getAttribute('data-theme');
       state.theme = chosenTheme;
       document.documentElement.setAttribute('data-theme', chosenTheme);
+      try {
+        localStorage.setItem('libertad_theme', chosenTheme);
+      } catch (_) {}
       saveState();
     });
   });
@@ -401,6 +410,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const chosenScale = btn.getAttribute('data-scale');
       state.scale = chosenScale;
       document.documentElement.setAttribute('data-scale', chosenScale);
+      try {
+        localStorage.setItem('libertad_scale', chosenScale);
+      } catch (_) {}
       saveState();
     });
   });

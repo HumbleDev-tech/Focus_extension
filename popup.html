@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Libertad Focus</title>
+  <script>
+    try {
+      const savedTheme = localStorage.getItem('libertad_theme');
+      if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+      const savedScale = localStorage.getItem('libertad_scale');
+      if (savedScale) document.documentElement.setAttribute('data-scale', savedScale);
+    } catch (_) {}
+  </script>
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>

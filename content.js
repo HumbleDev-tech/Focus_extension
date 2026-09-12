@@ -375,25 +375,36 @@
         font-size: 10px;
         font-weight: 600;
         letter-spacing: 1.2px;
-        color: #38bdf8;
-        background: rgba(56, 189, 248, 0.08);
-        border: 1px solid rgba(56, 189, 248, 0.28);
+        color: var(--yt-spec-call-to-action, #065fd4);
+        background: rgba(6, 95, 212, 0.08);
+        border: 1px solid rgba(6, 95, 212, 0.28);
         border-radius: 3px;
         padding: 2px 8px;
         margin-bottom: 16px;
         text-transform: uppercase;
       }
-      .libertad-zen-icon-wrapper {
+      html[dark] .libertad-zen-badge {
         color: #38bdf8;
+        background: rgba(56, 189, 248, 0.08);
+        border: 1px solid rgba(56, 189, 248, 0.28);
+      }
+      .libertad-zen-icon-wrapper {
+        color: var(--yt-spec-call-to-action, #065fd4);
         margin-bottom: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         width: 44px;
         height: 44px;
+        background: rgba(6, 95, 212, 0.06);
+        border: 1px solid rgba(6, 95, 212, 0.2);
+        border-radius: 4px;
+        box-shadow: 0 0 16px rgba(6, 95, 212, 0.12);
+      }
+      html[dark] .libertad-zen-icon-wrapper {
+        color: #38bdf8;
         background: rgba(56, 189, 248, 0.06);
         border: 1px solid rgba(56, 189, 248, 0.2);
-        border-radius: 4px;
         box-shadow: 0 0 16px rgba(56, 189, 248, 0.12);
       }
       .libertad-zen-svg {

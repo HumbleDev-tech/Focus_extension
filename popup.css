@@ -20,6 +20,7 @@
 [data-theme="dark"] {
   --bg-canvas: #12151b;
   --surface-subtle: #181c24;
+  --surface-card: #151821;
   --row-hover: rgba(255, 255, 255, 0.04);
 
   --border-hairline: rgba(255, 255, 255, 0.08);
@@ -27,7 +28,7 @@
 
   --text-primary: #f0f3f6;
   --text-secondary: #9aa4b2;
-  --text-muted: #5e6877;
+  --text-muted: #6b7788;
 
   --accent: #38bdf8;
   --accent-glow: rgba(56, 189, 248, 0.35);
@@ -50,19 +51,23 @@
   --switch-track-active: #0c2738;
   --switch-track-active-border: #38bdf8;
   --switch-thumb-active: #38bdf8;
+
+  --scrollbar-thumb: rgba(255, 255, 255, 0.16);
+  --scrollbar-thumb-hover: rgba(56, 189, 248, 0.5);
 }
 
 [data-theme="oled"] {
   --bg-canvas: #000000;
-  --surface-subtle: #080808;
+  --surface-subtle: #08080a;
+  --surface-card: #050507;
   --row-hover: rgba(255, 255, 255, 0.05);
 
-  --border-hairline: #1c1c1f;
-  --border-subtle: #121214;
+  --border-hairline: #222226;
+  --border-subtle: #141416;
 
   --text-primary: #ffffff;
   --text-secondary: #a1a1aa;
-  --text-muted: #666666;
+  --text-muted: #787885;
 
   --accent: #38bdf8;
   --accent-glow: rgba(56, 189, 248, 0.4);
@@ -73,7 +78,7 @@
 
   --status-off-bg: rgba(82, 82, 91, 0.12);
   --status-off-border: rgba(82, 82, 91, 0.3);
-  --status-off-text: #52525b;
+  --status-off-text: #71717a;
 
   --active-tab-bg: #141416;
   --active-tab-text: #ffffff;
@@ -85,19 +90,23 @@
   --switch-track-active: #0c2738;
   --switch-track-active-border: #38bdf8;
   --switch-thumb-active: #38bdf8;
+
+  --scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  --scrollbar-thumb-hover: rgba(56, 189, 248, 0.6);
 }
 
 [data-theme="light"] {
   --bg-canvas: #f8fafc;
   --surface-subtle: #edf2f7;
+  --surface-card: #f1f5f9;
   --row-hover: rgba(0, 0, 0, 0.035);
 
   --border-hairline: #e2e8f0;
   --border-subtle: #edf2f7;
 
   --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  --text-secondary: #334155;
+  --text-muted: #596780;
 
   --accent: #0284c7;
   --accent-glow: rgba(2, 132, 199, 0.25);
@@ -106,20 +115,23 @@
   --status-active-border: rgba(2, 132, 199, 0.35);
   --status-active-text: #0284c7;
 
-  --status-off-bg: rgba(148, 163, 184, 0.12);
-  --status-off-border: rgba(148, 163, 184, 0.25);
-  --status-off-text: #94a3b8;
+  --status-off-bg: rgba(100, 116, 139, 0.1);
+  --status-off-border: rgba(100, 116, 139, 0.25);
+  --status-off-text: #596780;
 
   --active-tab-bg: #ffffff;
   --active-tab-text: #0284c7;
-  --active-tab-border: #cbd5e1;
+  --active-tab-border: rgba(2, 132, 199, 0.4);
 
   --switch-track-bg: #e2e8f0;
   --switch-track-border: #cbd5e1;
-  --switch-thumb: #94a3b8;
+  --switch-thumb: #64748b;
   --switch-track-active: #e0f2fe;
   --switch-track-active-border: #0284c7;
   --switch-thumb-active: #0284c7;
+
+  --scrollbar-thumb: rgba(0, 0, 0, 0.16);
+  --scrollbar-thumb-hover: rgba(2, 132, 199, 0.5);
 }
 
 :root {
@@ -315,11 +327,31 @@ body {
 /* Tab Panels */
 .tab-panel {
   display: none;
+  max-height: calc(490px * var(--ui-scale));
+  overflow-y: auto;
+  overflow-x: hidden;
   animation: tabFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .tab-panel.active {
   display: block;
+}
+
+.tab-panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tab-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tab-panel::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 2px;
+}
+
+.tab-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 @keyframes tabFadeIn {
