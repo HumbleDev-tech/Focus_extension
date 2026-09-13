@@ -16,6 +16,10 @@
   <img src="https://img.shields.io/badge/Language-EN%20%7C%20ES-lightgrey.svg?style=flat-square" alt="Languages" />
 </p>
 
+<p align="center">
+  <img src="assets/libertad-interface-preview.png" width="380" alt="Libertad Control Interface Preview" />
+</p>
+
 ---
 
 ## Overview
