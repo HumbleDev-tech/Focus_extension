@@ -25,6 +25,21 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   const i18nElements = document.querySelectorAll('[data-i18n]');
   const resetBtn = document.getElementById('resetBtn');
+  const footerVersion = document.getElementById('footerVersion');
+
+  // Populate dynamic manifest version
+  if (
+    footerVersion &&
+    typeof chrome !== 'undefined' &&
+    chrome.runtime?.getManifest
+  ) {
+    try {
+      const manifest = chrome.runtime.getManifest();
+      if (manifest?.version) {
+        footerVersion.textContent = `v${manifest.version}`;
+      }
+    } catch (_) {}
+  }
 
   // Toggle Checkboxes (Macro shields, cleaner chips, and power modules)
   const toggles = {
@@ -399,5 +414,18 @@ document.addEventListener('DOMContentLoaded', () => {
         resetBtn.textContent = t('resetBtn');
       }, 1200);
     }
+  });
+
+  // Safe external navigation via chrome.tabs.create
+  document.querySelectorAll('a.drawer-link').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const url = link.getAttribute('href');
+      if (url && typeof chrome !== 'undefined' && chrome.tabs?.create) {
+        chrome.tabs.create({ url });
+      } else if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    });
   });
 });
