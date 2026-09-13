@@ -30,28 +30,37 @@ Whether you need a distraction-free environment for research and study, or a min
 
 ### 1. Tri-Tab Ergonomic Navigation & Global Preset Bar
 Libertad organizes controls into three purpose-built workspaces without vertical clutter, commanded by a top-level global preset bar:
-* **Focus Shield**: High-impact distraction-elimination shields for algorithmic feeds and comment sections.
-* **UI Cleaner**: Surgical removal of promotional, experimental, and secondary action buttons across YouTube's header and video player via interactive compact chips.
+* **Focus Shield**: High-impact macro distraction blockers for algorithmic feeds, watch-next sidebars, comments, shorts, and end-screen cards.
+* **UI Cleaner**: Surgical removal of 25 promotional, experimental, and clutter elements across YouTube's modern interface organized into 4 distinct categories.
 * **Extras**: Dedicated power modules for YouTube data restorations (Public Dislikes API) and Title Untranslation.
 
 ---
 
 ### 2. Instant Focus Presets (Integrated Matrix)
-Switch between curated focus profiles with a single click or tailor your own:
+Switch between curated focus profiles with a single click or tailor your own (30 total toggles):
 
-| Preset | Home Feed | Sidebar | Comments | Shorts | Voice Search | Create (+) | Notifications | Ask AI | Download | Thanks/Clips | Join | Share | Merch |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **OFF** | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown | Shown |
-| **BASIC** | Shown | Shown | **Hidden** | Shown | Shown | Shown | Shown | **Hidden** | **Hidden** | Shown | Shown | Shown | **Hidden** |
-| **BALANCED** | Shown | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | Shown | **Hidden** |
-| **EXTREME** | **Zen** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** | **Hidden** |
-| **CUSTOM** | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* | *Saved* |
+| Distraction / Clutter Element | OFF | BASIC | BALANCED *(Default)* | EXTREME *(Zen)* | CUSTOM |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Home Feed (Zen Search Mode)** | Shown | Shown | Shown | **Zen Prompt** | *Saved* |
+| **Related Sidebar & Recommendations** | Shown | Shown | **Hidden** | **Hidden** | *Saved* |
+| **Comments Stream** | Shown | **Hidden** | **Hidden** | **Hidden** | *Saved* |
+| **Shorts Everywhere (Feeds & Nav)** | Shown | Shown | **Hidden** | **Hidden** | *Saved* |
+| **End Screen Popup Cards** | Shown | **Hidden** | **Hidden** | **Hidden** | *Saved* |
+| **Header (Voice, Create, Notifs)** | Shown | Shown | **Hidden** | **Hidden** | *Saved* |
+| **Search Suggestions & Filter Chips** | Shown | Shown | Shown | **Hidden** | *Saved* |
+| **Player Overlays (Up Next, Promo, Watermark)** | Shown | **Hidden** | **Hidden** | **Hidden** | *Saved* |
+| **Autoplay & Miniplayer Controls** | Shown | Shown | **Hidden** | **Hidden** | *Saved* |
+| **Promo Buttons (AI, Download, Merch)** | Shown | **Hidden** | **Hidden** | **Hidden** | *Saved* |
+| **Monetization Buttons (Join, Thanks/Clips)** | Shown | Shown | **Hidden** | **Hidden** | *Saved* |
+| **Social Actions (Share, Save, 3-Dots)** | Shown | Shown | Shown | **Hidden** | *Saved* |
+| **Metrics (Likes/Dislikes, Views, Subs)** | Shown | Shown | Shown | **Hidden** | *Saved* |
+| **Feeds (Live Chat, Trending, More from YT)** | Shown | Shown | **Hidden** | **Hidden** | *Saved* |
 
-* **Off**: Clean passthrough mode; leaves YouTube unaltered.
-* **Basic**: Removes common watch clutter (comments, end-screens, promotional download buttons, AI popups, and product shelves).
-* **Balanced** *(Recommended)*: Eliminates recommendation loops and bloat buttons (sidebar recommendations, shorts, comments, voice search mic, create button, notifications bell, channel memberships, and clutter buttons).
-* **Extreme (Zen Mode)**: Complete distraction and clutter elimination. Replaces the homepage with an intentional search prompt and strips all auxiliary action and sharing buttons.
-* **Custom**: Automatically remembers and persists your individual fine-tuned preferences across all switches in both tabs.
+* **Off**: Clean passthrough mode; leaves YouTube completely unaltered.
+* **Basic**: Removes common passive watch clutter (comments, end-screen cards, promotional download buttons, experimental AI popups, paid promo banners, watermarks, up next tiles, and merch shelves).
+* **Balanced** *(Recommended Default)*: Breaks algorithmic recommendation feedback loops while keeping personal actions intact. Hides the sidebar, shorts, comments, voice search mic, create button, notifications bell, autoplay, up next, watermarks, paid promotions, miniplayer, AI button, download button, thanks/clips, channel memberships, merch shelves, live chat, trending, and "More from YouTube".
+* **Extreme (Zen Mode)**: Complete distraction and engagement eradication. Replaces the homepage with an intentional minimalist search prompt, hides the sidebar, comments, shorts, header tools, player overlays, action bar (including likes/dislikes, share, save, 3-dots menu, subscribe button, subscriber count, views/date), live chat, and all browsing shelves.
+* **Custom**: Automatically remembers and persists your individual fine-tuned preferences across all 30 switches in both tabs.
 
 ---
 
@@ -67,15 +76,40 @@ Switch between curated focus profiles with a single click or tailor your own:
 
 ### 4. YouTube De-Bloating & Action Cleaner (Cleaner Tab)
 
-* **Header Voice Search Mic**: Removes the microphone icon beside the search bar for a clean, minimalist header.
+Libertad provides 25 modular toggles organized into four specialized categories to clean modern YouTube:
+
+#### A. Header & Search Controls
+* **Voice Search Mic**: Removes the microphone icon beside the main search bar for a cleaner masthead.
 * **Create / Upload Button**: Suppresses the video creation and live broadcast button (`+`) in YouTube's top masthead bar.
-* **Notifications Bell**: Suppresses the notification bell and alert badges to prevent anxiety and notification-driven rabbit holes.
+* **Notifications Bell**: Suppresses the notification bell and alert badges to eliminate anxiety and notification rabbit holes.
+* **Search Suggestions**: Hides the autocomplete search suggestion dropdown box to prevent algorithmic search hijacking.
+* **Feed Filter Chips**: Suppresses the category topic chips bar located at the top of feeds and search results.
+
+#### B. Player Controls & Overlays
+* **Autoplay Toggle**: Hides the autoplay switch in the bottom video player control bar to prevent unintended binge-watching.
+* **Up Next Overlay Tile**: Suppresses the countdown screen and "Up Next" preview tiles overlaying the video player.
+* **Channel Branding Watermark**: Removes the floating creator watermark icon in the bottom-right corner of the video.
+* **Paid Promotion / Sponsor Banners**: Suppresses the "Includes paid promotion" banner disclaimer overlaying the video.
+* **Miniplayer Button**: Removes the picture-in-picture / miniplayer button from the player controls.
+
+#### C. Action Bar & Social Engagement
 * **Ask AI Assistant Button**: Suppresses YouTube's experimental conversational AI button on video watch pages.
-* **Promotional Download Button**: Suppresses the download button that prompts users to purchase YouTube Premium.
-* **Engagement Clutter (Thanks, Clips & Remix)**: Strips monetization and remixing action buttons from the primary video control bar.
+* **Promotional Download Button**: Suppresses the download button and its overflow menu entries prompting users to purchase YouTube Premium.
+* **Thanks, Clips & Remix**: Strips monetization and remixing action buttons from the primary video control bar.
 * **Channel Memberships (Join Button)**: Suppresses the promotional "Join" / "Unirse" button beside the Subscribe button.
 * **Video Share Button**: Suppresses the share button for an ultra-focused, cinema-grade watch experience.
-* **Merch & Products**: Suppresses shopping carousels, affiliate product shelves, and store banners below videos.
+* **Save to Playlist**: Suppresses the "Save" to playlist button from the primary video action bar.
+* **Like / Dislike Bar**: Strips the thumbs up and thumbs down action buttons from the player metadata row.
+* **Subscribe Button**: Suppresses the channel Subscribe button to avoid audience capture traps.
+* **Subscriber Count**: Hides the channel subscriber count to prevent social proof bias.
+* **View Count & Upload Date**: Suppresses public view counts and publication dates beneath the video title.
+* **3-Dots Overflow Menu**: Suppresses the 3-dots "More actions" (`...`) button on the watch action bar and removes the "Report" / "Denunciar" option from overflow menus.
+
+#### D. Feeds & Navigation Shelves
+* **Merch & Shopping Shelves**: Suppresses shopping carousels, affiliate product shelves, and store banners below videos.
+* **Live Chat Stream & Replay**: Suppresses the live chat sidebar, chat replay, and live comment box during premieres and streams.
+* **Trending & Explore**: Strips Trending, Movies, and Explore links from the left guide drawer and feed sections.
+* **More From YouTube**: Suppresses YouTube Premium, YouTube Studio, YouTube Music, and YouTube Kids sections in the navigation drawer.
 
 ---
 

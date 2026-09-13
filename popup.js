@@ -34,16 +34,35 @@ document.addEventListener('DOMContentLoaded', () => {
     hideComments: document.getElementById('toggleComments'),
     hideShorts: document.getElementById('toggleShorts'),
     hideEndScreens: document.getElementById('toggleEndScreens'),
-    // Cleaner Chips
+    // Cleaner: Header & Search
     hideVoiceSearch: document.getElementById('toggleVoiceSearch'),
     hideCreateButton: document.getElementById('toggleCreateButton'),
     hideNotifications: document.getElementById('toggleNotifications'),
+    hideSearchSuggestions: document.getElementById('toggleSearchSuggestions'),
+    hideFilterChips: document.getElementById('toggleFilterChips'),
+    // Cleaner: Player & Overlays
+    hideAutoplay: document.getElementById('toggleAutoplay'),
+    hideUpNext: document.getElementById('toggleUpNext'),
+    hideWatermark: document.getElementById('toggleWatermark'),
+    hidePaidPromo: document.getElementById('togglePaidPromo'),
+    hideMiniplayer: document.getElementById('toggleMiniplayer'),
+    // Cleaner: Action Bar & Social
     hideAskAi: document.getElementById('toggleAskAi'),
     hideDownload: document.getElementById('toggleDownload'),
     hideThanksClips: document.getElementById('toggleThanksClips'),
     hideJoinButton: document.getElementById('toggleJoinButton'),
     hideShare: document.getElementById('toggleShare'),
+    hideSave: document.getElementById('toggleSave'),
+    hideLikeDislike: document.getElementById('toggleLikeDislike'),
+    hideSubscribeButton: document.getElementById('toggleSubscribeButton'),
+    hideSubscriberCount: document.getElementById('toggleSubscriberCount'),
+    hideViewsDate: document.getElementById('toggleViewsDate'),
+    hideMoreActions: document.getElementById('toggleMoreActions'),
+    // Cleaner: Feeds & Navigation
     hideMerchShelf: document.getElementById('toggleMerchShelf'),
+    hideLiveChat: document.getElementById('toggleLiveChat'),
+    hideTrending: document.getElementById('toggleTrending'),
+    hideMoreFromYoutube: document.getElementById('toggleMoreFromYoutube'),
     // Power Modules
     showDislikes: document.getElementById('toggleDislikes'),
     untranslateTitles: document.getElementById('toggleUntranslate'),

@@ -42,6 +42,10 @@
       ? { ...DEFAULT_SETTINGS }
       : {
           preset: 'balanced',
+          theme: 'dark',
+          lang: 'auto',
+          scale: 'auto',
+          activeTab: 'focus',
           hideHomeFeed: false,
           hideSidebar: true,
           hideComments: true,
@@ -50,15 +54,30 @@
           hideVoiceSearch: true,
           hideCreateButton: true,
           hideNotifications: true,
+          hideSearchSuggestions: false,
+          hideFilterChips: false,
+          hideAutoplay: true,
+          hideUpNext: true,
+          hideWatermark: true,
+          hidePaidPromo: true,
+          hideMiniplayer: true,
           hideAskAi: true,
           hideDownload: true,
           hideThanksClips: true,
           hideJoinButton: true,
           hideShare: false,
+          hideSave: false,
+          hideLikeDislike: false,
+          hideSubscribeButton: false,
+          hideSubscriberCount: false,
+          hideViewsDate: false,
+          hideMoreActions: false,
           hideMerchShelf: true,
+          hideLiveChat: true,
+          hideTrending: true,
+          hideMoreFromYoutube: true,
           showDislikes: true,
           untranslateTitles: true,
-          lang: 'auto',
         };
 
   // Caches and queues with bounded capacity
@@ -214,7 +233,7 @@
       `);
     }
 
-    // Promotional Premium Download Button (Scoped strictly to watch metadata)
+    // Promotional Premium Download Button (Scoped strictly to watch metadata and overflow menus)
     if (settings.hideDownload) {
       rules.push(`
         download-button-view-model,
@@ -224,7 +243,17 @@
         ytd-watch-metadata yt-button-shape:has([aria-label*="download" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="descarg" i]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="download" i]),
-        ytd-watch-metadata ytd-button-renderer:has(a[href*="premium"]) {
+        ytd-watch-metadata ytd-button-renderer:has(a[href*="premium"]),
+        ytd-menu-service-item-renderer:has([aria-label*="descarg" i]),
+        ytd-menu-service-item-renderer:has([aria-label*="download" i]),
+        ytd-menu-navigation-item-renderer:has([aria-label*="descarg" i]),
+        ytd-menu-navigation-item-renderer:has([aria-label*="download" i]),
+        ytd-menu-navigation-item-renderer:has(a[href*="premium"]),
+        ytd-menu-popup-renderer ytd-menu-service-item-renderer:has(yt-icon[icon*="download"]),
+        ytd-menu-popup-renderer ytd-menu-navigation-item-renderer:has(yt-icon[icon*="download"]),
+        ytd-menu-popup-renderer tp-yt-paper-item:has(yt-icon[icon*="download"]),
+        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="descarg" i]),
+        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="download" i]) {
           display: none !important;
         }
       `);
@@ -311,6 +340,209 @@
         [target-id*="shopping"],
         [target-id*="merch"],
         ytd-product-shelf-renderer {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Save / Add to Playlist Button
+    if (settings.hideSave) {
+      rules.push(`
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="save" i]),
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="guardar" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="save" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="guardar" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="save" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="guardar" i]),
+        #actions yt-button-view-model:has([aria-label*="save" i]),
+        #actions yt-button-view-model:has([aria-label*="guardar" i]),
+        #actions ytd-button-renderer:has(yt-icon[icon*="playlist-add"]),
+        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="playlist-add"]) {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Like & Dislike Social Block
+    if (settings.hideLikeDislike) {
+      rules.push(`
+        segmented-like-dislike-button-view-model,
+        ytd-segmented-like-dislike-button-renderer,
+        #segmented-like-button,
+        #segmented-dislike-button,
+        like-button-view-model,
+        dislike-button-view-model {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Channel Subscriber Count
+    if (settings.hideSubscriberCount) {
+      rules.push(`
+        #owner-sub-count,
+        ytd-video-owner-renderer #owner-sub-count,
+        yt-formatted-string#owner-sub-count {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Channel Subscribe Button
+    if (settings.hideSubscribeButton) {
+      rules.push(`
+        #subscribe-button,
+        #subscribe-button-shape,
+        ytd-subscribe-button-renderer {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Video Views Count & Upload Date
+    if (settings.hideViewsDate) {
+      rules.push(`
+        #info-container.ytd-watch-info-text,
+        ytd-watch-info-text #info-container,
+        #view-count.ytd-video-view-count-renderer {
+          display: none !important;
+        }
+      `);
+    }
+
+    // 3-Dots Overflow Menu & Report Actions (Action Bar More actions button + Report option)
+    if (settings.hideMoreActions) {
+      rules.push(`
+        ytd-watch-metadata #actions ytd-menu-renderer > yt-icon-button.dropdown-trigger,
+        ytd-watch-metadata #actions ytd-menu-renderer > yt-button-shape,
+        ytd-watch-metadata #actions ytd-menu-renderer #top-level-buttons-computed ~ yt-button-shape,
+        ytd-watch-metadata #actions ytd-menu-renderer #top-level-buttons-computed ~ yt-icon-button,
+        ytd-watch-metadata #actions ytd-menu-renderer #top-level-buttons-computed ~ ytd-button-renderer,
+        ytd-watch-metadata #actions yt-icon-button[aria-label*="más acciones" i],
+        ytd-watch-metadata #actions yt-icon-button[aria-label*="more actions" i],
+        ytd-watch-metadata #actions yt-icon-button[aria-label*="otras acciones" i],
+        ytd-watch-metadata #actions button[aria-label*="más acciones" i],
+        ytd-watch-metadata #actions button[aria-label*="more actions" i],
+        ytd-watch-metadata #actions button[aria-label*="otras acciones" i],
+        ytd-watch-metadata #actions yt-button-shape:has(button[aria-label*="más acciones" i]),
+        ytd-watch-metadata #actions yt-button-shape:has(button[aria-label*="more actions" i]),
+        ytd-watch-metadata #actions yt-button-shape:has(button[aria-label*="otras acciones" i]),
+        ytd-menu-service-item-renderer:has(yt-icon[icon*="report"]),
+        ytd-menu-service-item-renderer:has(yt-icon[icon*="flag"]),
+        ytd-menu-service-item-renderer:has([aria-label*="report" i]),
+        ytd-menu-service-item-renderer:has([aria-label*="denunciar" i]),
+        ytd-menu-service-item-renderer:has([aria-label*="notificar" i]),
+        ytd-menu-popup-renderer tp-yt-paper-item:has(yt-icon[icon*="report"]),
+        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="report" i]),
+        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="denunciar" i]) {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Autoplay Player Switch
+    if (settings.hideAutoplay) {
+      rules.push(`
+        .ytp-autonav-toggle-button-container,
+        .ytp-button[data-tooltip-target-id*="autonav"],
+        .ytp-autonav-toggle-button {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Up Next Countdown Screen
+    if (settings.hideUpNext) {
+      rules.push(`
+        .ytp-upnext,
+        .ytp-upnext-autoplay-icon,
+        .ytp-upnext-container {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Video Player Channel Watermark
+    if (settings.hideWatermark) {
+      rules.push(`
+        .annotation-type-custom.iv-branding,
+        .iv-branding,
+        .ytp-featured-watermark {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Paid Promotion Banner Overlay
+    if (settings.hidePaidPromo) {
+      rules.push(`
+        .ytp-paid-content-overlay {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Miniplayer Button in Player Controls
+    if (settings.hideMiniplayer) {
+      rules.push(`
+        .ytp-miniplayer-button {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Search Box Autocomplete Suggestions
+    if (settings.hideSearchSuggestions) {
+      rules.push(`
+        .sbdd_b,
+        .sbsb_a,
+        yt-searchbox-suggestions,
+        .gstl_50,
+        ytd-searchbox .sbdd_a {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Search and Feed Filter Chips
+    if (settings.hideFilterChips) {
+      rules.push(`
+        ytd-feed-filter-chip-bar-renderer,
+        #chips-wrapper.ytd-feed-filter-chip-bar-renderer,
+        iron-selector#chips {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Left Drawer Trending & Explore Section
+    if (settings.hideTrending) {
+      rules.push(`
+        ytd-guide-section-renderer:has(a[href*="/feed/trending"]),
+        ytd-guide-entry-renderer:has(a[href*="/feed/trending"]),
+        ytd-guide-entry-renderer:has(a[href*="/feed/explore"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/feed/trending"]) {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Left Drawer "More from YouTube" Links
+    if (settings.hideMoreFromYoutube) {
+      rules.push(`
+        ytd-guide-section-renderer:has(a[href*="premium"]),
+        ytd-guide-section-renderer:has(a[href*="studio.youtube.com"]) {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Live Chat & Live Chat Replay
+    if (settings.hideLiveChat) {
+      rules.push(`
+        #chat,
+        #chat-container,
+        ytd-live-chat-frame {
           display: none !important;
         }
       `);

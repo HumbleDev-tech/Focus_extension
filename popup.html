@@ -177,10 +177,10 @@
 
     <!-- TAB 2: UI CLEANER (Micro-De-Bloat Matrix) -->
     <div class="tab-panel" id="tabPanelCleaner">
-      <!-- Section A: Header & Navigation Clutter -->
+      <!-- Section A: Header & Search Clutter -->
       <section class="cleaner-group">
         <div class="cleaner-group-header">
-          <span class="pane-title" data-i18n="cleanerHeaderSubtitle">HEADER &amp; NAVIGATION</span>
+          <span class="pane-title" data-i18n="cleanerHeaderSubtitle">HEADER &amp; SEARCH</span>
         </div>
         <div class="chip-grid">
           <!-- Voice Search Mic -->
@@ -220,13 +220,104 @@
             </span>
             <span class="chip-label" data-i18n="chipNotifications">Bell Alerts</span>
           </label>
+
+          <!-- Search Suggestions -->
+          <label class="chip-toggle" for="toggleSearchSuggestions">
+            <input type="checkbox" id="toggleSearchSuggestions" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" x2="16.65" y1="21" y2="16.65"></line>
+                <line x1="8" x2="14" y1="11" y2="11"></line>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipSearchSuggestions">Search Suggs</span>
+          </label>
+
+          <!-- Filter Chips -->
+          <label class="chip-toggle" for="toggleFilterChips">
+            <input type="checkbox" id="toggleFilterChips" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipFilterChips">Filter Chips</span>
+          </label>
         </div>
       </section>
 
-      <!-- Section B: Player & Action Bar Clutter -->
+      <!-- Section B: Player & Overlays -->
       <section class="cleaner-group">
         <div class="cleaner-group-header">
-          <span class="pane-title" data-i18n="cleanerPlayerSubtitle">PLAYER &amp; CONTROLS</span>
+          <span class="pane-title" data-i18n="cleanerPlayerSubtitle">PLAYER &amp; OVERLAYS</span>
+        </div>
+        <div class="chip-grid">
+          <!-- Autoplay Toggle -->
+          <label class="chip-toggle" for="toggleAutoplay">
+            <input type="checkbox" id="toggleAutoplay" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipAutoplay">Autoplay</span>
+          </label>
+
+          <!-- Up Next Countdown -->
+          <label class="chip-toggle" for="toggleUpNext">
+            <input type="checkbox" id="toggleUpNext" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                <line x1="19" x2="19" y1="5" y2="19"></line>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipUpNext">Up Next</span>
+          </label>
+
+          <!-- Watermark -->
+          <label class="chip-toggle" for="toggleWatermark">
+            <input type="checkbox" id="toggleWatermark" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+                <circle cx="15" cy="15" r="2"></circle>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipWatermark">Watermark</span>
+          </label>
+
+          <!-- Paid Promotion -->
+          <label class="chip-toggle" for="togglePaidPromo">
+            <input type="checkbox" id="togglePaidPromo" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="12" x="2" y="6" rx="2"></rect>
+                <circle cx="12" cy="12" r="2"></circle>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipPaidPromo">Paid Promo</span>
+          </label>
+
+          <!-- Miniplayer -->
+          <label class="chip-toggle" for="toggleMiniplayer">
+            <input type="checkbox" id="toggleMiniplayer" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                <rect width="8" height="6" x="12" y="12" rx="1"></rect>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipMiniplayer">Miniplayer</span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Section C: Action Bar & Social Clutter -->
+      <section class="cleaner-group">
+        <div class="cleaner-group-header">
+          <span class="pane-title" data-i18n="cleanerActionsSubtitle">ACTIONS &amp; SOCIAL</span>
         </div>
         <div class="chip-grid">
           <!-- Ask AI Assistant -->
@@ -294,6 +385,90 @@
             <span class="chip-label" data-i18n="chipShare">Share Button</span>
           </label>
 
+          <!-- Save Button -->
+          <label class="chip-toggle" for="toggleSave">
+            <input type="checkbox" id="toggleSave" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipSave">Save Video</span>
+          </label>
+
+          <!-- Like / Dislike Bar -->
+          <label class="chip-toggle" for="toggleLikeDislike">
+            <input type="checkbox" id="toggleLikeDislike" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 10v12"></path>
+                <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h3"></path>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipLikeDislike">Like/Dislike</span>
+          </label>
+
+          <!-- Subscribe Button -->
+          <label class="chip-toggle" for="toggleSubscribeButton">
+            <input type="checkbox" id="toggleSubscribeButton" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <line x1="19" x2="19" y1="8" y2="14"></line>
+                <line x1="22" x2="16" y1="11" y2="11"></line>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipSubscribeButton">Subscribe</span>
+          </label>
+
+          <!-- Subscriber Count -->
+          <label class="chip-toggle" for="toggleSubscriberCount">
+            <input type="checkbox" id="toggleSubscriberCount" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipSubscriberCount">Sub Count</span>
+          </label>
+
+          <!-- Views & Date -->
+          <label class="chip-toggle" for="toggleViewsDate">
+            <input type="checkbox" id="toggleViewsDate" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipViewsDate">Views &amp; Date</span>
+          </label>
+
+          <!-- 3-Dots Overflow Menu -->
+          <label class="chip-toggle" for="toggleMoreActions">
+            <input type="checkbox" id="toggleMoreActions" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                <circle cx="5" cy="12" r="2"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+                <circle cx="19" cy="12" r="2"></circle>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipMoreActions">3-Dots Menu</span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Section D: Feeds & Navigation Clutter -->
+      <section class="cleaner-group">
+        <div class="cleaner-group-header">
+          <span class="pane-title" data-i18n="cleanerNavSubtitle">FEEDS &amp; NAVIGATION</span>
+        </div>
+        <div class="chip-grid">
           <!-- Merch Shelf -->
           <label class="chip-toggle" for="toggleMerchShelf">
             <input type="checkbox" id="toggleMerchShelf" class="visually-hidden" />
@@ -305,6 +480,43 @@
               </svg>
             </span>
             <span class="chip-label" data-i18n="chipMerch">Merch Shelf</span>
+          </label>
+
+          <!-- Live Chat -->
+          <label class="chip-toggle" for="toggleLiveChat">
+            <input type="checkbox" id="toggleLiveChat" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipLiveChat">Live Chat</span>
+          </label>
+
+          <!-- Trending / Explore -->
+          <label class="chip-toggle" for="toggleTrending">
+            <input type="checkbox" id="toggleTrending" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                <polyline points="16 7 22 7 22 13"></polyline>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipTrending">Trending</span>
+          </label>
+
+          <!-- More From YouTube -->
+          <label class="chip-toggle" for="toggleMoreFromYoutube">
+            <input type="checkbox" id="toggleMoreFromYoutube" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="7" height="7" x="3" y="3" rx="1"></rect>
+                <rect width="7" height="7" x="14" y="3" rx="1"></rect>
+                <rect width="7" height="7" x="14" y="14" rx="1"></rect>
+                <rect width="7" height="7" x="3" y="14" rx="1"></rect>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipMoreFromYoutube">More YouTube</span>
           </label>
         </div>
       </section>
