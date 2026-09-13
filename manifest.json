@@ -2,11 +2,12 @@
   "manifest_version": 3,
   "default_locale": "en",
   "name": "__MSG_appName__",
-  "version": "1.0",
+  "version": "1.0.0",
   "description": "__MSG_appDesc__",
   "permissions": ["storage"],
   "host_permissions": [
     "*://*.youtube.com/*",
+    "*://youtube.com/*",
     "https://returnyoutubedislikeapi.com/*"
   ],
   "background": {

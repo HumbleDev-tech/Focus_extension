@@ -475,7 +475,6 @@ document.addEventListener('DOMContentLoaded', () => {
     saveState();
   });
 
-  // Reset to default
   resetBtn.addEventListener('click', () => {
     const currentScale = state.scale || detectDefaultScale();
     state = {
@@ -490,10 +489,14 @@ document.addEventListener('DOMContentLoaded', () => {
       hideShorts: true,
       hideEndScreens: true,
       hideVoiceSearch: true,
+      hideCreateButton: true,
+      hideNotifications: true,
       hideAskAi: true,
       hideDownload: true,
       hideThanksClips: true,
+      hideJoinButton: true,
       hideShare: false,
+      hideMerchShelf: true,
       showDislikes: true,
       untranslateTitles: true,
       customConfig: {
@@ -503,10 +506,14 @@ document.addEventListener('DOMContentLoaded', () => {
         hideShorts: true,
         hideEndScreens: true,
         hideVoiceSearch: true,
+        hideCreateButton: true,
+        hideNotifications: true,
         hideAskAi: true,
         hideDownload: true,
         hideThanksClips: true,
+        hideJoinButton: true,
         hideShare: false,
+        hideMerchShelf: true,
       },
     };
     saveState();

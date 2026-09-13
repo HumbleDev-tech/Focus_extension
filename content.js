@@ -572,7 +572,11 @@
     }
 
     const urlParams = new URLSearchParams(window.location.search);
-    const videoId = urlParams.get('v');
+    let videoId = urlParams.get('v');
+    if (!videoId && window.location.pathname.startsWith('/shorts/')) {
+      const parts = window.location.pathname.split('/');
+      videoId = parts[2] || null;
+    }
     if (!videoId) {
       removeDislikeBadge();
       return;
@@ -587,6 +591,7 @@
     }
 
     if (isFetchingDislikes) return;
+    if (!chrome.runtime?.id) return;
     isFetchingDislikes = true;
 
     const fetchPromise = new Promise((resolve) => {
@@ -651,6 +656,7 @@
     } catch (_e) {}
 
     // 2. Fallback to background worker
+    if (!chrome.runtime?.id) return null;
     return new Promise((resolve) => {
       chrome.runtime.sendMessage(
         { action: 'FETCH_ORIGINAL_TITLE', videoId },
@@ -1061,8 +1067,18 @@
     }, 1500);
   });
 
-  // Throttled MutationObserver
+  // Throttled MutationObserver with debounced feed untranslate
   let isCheckingMutation = false;
+  let untranslateDebounceTimer = null;
+
+  function debouncedUntranslateFeed() {
+    if (untranslateDebounceTimer) return;
+    untranslateDebounceTimer = setTimeout(() => {
+      untranslateDebounceTimer = null;
+      untranslateFeed();
+    }, 250);
+  }
+
   const observer = new MutationObserver(() => {
     if (isCheckingMutation) return;
     isCheckingMutation = true;
@@ -1087,7 +1103,7 @@
       }
 
       if (currentSettings.untranslateTitles) {
-        untranslateFeed();
+        debouncedUntranslateFeed();
       }
     });
   });
