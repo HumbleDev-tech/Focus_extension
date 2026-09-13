@@ -369,9 +369,10 @@ body::-webkit-scrollbar-thumb {
 }
 
 .settings-drawer.open {
-  max-height: calc(118px * var(--ui-scale));
+  max-height: calc(138px * var(--ui-scale));
   opacity: 1;
-  padding: calc(7px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  padding: calc(8px * var(--ui-scale)) calc(12px * var(--ui-scale))
+    calc(10px * var(--ui-scale));
   border-bottom-color: var(--border-hairline);
 }
 
@@ -439,7 +440,9 @@ body::-webkit-scrollbar-thumb {
 .drawer-actions {
   display: flex;
   justify-content: flex-end;
-  padding-top: calc(2px * var(--ui-scale));
+  margin-top: calc(3px * var(--ui-scale));
+  padding-top: calc(5px * var(--ui-scale));
+  border-top: 1px solid var(--border-subtle);
 }
 
 .reset-action-btn {
@@ -450,7 +453,7 @@ body::-webkit-scrollbar-thumb {
   font-size: calc(8px * var(--ui-scale));
   font-weight: 700;
   letter-spacing: 0.5px;
-  padding: calc(3px * var(--ui-scale)) calc(8px * var(--ui-scale));
+  padding: calc(3.5px * var(--ui-scale)) calc(10px * var(--ui-scale));
   border-radius: 3px;
   cursor: pointer;
   transition: var(--transition-fast);
