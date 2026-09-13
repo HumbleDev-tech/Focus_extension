@@ -88,7 +88,7 @@ Switch between curated focus profiles with a single click or tailor your own:
 
 * **Title Untranslation Engine**:
   * Reverses YouTube's forced automatic translations, restoring the creator's original video title in the original language.
-  * Operates across both watch pages and video feeds using an asynchronous queue with bounded concurrency (`MAX_CONCURRENT_FEED_FETCHES = 8`).
+  * Operates across both watch pages and video feeds using an `IntersectionObserver` viewport scanner with bounded concurrency (`MAX_CONCURRENT_FEED_FETCHES = 3`) to eliminate redundant traffic and prevent rate limits.
 
 ---
 
@@ -99,7 +99,7 @@ Switch between curated focus profiles with a single click or tailor your own:
   * **Light**: Clean, high-contrast laboratory aesthetic.
   * **OLED**: Pure `#000000` pitch black engineered for OLED displays and maximum power efficiency.
 * **UI Display Scaling**:
-  * One-touch zoom controls for popup comfort: **1x** (Standard), **1.15x** (Optimized for 27" 1440p displays), and **1.25x** (Optimized for 4K / high-DPI displays).
+  * One-touch zoom controls for popup comfort: **1x** (Standard), **1.2x** (Optimized for 1440p displays), and **1.4x** (Optimized for 4K / high-DPI displays).
 * **Bilingual Localization (i18n)**:
   * Full runtime translation between **English (EN)** and **Spanish (ES)** for all popup controls and tooltips, alongside native Chrome `_locales` support.
 
@@ -111,6 +111,7 @@ Switch between curated focus profiles with a single click or tailor your own:
 * **Instant Injection (`document_start`)**: Stylesheet rules are injected dynamically at DOM initialization to eliminate Flash of Unstyled Content (FOUC).
 * **SPA Lifecycle Integration**: Listens directly to YouTube's internal single-page navigation events (`yt-navigate-finish`) to ensure styles and modules stay synchronized across client-side page transitions.
 * **Local-First Storage**: User settings and custom toggle states are persisted via `chrome.storage.sync`, synchronizing seamlessly across all logged-in browser instances.
+* **Bounded LRU Memory Cache**: In-memory stores for titles and public dislike metrics are strictly capped with LRU eviction to prevent memory leaks during long-running SPA sessions.
 * **Manifest V3 Compliant**: Built strictly adhering to the latest Chrome Extension security standards.
 
 ---
@@ -151,7 +152,7 @@ npm run lint
 
 ## Building & Packaging
 
-The repository includes automated packaging scripts to build clean distribution `.zip` archives ready for upload to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole):
+The repository includes an automated packaging script to build clean distribution `.zip` archives ready for upload to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole):
 
 ### Using npm:
 ```bash
@@ -161,11 +162,6 @@ npm run pack
 ### Using Python:
 ```bash
 python3 pack.py
-```
-
-### Using Bash:
-```bash
-./pack.sh
 ```
 
 The script automatically filters out git metadata, editor files, and temporary artifacts, outputting `libertad-extension.zip`.

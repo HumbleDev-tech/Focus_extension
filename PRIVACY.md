@@ -1,7 +1,7 @@
 # Privacy Policy for Libertad
 
 **Effective Date:** September 11, 2026  
-**Last Updated:** September 11, 2026
+**Last Updated:** September 13, 2026
 
 **Libertad** ("we", "our", or "the extension") is committed to respecting and protecting your privacy. This Privacy Policy explains our practices regarding user data.
 
@@ -18,6 +18,7 @@
 
 * **Storage Permission (`storage`)**: Used exclusively to remember your selected focus level and toggle choices across browser sessions.
 * **Return YouTube Dislike API**: If the "Restore Dislikes" feature is enabled, the extension sends the public YouTube Video ID to `https://returnyoutubedislikeapi.com` solely to retrieve the aggregated like/dislike counts. No cookies, user identifiers, or personal data are included with these requests.
+* **YouTube oEmbed Service**: If the "Untranslate Titles" feature is enabled, public YouTube video URLs are queried via YouTube's public oEmbed endpoint solely to retrieve the creator's original video title in their native language. No user credentials, cookies, browsing history, or personal identifiers are transmitted with these requests.
 * **No Analytics or Trackers**: Libertad contains zero telemetry, analytics, tracking scripts, or advertisements.
 
 ---
