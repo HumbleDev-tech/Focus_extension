@@ -51,98 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const chipLabels = document.querySelectorAll('.chip-toggle');
 
-  const TOGGLE_KEYS = [
-    'hideHomeFeed',
-    'hideSidebar',
-    'hideComments',
-    'hideShorts',
-    'hideEndScreens',
-    'hideVoiceSearch',
-    'hideCreateButton',
-    'hideNotifications',
-    'hideAskAi',
-    'hideDownload',
-    'hideThanksClips',
-    'hideJoinButton',
-    'hideShare',
-    'hideMerchShelf',
-  ];
-
-  // Preset Configurations
-  const PRESET_MAP = {
-    off: {
-      hideHomeFeed: false,
-      hideSidebar: false,
-      hideComments: false,
-      hideShorts: false,
-      hideEndScreens: false,
-      hideVoiceSearch: false,
-      hideCreateButton: false,
-      hideNotifications: false,
-      hideAskAi: false,
-      hideDownload: false,
-      hideThanksClips: false,
-      hideJoinButton: false,
-      hideShare: false,
-      hideMerchShelf: false,
-      descKey: 'descOff',
-    },
-    basic: {
-      hideHomeFeed: false,
-      hideSidebar: false,
-      hideComments: true,
-      hideShorts: false,
-      hideEndScreens: true,
-      hideVoiceSearch: false,
-      hideCreateButton: false,
-      hideNotifications: false,
-      hideAskAi: true,
-      hideDownload: true,
-      hideThanksClips: false,
-      hideJoinButton: false,
-      hideShare: false,
-      hideMerchShelf: true,
-      descKey: 'descBasic',
-    },
-    balanced: {
-      hideHomeFeed: false,
-      hideSidebar: true,
-      hideComments: true,
-      hideShorts: true,
-      hideEndScreens: true,
-      hideVoiceSearch: true,
-      hideCreateButton: true,
-      hideNotifications: true,
-      hideAskAi: true,
-      hideDownload: true,
-      hideThanksClips: true,
-      hideJoinButton: true,
-      hideShare: false,
-      hideMerchShelf: true,
-      descKey: 'descBalanced',
-    },
-    extreme: {
-      hideHomeFeed: true,
-      hideSidebar: true,
-      hideComments: true,
-      hideShorts: true,
-      hideEndScreens: true,
-      hideVoiceSearch: true,
-      hideCreateButton: true,
-      hideNotifications: true,
-      hideAskAi: true,
-      hideDownload: true,
-      hideThanksClips: true,
-      hideJoinButton: true,
-      hideShare: true,
-      hideMerchShelf: true,
-      descKey: 'descExtreme',
-    },
-    custom: {
-      descKey: 'descCustom',
-    },
-  };
-
   // Auto-detect optimal UI scale based on monitor resolution & DPI
   function detectDefaultScale() {
     const screenW = window.screen ? window.screen.width || 1920 : 1920;
@@ -158,45 +66,12 @@ document.addEventListener('DOMContentLoaded', () => {
     return '100';
   }
 
-  // State
+  // State initialized with single source of truth defaults
   let state = {
-    theme: 'dark',
+    ...DEFAULT_SETTINGS,
     lang: navigator.language?.startsWith('es') ? 'es' : 'en',
     scale: 'auto',
-    activeTab: 'focus',
-    preset: 'balanced',
-    hideHomeFeed: false,
-    hideSidebar: true,
-    hideComments: true,
-    hideShorts: true,
-    hideEndScreens: true,
-    hideVoiceSearch: true,
-    hideCreateButton: true,
-    hideNotifications: true,
-    hideAskAi: true,
-    hideDownload: true,
-    hideThanksClips: true,
-    hideJoinButton: true,
-    hideShare: false,
-    hideMerchShelf: true,
-    showDislikes: true,
-    untranslateTitles: true,
-    customConfig: {
-      hideHomeFeed: false,
-      hideSidebar: true,
-      hideComments: true,
-      hideShorts: true,
-      hideEndScreens: true,
-      hideVoiceSearch: true,
-      hideCreateButton: true,
-      hideNotifications: true,
-      hideAskAi: true,
-      hideDownload: true,
-      hideThanksClips: true,
-      hideJoinButton: true,
-      hideShare: false,
-      hideMerchShelf: true,
-    },
+    customConfig: { ...DEFAULT_SETTINGS.customConfig },
   };
 
   // Helper for safe translation
@@ -210,7 +85,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load state from chrome.storage.sync
   chrome.storage.sync.get(null, (saved) => {
     if (saved && Object.keys(saved).length > 0) {
-      state = { ...state, ...saved };
+      state = {
+        ...DEFAULT_SETTINGS,
+        ...saved,
+        customConfig: {
+          ...DEFAULT_SETTINGS.customConfig,
+          ...(saved.customConfig || {}),
+        },
+      };
       if (!state.lang || state.lang === 'auto') {
         state.lang = navigator.language?.startsWith('es') ? 'es' : 'en';
       }
@@ -223,34 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (!state.activeTab) {
         state.activeTab = 'focus';
-      }
-      if (!state.customConfig) {
-        state.customConfig = {};
-      }
-      const defaultCleaner = {
-        hideVoiceSearch: true,
-        hideCreateButton: true,
-        hideNotifications: true,
-        hideAskAi: true,
-        hideDownload: true,
-        hideThanksClips: true,
-        hideJoinButton: true,
-        hideShare: false,
-        hideMerchShelf: true,
-      };
-      let needsMigration = false;
-      for (const [k, v] of Object.entries(defaultCleaner)) {
-        if (state[k] === undefined) {
-          state[k] = v;
-          needsMigration = true;
-        }
-        if (state.customConfig[k] === undefined) {
-          state.customConfig[k] = v;
-          needsMigration = true;
-        }
-      }
-      if (needsMigration) {
-        chrome.storage.sync.set(state);
       }
     }
     applyThemeAndScale();
@@ -509,43 +363,11 @@ document.addEventListener('DOMContentLoaded', () => {
   resetBtn?.addEventListener('click', () => {
     const currentScale = state.scale || detectDefaultScale();
     state = {
-      theme: state.theme || 'dark',
+      ...DEFAULT_SETTINGS,
+      theme: state.theme || DEFAULT_SETTINGS.theme,
       lang: state.lang || 'en',
       scale: currentScale,
-      activeTab: 'focus',
-      preset: 'balanced',
-      hideHomeFeed: false,
-      hideSidebar: true,
-      hideComments: true,
-      hideShorts: true,
-      hideEndScreens: true,
-      hideVoiceSearch: true,
-      hideCreateButton: true,
-      hideNotifications: true,
-      hideAskAi: true,
-      hideDownload: true,
-      hideThanksClips: true,
-      hideJoinButton: true,
-      hideShare: false,
-      hideMerchShelf: true,
-      showDislikes: true,
-      untranslateTitles: true,
-      customConfig: {
-        hideHomeFeed: false,
-        hideSidebar: true,
-        hideComments: true,
-        hideShorts: true,
-        hideEndScreens: true,
-        hideVoiceSearch: true,
-        hideCreateButton: true,
-        hideNotifications: true,
-        hideAskAi: true,
-        hideDownload: true,
-        hideThanksClips: true,
-        hideJoinButton: true,
-        hideShare: false,
-        hideMerchShelf: true,
-      },
+      customConfig: { ...DEFAULT_SETTINGS.customConfig },
     };
     saveState();
 

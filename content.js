@@ -9,31 +9,61 @@
   const STYLE_ID = 'libertad-focus-styles';
   const ZEN_CONTAINER_ID = 'libertad-zen-container';
 
-  // Fallback defaults in case storage hasn't initialized
-  let currentSettings = {
-    preset: 'balanced',
-    hideHomeFeed: false,
-    hideSidebar: true,
-    hideComments: true,
-    hideShorts: true,
-    hideEndScreens: true,
-    hideVoiceSearch: true,
-    hideCreateButton: true,
-    hideNotifications: true,
-    hideAskAi: true,
-    hideDownload: true,
-    hideThanksClips: true,
-    hideJoinButton: true,
-    hideShare: false,
-    hideMerchShelf: true,
-    showDislikes: true,
-    untranslateTitles: true,
-    lang: 'auto',
-  };
+  // Bounded LRU Cache to prevent memory leaks in persistent SPA sessions
+  class BoundedCache {
+    constructor(maxSize = 300) {
+      this.maxSize = maxSize;
+      this.map = new Map();
+    }
+    get(key) {
+      if (!this.map.has(key)) return undefined;
+      const val = this.map.get(key);
+      this.map.delete(key);
+      this.map.set(key, val);
+      return val;
+    }
+    set(key, val) {
+      if (this.map.has(key)) {
+        this.map.delete(key);
+      } else if (this.map.size >= this.maxSize) {
+        const oldestKey = this.map.keys().next().value;
+        this.map.delete(oldestKey);
+      }
+      this.map.set(key, val);
+    }
+    has(key) {
+      return this.map.has(key);
+    }
+  }
 
-  // Caches and queues
-  const dislikeCache = new Map();
-  const titlesCache = new Map();
+  // Fallback defaults from single source of truth
+  let currentSettings =
+    typeof DEFAULT_SETTINGS !== 'undefined'
+      ? { ...DEFAULT_SETTINGS }
+      : {
+          preset: 'balanced',
+          hideHomeFeed: false,
+          hideSidebar: true,
+          hideComments: true,
+          hideShorts: true,
+          hideEndScreens: true,
+          hideVoiceSearch: true,
+          hideCreateButton: true,
+          hideNotifications: true,
+          hideAskAi: true,
+          hideDownload: true,
+          hideThanksClips: true,
+          hideJoinButton: true,
+          hideShare: false,
+          hideMerchShelf: true,
+          showDislikes: true,
+          untranslateTitles: true,
+          lang: 'auto',
+        };
+
+  // Caches and queues with bounded capacity
+  const dislikeCache = new BoundedCache(200);
+  const titlesCache = new BoundedCache(300);
   let isFetchingDislikes = false;
   let currentWatchVideoId = null;
   let currentOriginalTitle = null;
@@ -41,7 +71,8 @@
   const feedFetchQueue = [];
   const pendingFeedVideoIds = new Set();
   let activeFeedFetches = 0;
-  const MAX_CONCURRENT_FEED_FETCHES = 8;
+  const MAX_CONCURRENT_FEED_FETCHES = 3;
+  let feedIntersectionObserver = null;
 
   // Build high-efficiency CSS rules based on settings
   function buildStylesheet(settings) {
@@ -127,11 +158,7 @@
         ytd-masthead button[aria-label*="voice" i],
         ytd-masthead button[aria-label*="voz" i],
         ytd-masthead button[title*="voice" i],
-        ytd-masthead button[title*="voz" i],
-        ytd-searchbox button:has(svg path[d*="M12 3c-1.66"]),
-        yt-searchbox button:has(svg path[d*="M12 3c-1.66"]),
-        ytd-masthead button:has(svg path[d*="M12 3c-1.66"]),
-        ytd-masthead yt-icon-button:has(svg path[d*="12 3c-1.66"]) {
+        ytd-masthead button[title*="voz" i] {
           display: none !important;
         }
       `);
@@ -147,11 +174,7 @@
         ytd-masthead yt-button-view-model:has([aria-label*="crear" i]),
         ytd-masthead yt-button-shape:has([aria-label*="crear" i]),
         ytd-masthead ytd-topbar-menu-button-renderer:has([aria-label*="create" i]),
-        ytd-masthead ytd-topbar-menu-button-renderer:has([aria-label*="crear" i]),
-        ytd-masthead button:has(svg path[d*="14 13h-3v3"]),
-        ytd-masthead button:has(svg path[d*="14 13"]),
-        ytd-masthead yt-icon-button:has(svg path[d*="14 13"]),
-        ytd-masthead yt-button-view-model:has(svg path[d*="14 13"]) {
+        ytd-masthead ytd-topbar-menu-button-renderer:has([aria-label*="crear" i]) {
           display: none !important;
         }
       `);
@@ -163,10 +186,7 @@
         ytd-notification-topbar-button-renderer,
         notification-topbar-button-view-model,
         ytd-masthead [aria-label*="notification" i],
-        ytd-masthead [aria-label*="notificaci" i],
-        ytd-masthead yt-icon-button:has([aria-label*="notif" i]),
-        ytd-masthead button:has(svg path[d*="10 20h4"]),
-        ytd-masthead yt-icon-button:has(svg path[d*="10 20h4"]) {
+        ytd-masthead yt-icon-button:has([aria-label*="notif" i]) {
           display: none !important;
         }
       `);
@@ -188,9 +208,7 @@
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="ask" i]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="pregunt" i]),
         #actions yt-button-view-model:has([aria-label*="ask" i]),
-        #actions yt-button-view-model:has([aria-label*="pregunt" i]),
-        #actions yt-button-view-model:has(svg path[d*="19 9"]),
-        #actions yt-button-shape:has(svg path[d*="19 9"]) {
+        #actions yt-button-view-model:has([aria-label*="pregunt" i]) {
           display: none !important;
         }
       `);
@@ -206,13 +224,7 @@
         ytd-watch-metadata yt-button-shape:has([aria-label*="download" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="descarg" i]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="download" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="descarg" i]),
-        ytd-watch-metadata ytd-button-renderer:has(a[href*="premium"]),
-        #actions yt-button-view-model:has(svg path[d*="17 18"]),
-        #actions yt-button-view-model:has(svg path[d*="v1H6v-1h11"]),
-        #actions yt-button-view-model:has(svg path[d*="3.8 3.7V4"]),
-        #actions yt-button-shape:has(svg path[d*="17 18"]),
-        #actions yt-button-shape:has(svg path[d*="v1H6v-1h11"]) {
+        ytd-watch-metadata ytd-button-renderer:has(a[href*="premium"]) {
           display: none !important;
         }
       `);
@@ -261,11 +273,7 @@
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="share" i]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="compart" i]),
         #actions yt-button-view-model:has([aria-label*="share" i]),
-        #actions yt-button-view-model:has([aria-label*="compart" i]),
-        #actions yt-button-view-model:has(svg path[d*="15 5.63"]),
-        #actions yt-button-view-model:has(svg path[d*="15 16.37"]),
-        #actions yt-button-shape:has(svg path[d*="15 5.63"]),
-        #actions yt-button-shape:has(svg path[d*="15 16.37"]) {
+        #actions yt-button-view-model:has([aria-label*="compart" i]) {
           display: none !important;
         }
       `);
@@ -600,12 +608,7 @@
           if (!chrome.runtime.lastError && res && res.success && res.data) {
             resolve(res.data);
           } else {
-            fetch(
-              `https://returnyoutubedislikeapi.com/votes?videoId=${encodeURIComponent(videoId)}`,
-            )
-              .then((r) => r.json())
-              .then((data) => resolve(data))
-              .catch(() => resolve(null));
+            resolve(null);
           }
         },
       );
@@ -943,6 +946,47 @@
     }
   }
 
+  // Observe video node entering the viewport before triggering network request
+  function observeVideoTitleForFeed(node, videoId) {
+    if (node.dataset.libertadPendingId === videoId) return;
+
+    if (!window.IntersectionObserver) {
+      if (!titlesCache.has(videoId) && !pendingFeedVideoIds.has(videoId)) {
+        pendingFeedVideoIds.add(videoId);
+        feedFetchQueue.push(videoId);
+        processFeedFetchQueue();
+      }
+      return;
+    }
+
+    if (!feedIntersectionObserver) {
+      feedIntersectionObserver = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              const target = entry.target;
+              feedIntersectionObserver.unobserve(target);
+              const vId = target.dataset.libertadPendingId;
+              if (
+                vId &&
+                !titlesCache.has(vId) &&
+                !pendingFeedVideoIds.has(vId)
+              ) {
+                pendingFeedVideoIds.add(vId);
+                feedFetchQueue.push(vId);
+                processFeedFetchQueue();
+              }
+            }
+          }
+        },
+        { rootMargin: '250px 0px' },
+      );
+    }
+
+    node.dataset.libertadPendingId = videoId;
+    feedIntersectionObserver.observe(node);
+  }
+
   // Automatically untranslate all video titles visible in Home, Search, and Recommendations
   function untranslateFeed() {
     if (!currentSettings.untranslateTitles) return;
@@ -958,34 +1002,15 @@
         if (cached) {
           applyTitleToNode(node, cached, videoId);
         }
-      } else if (!pendingFeedVideoIds.has(videoId)) {
-        pendingFeedVideoIds.add(videoId);
-        feedFetchQueue.push(videoId);
+      } else if (node.dataset.libertadApplied !== videoId) {
+        observeVideoTitleForFeed(node, videoId);
       }
     });
-
-    processFeedFetchQueue();
   }
 
   // -----------------------------------------------------------
   // Lifecycle & Watchdogs
   // -----------------------------------------------------------
-
-  // Regular heartbeat to catch virtual-scroll DOM re-use on YouTube
-  setInterval(() => {
-    const vId = new URLSearchParams(window.location.search).get('v');
-    if (
-      window.location.pathname === '/watch' &&
-      currentSettings.untranslateTitles &&
-      currentOriginalTitle &&
-      currentWatchVideoId === vId
-    ) {
-      applyWatchTitle(currentOriginalTitle, currentWatchVideoId);
-    }
-    if (currentSettings.untranslateTitles) {
-      untranslateFeed();
-    }
-  }, 700);
 
   // Throttled scroll listener
   let scrollThrottleTimer = null;
@@ -1046,24 +1071,9 @@
     currentWatchVideoId = null;
 
     applyStyles(currentSettings);
-
-    setTimeout(() => {
-      updateDislikeCount();
-      updateWatchTitle();
-      untranslateFeed();
-    }, 200);
-
-    setTimeout(() => {
-      updateDislikeCount();
-      updateWatchTitle();
-      untranslateFeed();
-    }, 600);
-
-    setTimeout(() => {
-      updateDislikeCount();
-      updateWatchTitle();
-      untranslateFeed();
-    }, 1500);
+    updateDislikeCount();
+    updateWatchTitle();
+    untranslateFeed();
   });
 
   // Throttled MutationObserver with debounced feed untranslate

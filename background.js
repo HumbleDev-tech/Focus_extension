@@ -1,48 +1,15 @@
 // Libertad Service Worker
-const DEFAULT_SETTINGS = {
-  preset: 'balanced', // 'off', 'basic', 'balanced', 'extreme', 'custom'
-  theme: 'dark', // 'dark', 'light', 'oled'
-  lang: 'auto', // 'auto', 'en', 'es'
-  scale: 'auto', // 'auto', '100', '120', '140'
-  activeTab: 'focus', // 'focus', 'cleaner', 'extras'
-  hideHomeFeed: false,
-  hideSidebar: true,
-  hideComments: true,
-  hideShorts: true,
-  hideEndScreens: true,
-  hideVoiceSearch: true,
-  hideCreateButton: true,
-  hideNotifications: true,
-  hideAskAi: true,
-  hideDownload: true,
-  hideThanksClips: true,
-  hideJoinButton: true,
-  hideShare: false,
-  hideMerchShelf: true,
-  showDislikes: true,
-  untranslateTitles: true,
-  customConfig: {
-    hideHomeFeed: false,
-    hideSidebar: true,
-    hideComments: true,
-    hideShorts: true,
-    hideEndScreens: true,
-    hideVoiceSearch: true,
-    hideCreateButton: true,
-    hideNotifications: true,
-    hideAskAi: true,
-    hideDownload: true,
-    hideThanksClips: true,
-    hideJoinButton: true,
-    hideShare: false,
-    hideMerchShelf: true,
-  },
-};
+importScripts('constants.js');
 
-chrome.runtime.onInstalled.addListener((details) => {
-  if (details.reason === 'install') {
-    chrome.storage.sync.set(DEFAULT_SETTINGS);
-  }
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.storage.sync.get(null, (saved) => {
+    const merged = { ...DEFAULT_SETTINGS, ...(saved || {}) };
+    merged.customConfig = {
+      ...DEFAULT_SETTINGS.customConfig,
+      ...(saved?.customConfig || {}),
+    };
+    chrome.storage.sync.set(merged);
+  });
 });
 
 // Relay external requests to prevent CSP/CORS issues
@@ -54,10 +21,15 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
       return;
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
     fetch(
       `https://returnyoutubedislikeapi.com/votes?videoId=${encodeURIComponent(videoId)}`,
+      { signal: controller.signal },
     )
       .then((res) => {
+        clearTimeout(timeoutId);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
@@ -65,6 +37,7 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
         sendResponse({ success: true, data });
       })
       .catch((err) => {
+        clearTimeout(timeoutId);
         sendResponse({ success: false, error: err.message });
       });
 
@@ -78,10 +51,14 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
       return;
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
     // YouTube oEmbed endpoint returns untranslated original title
     const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`;
-    fetch(oembedUrl)
+    fetch(oembedUrl, { signal: controller.signal })
       .then((res) => {
+        clearTimeout(timeoutId);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
@@ -93,6 +70,7 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
         });
       })
       .catch((err) => {
+        clearTimeout(timeoutId);
         sendResponse({ success: false, error: err.message });
       });
 

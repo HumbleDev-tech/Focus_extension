@@ -10,6 +10,7 @@ import zipfile
 OUTPUT_ZIP = "libertad-extension.zip"
 FILES_TO_INCLUDE = [
     "manifest.json",
+    "constants.js",
     "background.js",
     "content.js",
     "popup.html",
