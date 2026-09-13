@@ -277,6 +277,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderUI() {
     // Internationalization update
     i18nElements.forEach((el) => {
+      if (el === resetBtn && resetBtn.classList.contains('is-success')) {
+        return;
+      }
       const key = el.getAttribute('data-i18n');
       if (key) {
         el.textContent = t(key);
@@ -543,5 +546,15 @@ document.addEventListener('DOMContentLoaded', () => {
       },
     };
     saveState();
+
+    if (resetBtn) {
+      resetBtn.classList.add('is-success');
+      resetBtn.textContent =
+        state.lang === 'es' ? 'CONFIG REINICIADA' : 'CONFIG RESTORED';
+      setTimeout(() => {
+        resetBtn.classList.remove('is-success');
+        resetBtn.textContent = t('resetBtn');
+      }, 1200);
+    }
   });
 });

@@ -31,13 +31,13 @@
 :root,
 [data-theme="dark"] {
   --bg-canvas: #0d1117;
-  --surface-subtle: #151921;
-  --surface-card: #11151d;
-  --surface-card-hover: #191f2b;
-  --row-hover: rgba(255, 255, 255, 0.04);
+  --surface-subtle: #161b24;
+  --surface-card: #131722;
+  --surface-card-hover: #1b2130;
+  --row-hover: rgba(255, 255, 255, 0.05);
 
-  --border-hairline: rgba(255, 255, 255, 0.08);
-  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-hairline: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(255, 255, 255, 0.065);
   --border-active: #38bdf8;
 
   --text-primary: #f0f3f6;
@@ -184,17 +184,17 @@
 html {
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 body {
   width: calc(360px * var(--ui-scale, 1));
   max-width: 780px;
+  height: min(calc(540px * var(--ui-scale, 1)), 590px);
   max-height: 590px;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   font-family: var(--font-sans);
   background-color: var(--bg-canvas);
   color: var(--text-primary);
@@ -205,6 +205,17 @@ body {
   transition:
     background-color var(--transition-fast),
     color var(--transition-fast);
+}
+
+/* Accessibility Focus Visible */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 body::-webkit-scrollbar {
@@ -223,7 +234,9 @@ body::-webkit-scrollbar-thumb {
 .app-window {
   display: flex;
   flex-direction: column;
+  height: 100vh;
   width: 100%;
+  overflow: hidden;
 }
 
 .visually-hidden {
@@ -243,6 +256,7 @@ body::-webkit-scrollbar-thumb {
    ========================================================================== */
 
 .top-bar {
+  flex-shrink: 0;
   position: sticky;
   top: 0;
   z-index: 20;
@@ -294,7 +308,7 @@ body::-webkit-scrollbar-thumb {
 .status-dot {
   width: calc(4px * var(--ui-scale));
   height: calc(4px * var(--ui-scale));
-  border-radius: 1px;
+  border-radius: 50%;
   background: var(--status-active-text);
   box-shadow: 0 0 calc(4px * var(--ui-scale)) var(--accent-glow);
 }
@@ -337,23 +351,28 @@ body::-webkit-scrollbar-thumb {
 
 /* Collapsible Preferences Drawer */
 .settings-drawer {
+  flex-shrink: 0;
   max-height: 0;
   overflow: hidden;
   opacity: 0;
   background: var(--surface-card);
+  padding: 0 calc(12px * var(--ui-scale));
+  border-bottom: 1px solid transparent;
   transition:
-    max-height 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.2s ease;
+    max-height 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.18s ease,
+    padding 0.22s ease,
+    border-color 0.22s ease;
   display: flex;
   flex-direction: column;
-  gap: calc(4px * var(--ui-scale));
+  gap: calc(5px * var(--ui-scale));
 }
 
 .settings-drawer.open {
-  max-height: calc(140px * var(--ui-scale));
+  max-height: calc(118px * var(--ui-scale));
   opacity: 1;
-  padding: calc(6px * var(--ui-scale)) calc(12px * var(--ui-scale));
-  border-bottom: 1px solid var(--border-hairline);
+  padding: calc(7px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  border-bottom-color: var(--border-hairline);
 }
 
 .drawer-row {
@@ -371,11 +390,25 @@ body::-webkit-scrollbar-thumb {
 }
 
 .mini-segmented {
-  display: flex;
+  display: grid;
+  width: calc(136px * var(--ui-scale));
   background: var(--surface-subtle);
   border: 1px solid var(--border-hairline);
   border-radius: 3px;
-  padding: 1px;
+  padding: 1.5px;
+  gap: 1.5px;
+}
+
+#themeGroup {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+#langGroup {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+#scaleGroup {
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .mini-btn {
@@ -386,9 +419,10 @@ body::-webkit-scrollbar-thumb {
   font-size: calc(8.5px * var(--ui-scale));
   font-weight: 700;
   letter-spacing: 0.4px;
-  padding: calc(2.5px * var(--ui-scale)) calc(7px * var(--ui-scale));
+  padding: calc(3px * var(--ui-scale)) 0;
   border-radius: 2px;
   cursor: pointer;
+  text-align: center;
   transition: var(--transition-fast);
 }
 
@@ -405,25 +439,34 @@ body::-webkit-scrollbar-thumb {
 .drawer-actions {
   display: flex;
   justify-content: flex-end;
-  padding-top: calc(3px * var(--ui-scale));
+  padding-top: calc(2px * var(--ui-scale));
 }
 
 .reset-action-btn {
-  background: transparent;
-  border: none;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-hairline);
   color: var(--text-muted);
   font-family: var(--font-mono);
-  font-size: calc(8.5px * var(--ui-scale));
+  font-size: calc(8px * var(--ui-scale));
   font-weight: 700;
   letter-spacing: 0.5px;
+  padding: calc(3px * var(--ui-scale)) calc(8px * var(--ui-scale));
+  border-radius: 3px;
   cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: color var(--transition-fast);
+  transition: var(--transition-fast);
+  text-align: center;
 }
 
 .reset-action-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+  background: var(--surface-card-hover);
+}
+
+.reset-action-btn.is-success {
   color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft-bg);
 }
 
 /* ==========================================================================
@@ -431,6 +474,7 @@ body::-webkit-scrollbar-thumb {
    ========================================================================== */
 
 .global-preset-container {
+  flex-shrink: 0;
   padding: calc(7px * var(--ui-scale)) calc(12px * var(--ui-scale))
     calc(6px * var(--ui-scale));
   background: var(--bg-canvas);
@@ -457,8 +501,8 @@ body::-webkit-scrollbar-thumb {
   font-family: var(--font-mono);
   font-size: calc(9px * var(--ui-scale));
   color: var(--text-secondary);
-  line-height: 1.3;
-  min-height: calc(22px * var(--ui-scale));
+  line-height: 1.35;
+  min-height: calc(34px * var(--ui-scale));
 }
 
 .preset-track {
@@ -543,17 +587,18 @@ body::-webkit-scrollbar-thumb {
    ========================================================================== */
 
 .tab-nav-bar {
+  flex-shrink: 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  padding: calc(4px * var(--ui-scale)) calc(12px * var(--ui-scale));
-  background: var(--surface-card);
+  padding: calc(5px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  background: var(--surface-subtle);
   border-bottom: 1px solid var(--border-hairline);
   gap: calc(4px * var(--ui-scale));
 }
 
 .tab-nav-btn {
-  background: var(--surface-subtle);
-  border: 1px solid var(--border-subtle);
+  background: transparent;
+  border: 1px solid transparent;
   color: var(--text-secondary);
   font-family: var(--font-mono);
   font-size: calc(9px * var(--ui-scale));
@@ -568,14 +613,15 @@ body::-webkit-scrollbar-thumb {
 
 .tab-nav-btn:hover {
   color: var(--text-primary);
+  background: var(--surface-card-hover);
   border-color: var(--border-hairline);
 }
 
 .tab-nav-btn.active {
-  background: var(--active-tab-bg);
+  background: var(--surface-card);
   color: var(--accent);
   border-color: var(--border-active);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 /* ==========================================================================
@@ -584,7 +630,8 @@ body::-webkit-scrollbar-thumb {
 
 .tab-panel {
   display: none;
-  max-height: calc(390px * var(--ui-scale));
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding: calc(8px * var(--ui-scale)) calc(12px * var(--ui-scale));
@@ -757,6 +804,17 @@ input:checked + .slider:before {
   box-shadow: 0 0 calc(4px * var(--ui-scale)) var(--accent-glow);
 }
 
+.switch input:focus-visible + .slider {
+  box-shadow:
+    0 0 0 1.5px var(--bg-canvas),
+    0 0 0 3px var(--accent);
+}
+
+.shield-card:has(input:focus-visible) {
+  border-color: var(--accent);
+  box-shadow: 0 0 calc(4px * var(--ui-scale)) var(--accent-glow);
+}
+
 /* ==========================================================================
    6. TAB 2: UI Cleaner Interactive Chip Matrix
    ========================================================================== */
@@ -784,8 +842,8 @@ input:checked + .slider:before {
 .chip-toggle {
   display: flex;
   align-items: center;
-  gap: calc(5px * var(--ui-scale));
-  padding: calc(6px * var(--ui-scale)) calc(7px * var(--ui-scale));
+  gap: calc(4px * var(--ui-scale));
+  padding: calc(5px * var(--ui-scale)) calc(4.5px * var(--ui-scale));
   background: var(--surface-card);
   border: 1px solid var(--border-subtle);
   border-radius: 3px;
@@ -810,10 +868,10 @@ input:checked + .slider:before {
 }
 
 .chip-label {
-  font-family: var(--font-mono);
-  font-size: calc(9px * var(--ui-scale));
+  font-family: var(--font-sans);
+  font-size: calc(9.25px * var(--ui-scale));
   font-weight: 600;
-  letter-spacing: 0.1px;
+  letter-spacing: -0.2px;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -834,7 +892,7 @@ input:checked + .slider:before {
 
 .chip-toggle.active .chip-label {
   color: var(--text-primary);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* Active Indicator Pip */
@@ -843,11 +901,17 @@ input:checked + .slider:before {
   position: absolute;
   top: calc(3px * var(--ui-scale));
   right: calc(3px * var(--ui-scale));
-  width: calc(3.5px * var(--ui-scale));
-  height: calc(3.5px * var(--ui-scale));
+  width: calc(3px * var(--ui-scale));
+  height: calc(3px * var(--ui-scale));
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 calc(3px * var(--ui-scale)) var(--accent-glow);
+}
+
+.chip-toggle:has(input:focus-visible) {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 /* ==========================================================================
@@ -896,6 +960,11 @@ input:checked + .slider:before {
   border-color: var(--accent-subtle-border);
 }
 
+.module-row:has(input:focus-visible) {
+  border-color: var(--accent);
+  box-shadow: 0 0 calc(4px * var(--ui-scale)) var(--accent-glow);
+}
+
 .module-meta {
   display: flex;
   flex-direction: column;
@@ -919,15 +988,16 @@ input:checked + .slider:before {
 
 .module-tag {
   font-family: var(--font-mono);
-  font-size: calc(7.5px * var(--ui-scale));
+  font-size: calc(8.5px * var(--ui-scale));
   font-weight: 700;
   letter-spacing: 0.5px;
   color: var(--accent);
   background: var(--accent-soft-bg);
   border: 1px solid var(--accent-subtle-border);
-  padding: 1px calc(4px * var(--ui-scale));
+  padding: calc(1.5px * var(--ui-scale)) calc(5px * var(--ui-scale));
   border-radius: 2px;
   text-transform: uppercase;
+  line-height: 1.2;
 }
 
 .module-desc {
@@ -941,6 +1011,7 @@ input:checked + .slider:before {
    ========================================================================== */
 
 .app-footer {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
