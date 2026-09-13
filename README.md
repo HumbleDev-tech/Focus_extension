@@ -28,10 +28,11 @@ Whether you need a distraction-free environment for research and study, or a min
 
 ## Key Features
 
-### 1. Dual-Tab Ergonomic Navigation
-Libertad organizes controls into two purpose-built workspaces without vertical clutter:
-* **🛡️ Focus Shield**: Core presets and distraction-elimination shields for algorithmic feeds and comment sections.
-* **🧹 UI Cleaner**: Surgical removal of promotional, experimental, and secondary action buttons across YouTube's header and video player.
+### 1. Tri-Tab Ergonomic Navigation & Global Preset Bar
+Libertad organizes controls into three purpose-built workspaces without vertical clutter, commanded by a top-level global preset bar:
+* **Focus Shield**: High-impact distraction-elimination shields for algorithmic feeds and comment sections.
+* **UI Cleaner**: Surgical removal of promotional, experimental, and secondary action buttons across YouTube's header and video player via interactive compact chips.
+* **Extras**: Dedicated power modules for YouTube data restorations (Public Dislikes API) and Title Untranslation.
 
 ---
 

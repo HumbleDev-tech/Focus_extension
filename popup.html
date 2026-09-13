@@ -9,7 +9,7 @@
 </head>
 <body>
   <div class="app-window">
-    <!-- Unified Top Bar -->
+    <!-- Top Bar -->
     <header class="top-bar">
       <div class="brand-group">
         <img class="brand-icon" src="icons/icon48.png" alt="Libertad Logo" />
@@ -19,288 +19,351 @@
           <span class="status-label" id="statusText">ACTIVE</span>
         </div>
       </div>
-      <div class="tool-controls">
-        <div class="mini-segmented" id="themeGroup">
-          <button type="button" class="mini-btn theme-btn" data-theme="dark" title="Dark Theme">DRK</button>
-          <button type="button" class="mini-btn theme-btn" data-theme="light" title="Light Theme">LGT</button>
-          <button type="button" class="mini-btn theme-btn" data-theme="oled" title="OLED Theme">OLED</button>
-        </div>
-        <div class="mini-segmented" id="langGroup">
-          <button type="button" class="mini-btn lang-btn" data-lang="en" title="English">EN</button>
-          <button type="button" class="mini-btn lang-btn" data-lang="es" title="Español">ES</button>
-        </div>
-      </div>
+      <button type="button" class="settings-toggle-btn" id="settingsToggleBtn" title="Preferences" aria-label="Preferences">
+        <svg class="gear-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
     </header>
 
-    <!-- Tab Navigation Bar -->
-    <nav class="tab-nav-bar" id="tabNavBar" aria-label="Sections">
+    <!-- Collapsible Preferences Drawer -->
+    <div class="settings-drawer" id="settingsDrawer">
+      <div class="drawer-row">
+        <span class="drawer-label" data-i18n="themeLabel">THEME</span>
+        <div class="mini-segmented" id="themeGroup">
+          <button type="button" class="mini-btn theme-btn" data-theme="dark">DRK</button>
+          <button type="button" class="mini-btn theme-btn" data-theme="light">LGT</button>
+          <button type="button" class="mini-btn theme-btn" data-theme="oled">OLED</button>
+        </div>
+      </div>
+      <div class="drawer-row">
+        <span class="drawer-label" data-i18n="langLabel">LANG</span>
+        <div class="mini-segmented" id="langGroup">
+          <button type="button" class="mini-btn lang-btn" data-lang="en">EN</button>
+          <button type="button" class="mini-btn lang-btn" data-lang="es">ES</button>
+        </div>
+      </div>
+      <div class="drawer-row">
+        <span class="drawer-label" data-i18n="scaleLabel">SCALE</span>
+        <div class="mini-segmented" id="scaleGroup">
+          <button type="button" class="mini-btn scale-btn" data-scale="100">1x</button>
+          <button type="button" class="mini-btn scale-btn" data-scale="120">1.2x</button>
+          <button type="button" class="mini-btn scale-btn" data-scale="140">1.4x</button>
+        </div>
+      </div>
+      <div class="drawer-actions">
+        <button type="button" class="reset-action-btn" id="resetBtn" data-i18n="resetBtn">RESET CONFIG</button>
+      </div>
+    </div>
+
+    <!-- Master Focus Preset Bar (Global Controller) -->
+    <section class="global-preset-container">
+      <div class="preset-meta-header">
+        <span class="preset-tag" data-i18n="focusPresetLabel">FOCUS PRESET</span>
+        <span class="preset-summary" id="presetDesc">Suppresses sidebar recommendations, comments, shorts feeds, and endscreens.</span>
+      </div>
+      <div class="preset-track" id="presetGroup">
+        <button type="button" class="preset-btn" data-preset="off" data-i18n="presetOff">OFF</button>
+        <button type="button" class="preset-btn" data-preset="basic" data-i18n="presetBasic">BASIC</button>
+        <button type="button" class="preset-btn" data-preset="balanced" data-i18n="presetBalanced">BALANCED</button>
+        <button type="button" class="preset-btn" data-preset="extreme" data-i18n="presetExtreme">EXTREME</button>
+        <button type="button" class="preset-btn" data-preset="custom" data-i18n="presetCustom">CUSTOM</button>
+      </div>
+    </section>
+
+    <!-- 3-Tab Ergonomic Navigation Bar -->
+    <nav class="tab-nav-bar" id="tabNavBar" aria-label="Workspaces">
       <button type="button" class="tab-nav-btn active" data-tab="focus" id="tabBtnFocus" data-i18n="tabFocus">FOCUS SHIELD</button>
       <button type="button" class="tab-nav-btn" data-tab="cleaner" id="tabBtnCleaner" data-i18n="tabCleaner">UI CLEANER</button>
+      <button type="button" class="tab-nav-btn" data-tab="extras" id="tabBtnExtras" data-i18n="tabExtras">EXTRAS</button>
     </nav>
 
-    <!-- Tab Panel 1: Focus Shield -->
+    <!-- TAB 1: FOCUS SHIELD (Macro Distraction Blockers) -->
     <div class="tab-panel active" id="tabPanelFocus">
-      <!-- Preset Toolbar -->
-      <section class="pane-section preset-section">
-        <div class="pane-header">
-          <span class="pane-title" data-i18n="focusPresetLabel">FOCUS PRESET</span>
+      <div class="pane-header">
+        <span class="pane-title" data-i18n="parametersLabel">PARAMETERS // FINE-TUNE</span>
+      </div>
+      <div class="shield-list">
+        <!-- Setting: Home Feed -->
+        <label class="shield-card" for="toggleHomeFeed">
+          <div class="shield-icon">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+          </div>
+          <div class="shield-meta">
+            <span class="shield-title" data-i18n="toggleHomeFeedTitle">Home Feed</span>
+            <span class="shield-desc" data-i18n="toggleHomeFeedDesc">Suppress infinite recommendations grid and engage Zen Mode</span>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="toggleHomeFeed" aria-label="Suppress Home Feed" />
+            <span class="slider"></span>
+          </div>
+        </label>
+
+        <!-- Setting: Related Sidebar -->
+        <label class="shield-card" for="toggleSidebar">
+          <div class="shield-icon">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+              <line x1="15" x2="15" y1="3" y2="21"></line>
+            </svg>
+          </div>
+          <div class="shield-meta">
+            <span class="shield-title" data-i18n="toggleSidebarTitle">Related Sidebar</span>
+            <span class="shield-desc" data-i18n="toggleSidebarDesc">Suppress watch-next suggested videos and center player</span>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="toggleSidebar" aria-label="Suppress Related Sidebar" />
+            <span class="slider"></span>
+          </div>
+        </label>
+
+        <!-- Setting: Comments -->
+        <label class="shield-card" for="toggleComments">
+          <div class="shield-icon">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <div class="shield-meta">
+            <span class="shield-title" data-i18n="toggleCommentsTitle">Comments</span>
+            <span class="shield-desc" data-i18n="toggleCommentsDesc">Suppress video comments section across watch pages</span>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="toggleComments" aria-label="Suppress Comments" />
+            <span class="slider"></span>
+          </div>
+        </label>
+
+        <!-- Setting: Shorts -->
+        <label class="shield-card" for="toggleShorts">
+          <div class="shield-icon">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </div>
+          <div class="shield-meta">
+            <span class="shield-title" data-i18n="toggleShortsTitle">Shorts</span>
+            <span class="shield-desc" data-i18n="toggleShortsDesc">Suppress shorts tab, shelves, and navigation drawer links</span>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="toggleShorts" aria-label="Suppress Shorts" />
+            <span class="slider"></span>
+          </div>
+        </label>
+
+        <!-- Setting: End Screens -->
+        <label class="shield-card" for="toggleEndScreens">
+          <div class="shield-icon">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="14" x="3" y="5" rx="2"></rect>
+              <polyline points="7 15 12 10 17 15"></polyline>
+            </svg>
+          </div>
+          <div class="shield-meta">
+            <span class="shield-title" data-i18n="toggleEndScreensTitle">End Screens</span>
+            <span class="shield-desc" data-i18n="toggleEndScreensDesc">Suppress popup cards and teasers at video conclusion</span>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="toggleEndScreens" aria-label="Suppress End Screens" />
+            <span class="slider"></span>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- TAB 2: UI CLEANER (Micro-De-Bloat Matrix) -->
+    <div class="tab-panel" id="tabPanelCleaner">
+      <!-- Section A: Header & Navigation Clutter -->
+      <section class="cleaner-group">
+        <div class="cleaner-group-header">
+          <span class="pane-title" data-i18n="cleanerHeaderSubtitle">HEADER &amp; NAVIGATION</span>
         </div>
-        <div class="ide-segmented-track" id="presetGroup">
-          <button type="button" class="ide-tab preset-btn" data-preset="off" data-i18n="presetOff">OFF</button>
-          <button type="button" class="ide-tab preset-btn" data-preset="basic" data-i18n="presetBasic">BASIC</button>
-          <button type="button" class="ide-tab preset-btn" data-preset="balanced" data-i18n="presetBalanced">BALANCED</button>
-          <button type="button" class="ide-tab preset-btn" data-preset="extreme" data-i18n="presetExtreme">EXTREME</button>
-          <button type="button" class="ide-tab preset-btn" data-preset="custom" data-i18n="presetCustom">CUSTOM</button>
-        </div>
-        <div class="preset-status-line" id="presetDesc">
-          Suppresses sidebar recommendations, comments, shorts feeds, and endscreens.
+        <div class="chip-grid">
+          <!-- Voice Search Mic -->
+          <label class="chip-toggle" for="toggleVoiceSearch">
+            <input type="checkbox" id="toggleVoiceSearch" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" x2="12" y1="19" y2="22"></line>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipVoiceSearch">Voice Mic</span>
+          </label>
+
+          <!-- Create Button (+) -->
+          <label class="chip-toggle" for="toggleCreateButton">
+            <input type="checkbox" id="toggleCreateButton" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" x2="12" y1="8" y2="16"></line>
+                <line x1="8" x2="16" y1="12" y2="12"></line>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipCreate">Create (+)</span>
+          </label>
+
+          <!-- Notifications Bell -->
+          <label class="chip-toggle" for="toggleNotifications">
+            <input type="checkbox" id="toggleNotifications" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipNotifications">Bell Alerts</span>
+          </label>
         </div>
       </section>
 
-      <!-- Main Shield Parameters List -->
-      <section class="pane-section">
-        <div class="pane-header">
-          <span class="pane-title" data-i18n="parametersLabel">PARAMETERS // FINE-TUNE</span>
+      <!-- Section B: Player & Action Bar Clutter -->
+      <section class="cleaner-group">
+        <div class="cleaner-group-header">
+          <span class="pane-title" data-i18n="cleanerPlayerSubtitle">PLAYER &amp; CONTROLS</span>
         </div>
-        <div class="settings-list" id="togglesList">
-          <!-- Setting: Home Feed -->
-          <label class="setting-row" for="toggleHomeFeed">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleHomeFeedTitle">Home Feed</span>
-              <span class="setting-hint" data-i18n="toggleHomeFeedDesc">Suppress infinite recommendations grid</span>
-            </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleHomeFeed" aria-label="Suppress Home Feed" />
-              <span class="slider"></span>
-            </div>
+        <div class="chip-grid">
+          <!-- Ask AI Assistant -->
+          <label class="chip-toggle" for="toggleAskAi">
+            <input type="checkbox" id="toggleAskAi" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipAskAi">Ask AI</span>
           </label>
 
-          <!-- Setting: Sidebar -->
-          <label class="setting-row" for="toggleSidebar">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleSidebarTitle">Related Sidebar</span>
-              <span class="setting-hint" data-i18n="toggleSidebarDesc">Suppress watch-next suggested videos</span>
-            </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleSidebar" aria-label="Suppress Related Sidebar" />
-              <span class="slider"></span>
-            </div>
+          <!-- Download Button -->
+          <label class="chip-toggle" for="toggleDownload">
+            <input type="checkbox" id="toggleDownload" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" x2="12" y1="15" y2="3"></line>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipDownload">Download</span>
           </label>
 
-          <!-- Setting: Comments -->
-          <label class="setting-row" for="toggleComments">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleCommentsTitle">Comments</span>
-              <span class="setting-hint" data-i18n="toggleCommentsDesc">Suppress video comments section</span>
-            </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleComments" aria-label="Suppress Comments" />
-              <span class="slider"></span>
-            </div>
+          <!-- Thanks & Clips -->
+          <label class="chip-toggle" for="toggleThanksClips">
+            <input type="checkbox" id="toggleThanksClips" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="6" cy="6" r="3"></circle>
+                <circle cx="6" cy="18" r="3"></circle>
+                <line x1="20" x2="8.12" y1="4" y2="15.88"></line>
+                <line x1="14.47" x2="20" y1="14.48" y2="20"></line>
+                <line x1="8.12" x2="12" y1="8.12" y2="12"></line>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipThanksClips">Thanks &amp; Clips</span>
           </label>
 
-          <!-- Setting: Shorts -->
-          <label class="setting-row" for="toggleShorts">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleShortsTitle">Shorts</span>
-              <span class="setting-hint" data-i18n="toggleShortsDesc">Suppress shorts tab, shelves, and navigation</span>
-            </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleShorts" aria-label="Suppress Shorts" />
-              <span class="slider"></span>
-            </div>
+          <!-- Channel Memberships -->
+          <label class="chip-toggle" for="toggleJoinButton">
+            <input type="checkbox" id="toggleJoinButton" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipJoin">Join Button</span>
           </label>
 
-          <!-- Setting: Endscreens -->
-          <label class="setting-row" for="toggleEndScreens">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleEndScreensTitle">End Screens</span>
-              <span class="setting-hint" data-i18n="toggleEndScreensDesc">Suppress popup cards at video conclusion</span>
-            </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleEndScreens" aria-label="Suppress End Screens" />
-              <span class="slider"></span>
-            </div>
+          <!-- Share Button -->
+          <label class="chip-toggle" for="toggleShare">
+            <input type="checkbox" id="toggleShare" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line>
+                <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipShare">Share Button</span>
+          </label>
+
+          <!-- Merch Shelf -->
+          <label class="chip-toggle" for="toggleMerchShelf">
+            <input type="checkbox" id="toggleMerchShelf" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
+                <line x1="3" x2="21" y1="6" y2="6"></line>
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipMerch">Merch Shelf</span>
           </label>
         </div>
       </section>
     </div>
 
-    <!-- Tab Panel 2: UI Cleaner -->
-    <div class="tab-panel" id="tabPanelCleaner">
-      <!-- Header Controls -->
-      <section class="pane-section">
-        <div class="pane-header">
-          <span class="pane-title" data-i18n="headerCleanerLabel">HEADER // SEARCH & TOPBAR</span>
-        </div>
-        <div class="settings-list">
-          <!-- Setting: Voice Search -->
-          <label class="setting-row" for="toggleVoiceSearch">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleVoiceSearchTitle">Voice Search</span>
-              <span class="setting-hint" data-i18n="toggleVoiceSearchDesc">Suppress microphone icon beside search bar</span>
+    <!-- TAB 3: EXTRAS (Power Modules & Restorations) -->
+    <div class="tab-panel" id="tabPanelExtras">
+      <div class="pane-header">
+        <span class="pane-title" data-i18n="auxiliaryLabel">POWER MODULES // UTILITIES</span>
+      </div>
+      <div class="module-list">
+        <!-- Module: Restore Dislikes -->
+        <label class="module-row" for="toggleDislikes">
+          <div class="module-icon">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+            </svg>
+          </div>
+          <div class="module-meta">
+            <div class="module-title-row">
+              <span class="module-title" data-i18n="toggleDislikesTitle">Restore Dislikes</span>
+              <span class="module-tag" data-i18n="statusApiOnline">API ONLINE</span>
             </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleVoiceSearch" aria-label="Suppress Voice Search" />
-              <span class="slider"></span>
-            </div>
-          </label>
+            <span class="module-desc" data-i18n="toggleDislikesDesc">Incorporate public community dislikes metric via Return YouTube Dislike API</span>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="toggleDislikes" aria-label="Restore Dislikes" />
+            <span class="slider"></span>
+          </div>
+        </label>
 
-          <!-- Setting: Create Button -->
-          <label class="setting-row" for="toggleCreateButton">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleCreateTitle">Create Button (+)</span>
-              <span class="setting-hint" data-i18n="toggleCreateDesc">Suppress video creation & upload button in top bar</span>
+        <!-- Module: Untranslate Titles -->
+        <label class="module-row" for="toggleUntranslate">
+          <div class="module-icon">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" x2="22" y1="12" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+          </div>
+          <div class="module-meta">
+            <div class="module-title-row">
+              <span class="module-title" data-i18n="toggleUntranslateTitle">Untranslate Titles</span>
+              <span class="module-tag" data-i18n="statusEngineActive">ENGINE ACTIVE</span>
             </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleCreateButton" aria-label="Suppress Create Button" />
-              <span class="slider"></span>
-            </div>
-          </label>
-
-          <!-- Setting: Notifications Bell -->
-          <label class="setting-row" for="toggleNotifications">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleNotificationsTitle">Notifications Bell</span>
-              <span class="setting-hint" data-i18n="toggleNotificationsDesc">Suppress notification bell and FOMO red badge alerts</span>
-            </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleNotifications" aria-label="Suppress Notifications Bell" />
-              <span class="slider"></span>
-            </div>
-          </label>
-        </div>
-      </section>
-
-      <!-- Player Action Bar Buttons -->
-      <section class="pane-section">
-        <div class="pane-header">
-          <span class="pane-title" data-i18n="playerActionsLabel">PLAYER // ACTION BUTTONS</span>
-        </div>
-        <div class="settings-list">
-          <!-- Setting: Ask AI -->
-          <label class="setting-row" for="toggleAskAi">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleAskAiTitle">Ask AI Assistant</span>
-              <span class="setting-hint" data-i18n="toggleAskAiDesc">Suppress experimental YouTube conversational AI button</span>
-            </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleAskAi" aria-label="Suppress Ask AI Assistant" />
-              <span class="slider"></span>
-            </div>
-          </label>
-
-          <!-- Setting: Download Button -->
-          <label class="setting-row" for="toggleDownload">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleDownloadTitle">Download Button</span>
-              <span class="setting-hint" data-i18n="toggleDownloadDesc">Suppress promotional Premium download prompt</span>
-            </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleDownload" aria-label="Suppress Download Button" />
-              <span class="slider"></span>
-            </div>
-          </label>
-
-          <!-- Setting: Thanks & Clips -->
-          <label class="setting-row" for="toggleThanksClips">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleThanksClipsTitle">Thanks & Clips</span>
-              <span class="setting-hint" data-i18n="toggleThanksClipsDesc">Suppress Super Thanks, Clips, and Remix actions</span>
-            </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleThanksClips" aria-label="Suppress Thanks and Clips" />
-              <span class="slider"></span>
-            </div>
-          </label>
-
-          <!-- Setting: Channel Memberships / Join -->
-          <label class="setting-row" for="toggleJoinButton">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleJoinTitle">Channel Memberships</span>
-              <span class="setting-hint" data-i18n="toggleJoinDesc">Suppress promotional Join button beside Subscribe</span>
-            </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleJoinButton" aria-label="Suppress Join Button" />
-              <span class="slider"></span>
-            </div>
-          </label>
-
-          <!-- Setting: Share Button -->
-          <label class="setting-row" for="toggleShare">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleShareTitle">Share Button</span>
-              <span class="setting-hint" data-i18n="toggleShareDesc">Suppress video share action button</span>
-            </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleShare" aria-label="Suppress Share Button" />
-              <span class="slider"></span>
-            </div>
-          </label>
-        </div>
-      </section>
-
-      <!-- Commercial & Shopping Clutter -->
-      <section class="pane-section">
-        <div class="pane-header">
-          <span class="pane-title" data-i18n="commercialClutterLabel">PAGE // SHOPPING & COMMERCIAL</span>
-        </div>
-        <div class="settings-list">
-          <!-- Setting: Merch Shelf -->
-          <label class="setting-row" for="toggleMerchShelf">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleMerchTitle">Merch & Products</span>
-              <span class="setting-hint" data-i18n="toggleMerchDesc">Suppress product shelves, affiliate stores, and shopping panels</span>
-            </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleMerchShelf" aria-label="Suppress Merch and Products" />
-              <span class="slider"></span>
-            </div>
-          </label>
-        </div>
-      </section>
-
-      <!-- Auxiliary Modules List (Dislikes & Untranslate) -->
-      <section class="pane-section">
-        <div class="pane-header">
-          <span class="pane-title" data-i18n="auxiliaryLabel">AUXILIARY MODULES</span>
-        </div>
-        <div class="settings-list">
-          <label class="setting-row" for="toggleDislikes">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleDislikesTitle">Restore Dislikes</span>
-              <span class="setting-hint" data-i18n="toggleDislikesDesc">Display public dislike count on action bar</span>
-            </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleDislikes" aria-label="Restore Dislikes" />
-              <span class="slider"></span>
-            </div>
-          </label>
-          <label class="setting-row" for="toggleUntranslate">
-            <div class="setting-meta">
-              <span class="setting-title" data-i18n="toggleUntranslateTitle">Untranslate Titles</span>
-              <span class="setting-hint" data-i18n="toggleUntranslateDesc">Preserve creator's original video title</span>
-            </div>
-            <div class="switch">
-              <input type="checkbox" id="toggleUntranslate" aria-label="Untranslate Video Titles" />
-              <span class="slider"></span>
-            </div>
-          </label>
-        </div>
-      </section>
+            <span class="module-desc" data-i18n="toggleUntranslateDesc">Preserve creators original video title without algorithmic auto-translation</span>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="toggleUntranslate" aria-label="Untranslate Video Titles" />
+            <span class="slider"></span>
+          </div>
+        </label>
+      </div>
     </div>
 
     <!-- Clean Footer -->
     <footer class="app-footer">
-      <div class="scale-box">
-        <span class="scale-label" data-i18n="scaleLabel">SCALE</span>
-        <div class="mini-segmented" id="scaleGroup">
-          <button type="button" class="mini-btn scale-btn" data-scale="100" title="Standard (100%)">1x</button>
-          <button type="button" class="mini-btn scale-btn" data-scale="115" title="Comfortable (115% - 27&quot;)">1.15x</button>
-          <button type="button" class="mini-btn scale-btn" data-scale="125" title="Expanded (125% - 4K)">1.25x</button>
-        </div>
-      </div>
-      <button type="button" class="reset-action" id="resetBtn" data-i18n="resetBtn">RESET CONFIG</button>
+      <span class="footer-meta" data-i18n="footerMeta">DISTRACTION-FREE SYSTEM</span>
+      <span class="footer-version">v1.0</span>
     </footer>
   </div>
 

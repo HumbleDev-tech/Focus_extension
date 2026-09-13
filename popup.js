@@ -1,15 +1,19 @@
 /**
  * Libertad - Popup Interaction Controller
- * Handles presets, custom configuration memory, dynamic themes (Dark, Light, OLED),
- * bilingual internationalization (English, Spanish), tab navigation, and UI cleaner toggles.
+ * Handles global presets, custom configuration memory, dynamic themes (Dark, Light, OLED),
+ * bilingual internationalization (English, Spanish), 3-tab navigation, interactive chip toggles,
+ * power modules (Dislikes, Untranslate), and settings drawer.
+ * Strict Rule: No emojis anywhere in code, logs, or UI bindings.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Elements
+  // Core UI Elements
   const statusPill = document.getElementById('statusPill');
   const statusText = document.getElementById('statusText');
   const presetButtons = document.querySelectorAll('.preset-btn');
   const presetDesc = document.getElementById('presetDesc');
+  const settingsToggleBtn = document.getElementById('settingsToggleBtn');
+  const settingsDrawer = document.getElementById('settingsDrawer');
   const themeButtons = document.querySelectorAll('.theme-btn');
   const langButtons = document.querySelectorAll('.lang-btn');
   const scaleButtons = document.querySelectorAll('.scale-btn');
@@ -17,19 +21,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const tabPanels = {
     focus: document.getElementById('tabPanelFocus'),
     cleaner: document.getElementById('tabPanelCleaner'),
+    extras: document.getElementById('tabPanelExtras'),
   };
   const i18nElements = document.querySelectorAll('[data-i18n]');
   const resetBtn = document.getElementById('resetBtn');
 
-  // Toggle Checkboxes
+  // Toggle Checkboxes (Macro shields, cleaner chips, and power modules)
   const toggles = {
-    // Focus Shields
+    // Focus Macro Shields
     hideHomeFeed: document.getElementById('toggleHomeFeed'),
     hideSidebar: document.getElementById('toggleSidebar'),
     hideComments: document.getElementById('toggleComments'),
     hideShorts: document.getElementById('toggleShorts'),
     hideEndScreens: document.getElementById('toggleEndScreens'),
-    // Cleaner Shields
+    // Cleaner Chips
     hideVoiceSearch: document.getElementById('toggleVoiceSearch'),
     hideCreateButton: document.getElementById('toggleCreateButton'),
     hideNotifications: document.getElementById('toggleNotifications'),
@@ -39,10 +44,12 @@ document.addEventListener('DOMContentLoaded', () => {
     hideJoinButton: document.getElementById('toggleJoinButton'),
     hideShare: document.getElementById('toggleShare'),
     hideMerchShelf: document.getElementById('toggleMerchShelf'),
-    // Auxiliary Modules
+    // Power Modules
     showDislikes: document.getElementById('toggleDislikes'),
     untranslateTitles: document.getElementById('toggleUntranslate'),
   };
+
+  const chipLabels = document.querySelectorAll('.chip-toggle');
 
   const TOGGLE_KEYS = [
     'hideHomeFeed',
@@ -142,15 +149,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const dpr = window.devicePixelRatio || 1;
     const effectiveW = screenW * dpr;
 
-    // 4K monitors (3840+ px physical or ultrawide >= 3440px) with low/medium OS scaling
     if (screenW >= 3440 || (effectiveW >= 3840 && dpr < 1.5)) {
-      return '125';
+      return '140';
     }
-    // 27" 1440p monitors (2560x1440) or large 2K displays
     if (screenW >= 2400 || (effectiveW >= 2560 && dpr <= 1.25)) {
-      return '115';
+      return '120';
     }
-    // Standard 1080p, 13"-15" laptops, and compact displays
     return '100';
   }
 
@@ -210,7 +214,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!state.lang || state.lang === 'auto') {
         state.lang = navigator.language?.startsWith('es') ? 'es' : 'en';
       }
-      if (!state.scale || state.scale === 'auto') {
+      if (state.scale === '115') {
+        state.scale = '120';
+      } else if (state.scale === '125') {
+        state.scale = '140';
+      } else if (!state.scale || state.scale === 'auto') {
         state.scale = detectDefaultScale();
       }
       if (!state.activeTab) {
@@ -324,6 +332,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Update chip toggle active styles
+    chipLabels.forEach((chip) => {
+      const forId = chip.getAttribute('for');
+      const input = document.getElementById(forId);
+      if (input) {
+        chip.classList.toggle('active', input.checked);
+      }
+    });
+
     // Preset buttons active state
     presetButtons.forEach((btn) => {
       const p = btn.getAttribute('data-preset');
@@ -373,7 +390,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Tab navigation clicks
+  // Settings Drawer toggle button
+  if (settingsToggleBtn && settingsDrawer) {
+    settingsToggleBtn.addEventListener('click', () => {
+      const isOpen = settingsDrawer.classList.toggle('open');
+      settingsToggleBtn.classList.toggle('active', isOpen);
+    });
+  }
+
+  // Tab navigation clicks (Enfoque, Limpieza UI, Extras)
   tabButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
       const chosenTab = btn.getAttribute('data-tab');
@@ -449,7 +474,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Individual toggle changes (both Focus and Cleaner tabs)
+  // Individual toggle changes (Focus switches and Cleaner chips)
   TOGGLE_KEYS.forEach((key) => {
     if (!toggles[key]) return;
     toggles[key].addEventListener('change', (e) => {
@@ -463,19 +488,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Dislikes toggle
+  // Power Modules: Dislikes toggle
   toggles.showDislikes?.addEventListener('change', (e) => {
     state.showDislikes = e.target.checked;
     saveState();
   });
 
-  // Untranslate titles toggle
+  // Power Modules: Untranslate titles toggle
   toggles.untranslateTitles?.addEventListener('change', (e) => {
     state.untranslateTitles = e.target.checked;
     saveState();
   });
 
-  resetBtn.addEventListener('click', () => {
+  // Reset configuration button
+  resetBtn?.addEventListener('click', () => {
     const currentScale = state.scale || detectDefaultScale();
     state = {
       theme: state.theme || 'dark',
