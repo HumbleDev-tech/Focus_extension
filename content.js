@@ -371,7 +371,9 @@
         #segmented-like-button,
         #segmented-dislike-button,
         like-button-view-model,
-        dislike-button-view-model {
+        dislike-button-view-model,
+        #dislike-button,
+        #like-button {
           display: none !important;
         }
       `);
@@ -509,7 +511,7 @@
       rules.push(`
         ytd-feed-filter-chip-bar-renderer,
         #chips-wrapper.ytd-feed-filter-chip-bar-renderer,
-        iron-selector#chips {
+        ytd-feed-filter-chip-bar-renderer iron-selector#chips {
           display: none !important;
         }
       `);
@@ -548,36 +550,38 @@
       `);
     }
 
-    // Dislike Button Fix & Expansion
-    rules.push(`
-      /* Ensure Dislike button container allows text expansion and proper padding */
-      ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button,
-      segmented-like-dislike-button-view-model dislike-button-view-model button,
-      dislike-button-view-model button,
-      #segmented-dislike-button button,
-      #dislike-button button {
-        width: auto !important;
-        min-width: 48px !important;
-        padding-left: 8px !important;
-        padding-right: 12px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-      }
+    // Dislike Button Fix & Expansion (Only injected when dislikes are active and not suppressed)
+    if (settings.showDislikes && !settings.hideLikeDislike) {
+      rules.push(`
+        /* Ensure Dislike button container allows text expansion and proper padding */
+        ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button,
+        segmented-like-dislike-button-view-model dislike-button-view-model button,
+        dislike-button-view-model button,
+        #segmented-dislike-button button,
+        #dislike-button button {
+          width: auto !important;
+          min-width: 48px !important;
+          padding-left: 8px !important;
+          padding-right: 12px !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
 
-      .libertad-dislike-badge {
-        display: inline-flex !important;
-        align-items: center !important;
-        font-family: "Roboto", "Segoe UI", Arial, sans-serif !important;
-        font-size: 14px !important;
-        font-weight: 500 !important;
-        line-height: 1 !important;
-        color: inherit !important;
-        margin-left: 6px !important;
-        pointer-events: none !important;
-        white-space: nowrap !important;
-      }
-    `);
+        .libertad-dislike-badge {
+          display: inline-flex !important;
+          align-items: center !important;
+          font-family: "Roboto", "Segoe UI", Arial, sans-serif !important;
+          font-size: 14px !important;
+          font-weight: 500 !important;
+          line-height: 1 !important;
+          color: inherit !important;
+          margin-left: 6px !important;
+          pointer-events: none !important;
+          white-space: nowrap !important;
+        }
+      `);
+    }
 
     // Libertad UI Elements styling
     rules.push(`
