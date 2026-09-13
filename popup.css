@@ -8,16 +8,8 @@
   --ui-scale: 1;
 }
 
-[data-scale="115"] {
-  --ui-scale: 1.15;
-}
-
 [data-scale="120"] {
   --ui-scale: 1.2;
-}
-
-[data-scale="125"] {
-  --ui-scale: 1.25;
 }
 
 [data-scale="140"] {
@@ -34,7 +26,6 @@
   --surface-subtle: #161b24;
   --surface-card: #131722;
   --surface-card-hover: #1b2130;
-  --row-hover: rgba(255, 255, 255, 0.05);
 
   --border-hairline: rgba(255, 255, 255, 0.1);
   --border-subtle: rgba(255, 255, 255, 0.065);
@@ -60,8 +51,6 @@
   --status-off-text: #64748b;
 
   --active-tab-bg: #1a2233;
-  --active-tab-text: #ffffff;
-  --active-tab-border: #38bdf8;
 
   --switch-track-bg: #161a23;
   --switch-track-border: rgba(255, 255, 255, 0.12);
@@ -79,7 +68,6 @@
   --surface-subtle: #08090d;
   --surface-card: #040508;
   --surface-card-hover: #0c0f16;
-  --row-hover: rgba(255, 255, 255, 0.05);
 
   --border-hairline: #171a21;
   --border-subtle: #0e1015;
@@ -104,8 +92,6 @@
   --status-off-text: #686873;
 
   --active-tab-bg: #101520;
-  --active-tab-text: #ffffff;
-  --active-tab-border: #38bdf8;
 
   --switch-track-bg: #09090b;
   --switch-track-border: #22252c;
@@ -123,7 +109,6 @@
   --surface-subtle: #edf2f7;
   --surface-card: #ffffff;
   --surface-card-hover: #f1f5f9;
-  --row-hover: rgba(0, 0, 0, 0.035);
 
   --border-hairline: #e2e8f0;
   --border-subtle: #edf2f7;
@@ -148,8 +133,6 @@
   --status-off-text: #64748b;
 
   --active-tab-bg: #ffffff;
-  --active-tab-text: #0284c7;
-  --active-tab-border: #0284c7;
 
   --switch-track-bg: #e2e8f0;
   --switch-track-border: #cbd5e1;
@@ -216,19 +199,6 @@ body {
 button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
-}
-
-body::-webkit-scrollbar {
-  width: 4px;
-}
-
-body::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-body::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 2px;
 }
 
 .app-window {
@@ -760,16 +730,18 @@ body::-webkit-scrollbar-thumb {
 }
 
 /* ==========================================================================
-   5. TAB 1: Focus Shield Cards
+   5. TAB 1 & TAB 3: Cards & Module Rows
    ========================================================================== */
 
-.shield-list {
+.shield-list,
+.module-list {
   display: flex;
   flex-direction: column;
   gap: calc(5px * var(--ui-scale));
 }
 
-.shield-card {
+.shield-card,
+.module-row {
   display: flex;
   align-items: center;
   gap: calc(8px * var(--ui-scale));
@@ -781,12 +753,14 @@ body::-webkit-scrollbar-thumb {
   transition: var(--transition-fast);
 }
 
-.shield-card:hover {
+.shield-card:hover,
+.module-row:hover {
   background: var(--surface-card-hover);
   border-color: var(--border-hairline);
 }
 
-.shield-icon {
+.shield-icon,
+.module-icon {
   width: calc(24px * var(--ui-scale));
   height: calc(24px * var(--ui-scale));
   border-radius: 2px;
@@ -800,12 +774,20 @@ body::-webkit-scrollbar-thumb {
   transition: color var(--transition-fast);
 }
 
-.shield-card:hover .shield-icon {
+.shield-card:hover .shield-icon,
+.module-row:hover .module-icon {
   color: var(--accent);
   border-color: var(--accent-subtle-border);
 }
 
-.shield-meta {
+.shield-card:has(input:focus-visible),
+.module-row:has(input:focus-visible) {
+  border-color: var(--accent);
+  box-shadow: 0 0 calc(4px * var(--ui-scale)) var(--accent-glow);
+}
+
+.shield-meta,
+.module-meta {
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -813,14 +795,16 @@ body::-webkit-scrollbar-thumb {
   min-width: 0;
 }
 
-.shield-title {
+.shield-title,
+.module-title {
   font-size: calc(11.5px * var(--ui-scale));
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.1px;
 }
 
-.shield-desc {
+.shield-desc,
+.module-desc {
   font-size: calc(9.5px * var(--ui-scale));
   color: var(--text-muted);
   line-height: 1.25;
@@ -988,75 +972,13 @@ input:checked + .slider:before {
 }
 
 /* ==========================================================================
-   7. TAB 3: Power Modules (JetBrains & Steam Minimalist Industrial)
+   7. TAB 3: Power Modules Elements
    ========================================================================== */
-
-.module-list {
-  display: flex;
-  flex-direction: column;
-  gap: calc(5px * var(--ui-scale));
-}
-
-.module-row {
-  display: flex;
-  align-items: center;
-  gap: calc(8px * var(--ui-scale));
-  padding: calc(7px * var(--ui-scale)) calc(8px * var(--ui-scale));
-  background: var(--surface-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: 3px;
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-
-.module-row:hover {
-  background: var(--surface-card-hover);
-  border-color: var(--border-hairline);
-}
-
-.module-icon {
-  width: calc(24px * var(--ui-scale));
-  height: calc(24px * var(--ui-scale));
-  border-radius: 2px;
-  background: var(--surface-subtle);
-  border: 1px solid var(--border-hairline);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-secondary);
-  flex-shrink: 0;
-  transition: color var(--transition-fast);
-}
-
-.module-row:hover .module-icon {
-  color: var(--accent);
-  border-color: var(--accent-subtle-border);
-}
-
-.module-row:has(input:focus-visible) {
-  border-color: var(--accent);
-  box-shadow: 0 0 calc(4px * var(--ui-scale)) var(--accent-glow);
-}
-
-.module-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  flex: 1;
-  min-width: 0;
-}
 
 .module-title-row {
   display: flex;
   align-items: center;
   gap: calc(6px * var(--ui-scale));
-}
-
-.module-title {
-  font-size: calc(11.5px * var(--ui-scale));
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.1px;
 }
 
 .module-tag {
@@ -1071,12 +993,6 @@ input:checked + .slider:before {
   border-radius: 2px;
   text-transform: uppercase;
   line-height: 1.2;
-}
-
-.module-desc {
-  font-size: calc(9.5px * var(--ui-scale));
-  color: var(--text-muted);
-  line-height: 1.25;
 }
 
 /* ==========================================================================

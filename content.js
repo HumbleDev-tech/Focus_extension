@@ -111,7 +111,6 @@
       `);
     }
 
-    // Voice Search Microphone (Supports old ytd-searchbox, new yt-searchbox, Lit components, and SVG fallback)
     // Voice Search Microphone (Strictly scoped to masthead and searchbox)
     if (settings.hideVoiceSearch) {
       rules.push(`
