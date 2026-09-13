@@ -214,7 +214,19 @@ Read our full [Privacy Policy](PRIVACY.md) for complete details.
 
 ---
 
+## Acknowledgements
+
+Libertad is built on open standards and stands on the shoulders of exceptional open-source projects and community initiatives:
+
+* **[Return YouTube Dislike](https://returnyoutubedislike.com)**: For providing the public community API and infrastructure that powers our dislike metric restoration module.
+* **[Feather Icons](https://feathericons.com)** / **[Lucide](https://lucide.dev)**: For the clean, open-source SVG line iconography utilized across the popup control surface.
+* **[Biome](https://biomejs.dev)**: For providing world-class, ultra-fast formatting and linting tooling.
+* **Distraction-Free Community**: Inspired by the pioneering ethos of tools like *Unhook* and *DF Tube*, re-engineered with zero runtime dependencies and modern Manifest V3 standards.
+
+---
+
 ## License
 
 This project is open-source software licensed under the **[MIT License](LICENSE)**.  
 Created and maintained by **[HumbleDev-tech](https://github.com/HumbleDev-tech)**.
+
