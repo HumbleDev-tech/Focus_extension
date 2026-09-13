@@ -313,14 +313,84 @@ body::-webkit-scrollbar-thumb {
   box-shadow: 0 0 calc(4px * var(--ui-scale)) var(--accent-glow);
 }
 
+/* OFF: Subtle neutral */
+.status-indicator[data-preset="off"],
 .status-indicator.is-off {
-  background: var(--status-off-bg);
-  border-color: var(--status-off-border);
-  color: var(--status-off-text);
+  background: var(--surface-card);
+  border-color: var(--border-hairline);
+  color: var(--text-secondary);
 }
 
+.status-indicator[data-preset="off"] .status-dot,
 .status-indicator.is-off .status-dot {
-  background: var(--status-off-text);
+  background: var(--text-muted);
+  box-shadow: none;
+}
+
+/* BASIC: Subtle sky-blue tint */
+.status-indicator[data-preset="basic"] {
+  background: var(--accent-soft-bg);
+  border-color: var(--accent-subtle-border);
+  color: var(--accent);
+}
+
+.status-indicator[data-preset="basic"] .status-dot {
+  background: var(--accent);
+  box-shadow: 0 0 calc(4px * var(--ui-scale)) var(--accent-glow);
+}
+
+/* BALANCED: Focused sky-blue frame with glow */
+.status-indicator[data-preset="balanced"] {
+  background: var(--accent-surface);
+  border-color: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 0 calc(6px * var(--ui-scale)) var(--accent-glow);
+}
+
+.status-indicator[data-preset="balanced"] .status-dot {
+  background: var(--accent);
+  box-shadow: 0 0 calc(4px * var(--ui-scale)) var(--accent-glow);
+}
+
+/* EXTREME: Solid high-contrast sky-blue block */
+.status-indicator[data-preset="extreme"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #07090e;
+  font-weight: 800;
+  box-shadow: 0 0 calc(8px * var(--ui-scale)) var(--accent-glow);
+}
+
+.status-indicator[data-preset="extreme"] .status-dot {
+  background: #07090e;
+  box-shadow: none;
+}
+
+/* CUSTOM: Dashed technical sky-blue outline */
+.status-indicator[data-preset="custom"] {
+  background: var(--accent-soft-bg);
+  border: 1px dashed var(--accent);
+  color: var(--accent);
+}
+
+.status-indicator[data-preset="custom"] .status-dot {
+  background: var(--accent);
+  box-shadow: 0 0 calc(4px * var(--ui-scale)) var(--accent-glow);
+}
+
+/* Light Theme Overrides */
+[data-theme="light"] .status-indicator[data-preset="balanced"] {
+  background: var(--accent-surface);
+  color: var(--accent);
+}
+
+[data-theme="light"] .status-indicator[data-preset="extreme"] {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+[data-theme="light"] .status-indicator[data-preset="extreme"] .status-dot {
+  background: #ffffff;
   box-shadow: none;
 }
 

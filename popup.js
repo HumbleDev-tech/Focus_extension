@@ -369,6 +369,8 @@ document.addEventListener('DOMContentLoaded', () => {
         !state.hideComments &&
         !state.hideShorts &&
         !state.hideEndScreens);
+    const effectivePreset = isOff ? 'off' : state.preset;
+    statusPill.setAttribute('data-preset', effectivePreset);
     if (isOff) {
       statusPill.classList.add('is-off');
       statusText.textContent = t('statusOff');
