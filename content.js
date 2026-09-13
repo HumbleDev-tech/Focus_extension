@@ -726,7 +726,11 @@
       `;
 
       if (existing) {
-        existing.innerHTML = cardHtml;
+        const langKey = isSpanish ? 'es' : 'en';
+        if (existing.dataset.lang !== langKey) {
+          existing.dataset.lang = langKey;
+          existing.innerHTML = cardHtml;
+        }
       } else {
         const targetContainer =
           document.querySelector('ytd-browse[page-subtype="home"] #primary') ||
@@ -735,6 +739,7 @@
         if (targetContainer) {
           const zen = document.createElement('div');
           zen.id = ZEN_CONTAINER_ID;
+          zen.dataset.lang = isSpanish ? 'es' : 'en';
           zen.innerHTML = cardHtml;
           targetContainer.prepend(zen);
         }
@@ -860,10 +865,13 @@
           if (currentBtn) {
             injectDislikeBadge(currentBtn, formatted);
           }
+        } else {
+          dislikeCache.set(videoId, null);
         }
       })
       .catch(() => {
         isFetchingDislikes = false;
+        dislikeCache.set(videoId, null);
       });
   }
 
@@ -993,6 +1001,15 @@
     }
 
     if (currentOriginalTitle) {
+      const primaryTitle = document.querySelector(
+        'ytd-watch-metadata #title yt-formatted-string, #above-the-fold #title yt-formatted-string, h1.title yt-formatted-string',
+      );
+      if (
+        primaryTitle &&
+        primaryTitle.textContent.trim() === currentOriginalTitle
+      ) {
+        return;
+      }
       applyWatchTitle(currentOriginalTitle, videoId);
       return;
     }
