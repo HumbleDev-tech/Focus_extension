@@ -73,6 +73,17 @@
           <a href="https://github.com/HumbleDev-tech/Focus_extension/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer" class="drawer-link" title="Privacy Policy">
             <span data-i18n="linkPrivacy">Privacy</span>
           </a>
+          <span class="drawer-link-sep">•</span>
+          <a href="https://github.com/HumbleDev-tech/Focus_extension#support--donations" target="_blank" rel="noopener noreferrer" class="drawer-link" title="Support / Donate">
+            <svg class="drawer-link-icon" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+              <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+              <line x1="6" y1="1" x2="6" y2="4"></line>
+              <line x1="10" y1="1" x2="10" y2="4"></line>
+              <line x1="14" y1="1" x2="14" y2="4"></line>
+            </svg>
+            <span data-i18n="linkDonate">Support</span>
+          </a>
         </div>
         <button type="button" class="reset-action-btn" id="resetBtn" data-i18n="resetBtn">RESET CONFIG</button>
       </div>
@@ -587,6 +598,27 @@
           </div>
           <div class="switch">
             <input type="checkbox" id="toggleUntranslate" aria-label="Untranslate Video Titles" />
+            <span class="slider"></span>
+          </div>
+        </label>
+
+        <!-- Module: Skip In-Video Sponsors -->
+        <label class="module-row" for="toggleSponsors">
+          <div class="module-icon">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 4 15 12 5 20 5 4"></polygon>
+              <line x1="19" y1="5" x2="19" y2="19"></line>
+            </svg>
+          </div>
+          <div class="module-meta">
+            <div class="module-title-row">
+              <span class="module-title" data-i18n="toggleSponsorsTitle">Skip In-Video Sponsors</span>
+              <span class="module-tag" data-i18n="statusSponsorBlock">SPONSORBLOCK</span>
+            </div>
+            <span class="module-desc" data-i18n="toggleSponsorsDesc">Auto-skip paid promotions, intros, and subscribe reminders via SponsorBlock</span>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="toggleSponsors" aria-label="Skip In-Video Sponsors" />
             <span class="slider"></span>
           </div>
         </label>

@@ -8,7 +8,8 @@
   "host_permissions": [
     "*://*.youtube.com/*",
     "*://youtube.com/*",
-    "https://returnyoutubedislikeapi.com/*"
+    "https://returnyoutubedislikeapi.com/*",
+    "https://sponsor.ajay.app/*"
   ],
   "background": {
     "service_worker": "background.js"

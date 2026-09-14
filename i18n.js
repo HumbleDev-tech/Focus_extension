@@ -14,6 +14,7 @@ const LIBERTAD_I18N = {
     linkGithub: 'GitHub',
     linkIssues: 'Issues',
     linkPrivacy: 'Privacy',
+    linkDonate: 'Support',
     tabFocus: 'FOCUS SHIELD',
     tabCleaner: 'UI CLEANER',
     tabExtras: 'EXTRAS',
@@ -84,8 +85,12 @@ const LIBERTAD_I18N = {
     toggleUntranslateTitle: 'Untranslate Titles',
     toggleUntranslateDesc:
       'Preserve creators original video title without algorithmic auto-translation',
+    toggleSponsorsTitle: 'Skip In-Video Sponsors',
+    toggleSponsorsDesc:
+      'Auto-skip paid promotions, intros, and subscribe reminders via SponsorBlock',
     statusApiOnline: 'API ONLINE',
     statusEngineActive: 'ENGINE ACTIVE',
+    statusSponsorBlock: 'SPONSORBLOCK',
     footerMeta: 'DISTRACTION-FREE SYSTEM',
     zenBadge: 'SYSTEM // FOCUS_ACTIVE',
     zenTitle: 'Intentional Mode Engaged',
@@ -101,6 +106,7 @@ const LIBERTAD_I18N = {
     linkGithub: 'GitHub',
     linkIssues: 'Reportar Fallo',
     linkPrivacy: 'Privacidad',
+    linkDonate: 'Apoyar',
     tabFocus: 'ENFOQUE',
     tabCleaner: 'LIMPIEZA UI',
     tabExtras: 'EXTRAS',
@@ -170,8 +176,12 @@ const LIBERTAD_I18N = {
     toggleUntranslateTitle: 'No Traducir Titulos',
     toggleUntranslateDesc:
       'Conserva el titulo original en el idioma del creador sin traducciones forzadas',
+    toggleSponsorsTitle: 'Saltar Patrocinadores',
+    toggleSponsorsDesc:
+      'Salta automáticamente segmentos patrocinados, intros y recordatorios con SponsorBlock',
     statusApiOnline: 'API EN VIVO',
     statusEngineActive: 'MOTOR ACTIVO',
+    statusSponsorBlock: 'SPONSORBLOCK',
     footerMeta: 'SISTEMA LIBRE DE DISTRACCIONES',
     zenBadge: 'SISTEMA // ENFOQUE_ACTIVO',
     zenTitle: 'Modo Intencional Activo',

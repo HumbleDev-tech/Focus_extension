@@ -76,4 +76,41 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 
     return true;
   }
+
+  if (request.action === 'FETCH_SPONSORS') {
+    const videoId = request.videoId;
+    if (!videoId) {
+      sendResponse({ success: false, error: 'No video ID provided' });
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+    const categories = JSON.stringify(['sponsor', 'selfpromo', 'interaction']);
+    const url = `https://sponsor.ajay.app/api/skipSegments?videoID=${encodeURIComponent(videoId)}&categories=${encodeURIComponent(categories)}`;
+
+    fetch(url, { signal: controller.signal })
+      .then((res) => {
+        clearTimeout(timeoutId);
+        if (res.status === 404) {
+          // 404 in SponsorBlock API means no sponsor segments exist for this video
+          return [];
+        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((segments) => {
+        sendResponse({
+          success: true,
+          segments: Array.isArray(segments) ? segments : [],
+        });
+      })
+      .catch((err) => {
+        clearTimeout(timeoutId);
+        sendResponse({ success: false, error: err.message });
+      });
+
+    return true;
+  }
 });

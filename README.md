@@ -141,6 +141,11 @@ Libertad provides 25 modular toggles organized into four specialized categories 
   * Reverses YouTube's forced automatic translations, restoring the creator's original video title in the original language.
   * Operates across both watch pages and video feeds using an `IntersectionObserver` viewport scanner with bounded concurrency (`MAX_CONCURRENT_FEED_FETCHES = 3`) to eliminate redundant traffic and prevent rate limits.
 
+* **Skip In-Video Sponsors (SponsorBlock Engine)**:
+  * Automatically detects and skips sponsored segments, creator self-promotions, intros, and subscribe reminders without requiring manual interaction.
+  * Connects to the open [SponsorBlock](https://sponsor.ajay.app) community database, showing a subtle on-screen toast whenever a segment is skipped.
+  * Driven by native HTML5 `<video>` playback events and an in-memory segment cache for 0.0% idle CPU overhead.
+
 ---
 
 ### 6. Interface & Ergonomics
@@ -240,9 +245,24 @@ Read our full [Privacy Policy](PRIVACY.md) for complete details.
 Libertad is built on open standards and stands on the shoulders of exceptional open-source projects and community initiatives:
 
 * **[Return YouTube Dislike](https://returnyoutubedislike.com)**: For providing the public community API and infrastructure that powers our dislike metric restoration module.
+* **[SponsorBlock](https://sponsor.ajay.app)**: For providing community-curated sponsorship timestamps licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Uses SponsorBlock data from [https://sponsor.ajay.app/](https://sponsor.ajay.app/).
 * **[Feather Icons](https://feathericons.com)** / **[Lucide](https://lucide.dev)**: For the clean, open-source SVG line iconography utilized across the popup control surface.
 * **[Biome](https://biomejs.dev)**: For providing world-class, ultra-fast formatting and linting tooling.
 * **Distraction-Free Community**: Inspired by the pioneering ethos of tools like *Unhook* and *DF Tube*, re-engineered with zero runtime dependencies and modern Manifest V3 standards.
+
+---
+
+## Support & Donations <a id="support--donations"></a>
+
+Libertad is **100% free, unmonetized, and open-source** under the MIT license. We believe essential focus and digital sovereignty tools should belong to everyone without paywalls, subscriptions, or telemetry.
+
+If Libertad saves you hours of distraction and you'd like to support continued development, maintenance, and new features, voluntary contributions are deeply appreciated:
+
+* **GitHub Sponsors**: [Sponsor @HumbleDev-tech](https://github.com/sponsors/HumbleDev-tech)
+* **Buy Me a Coffee**: [buymeacoffee.com/humbledev](https://www.buymeacoffee.com)
+* **Ko-fi**: [ko-fi.com/humbledev](https://ko-fi.com)
+
+Every bit of support fuels independent, open-source software built for user autonomy.
 
 ---
 

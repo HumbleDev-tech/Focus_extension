@@ -83,9 +83,14 @@
   // Caches and queues with bounded capacity
   const dislikeCache = new BoundedCache(200);
   const titlesCache = new BoundedCache(300);
+  const sponsorCache = new BoundedCache(200);
   let isFetchingDislikes = false;
+  let isFetchingSponsors = false;
   let currentWatchVideoId = null;
   let currentOriginalTitle = null;
+  let currentSponsorVideoId = null;
+  let currentSponsorSegments = [];
+  let lastSkippedSegmentUuid = null;
 
   const feedFetchQueue = [];
   const pendingFeedVideoIds = new Set();
@@ -665,6 +670,24 @@
         color: var(--yt-spec-text-secondary, #8b949e);
         margin: 0;
       }
+      .libertad-sponsor-toast {
+        position: absolute;
+        bottom: 64px;
+        right: 24px;
+        background: rgba(13, 17, 23, 0.92);
+        border: 1px solid #38bdf8;
+        color: #38bdf8;
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        padding: 5px 12px;
+        border-radius: 4px;
+        z-index: 9999;
+        pointer-events: none;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
+        transition: opacity 0.3s ease;
+      }
     `);
 
     return rules.join('\n');
@@ -873,6 +896,143 @@
         isFetchingDislikes = false;
         dislikeCache.set(videoId, null);
       });
+  }
+
+  // -----------------------------------------------------------
+  // SponsorBlock Engine: Real-Time Segment Skipping
+  // -----------------------------------------------------------
+
+  function showSponsorSkipToast(category = 'sponsor') {
+    const playerContainer =
+      document.querySelector('#movie_player') ||
+      document.querySelector('.html5-video-player');
+    if (!playerContainer) return;
+
+    let toast = playerContainer.querySelector('.libertad-sponsor-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'libertad-sponsor-toast';
+      playerContainer.appendChild(toast);
+    }
+
+    const label =
+      category === 'selfpromo'
+        ? 'SELF-PROMO SKIPPED'
+        : category === 'interaction'
+          ? 'REMINDER SKIPPED'
+          : 'SPONSOR SKIPPED';
+
+    toast.textContent = label;
+    toast.style.opacity = '1';
+
+    if (toast.fadeTimeout) clearTimeout(toast.fadeTimeout);
+    toast.fadeTimeout = setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 350);
+    }, 1800);
+  }
+
+  function checkVideoSponsors(video) {
+    if (
+      !currentSettings.skipSponsors ||
+      !currentSponsorSegments.length ||
+      !video ||
+      video.paused
+    ) {
+      return;
+    }
+
+    const currentTime = video.currentTime;
+    for (const seg of currentSponsorSegments) {
+      if (currentTime >= seg.start && currentTime < seg.end - 0.2) {
+        video.currentTime = seg.end;
+        if (lastSkippedSegmentUuid !== seg.uuid) {
+          lastSkippedSegmentUuid = seg.uuid;
+          showSponsorSkipToast(seg.category);
+        }
+        break;
+      }
+    }
+  }
+
+  function bindVideoSponsorListener() {
+    if (window.location.pathname !== '/watch') return;
+    const video = document.querySelector('video.html5-main-video');
+    if (!video) return;
+
+    if (!video.dataset.libertadSponsorBound) {
+      video.dataset.libertadSponsorBound = 'true';
+      video.addEventListener(
+        'timeupdate',
+        () => {
+          checkVideoSponsors(video);
+        },
+        { passive: true },
+      );
+    }
+  }
+
+  function updateSponsorSegments() {
+    if (!currentSettings.skipSponsors) {
+      currentSponsorSegments = [];
+      return;
+    }
+
+    if (window.location.pathname !== '/watch') {
+      currentSponsorSegments = [];
+      return;
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoId = urlParams.get('v');
+    if (!videoId) {
+      currentSponsorSegments = [];
+      return;
+    }
+
+    if (
+      currentSponsorVideoId === videoId &&
+      currentSponsorSegments.length > 0
+    ) {
+      return;
+    }
+
+    currentSponsorVideoId = videoId;
+    lastSkippedSegmentUuid = null;
+
+    if (sponsorCache.has(videoId)) {
+      currentSponsorSegments = sponsorCache.get(videoId) || [];
+      return;
+    }
+
+    if (isFetchingSponsors) return;
+    if (!chrome.runtime?.id) return;
+    isFetchingSponsors = true;
+
+    chrome.runtime.sendMessage({ action: 'FETCH_SPONSORS', videoId }, (res) => {
+      isFetchingSponsors = false;
+      if (chrome.runtime.lastError || !res || !res.success) {
+        sponsorCache.set(videoId, []);
+        currentSponsorSegments = [];
+        return;
+      }
+
+      const raw = Array.isArray(res.segments) ? res.segments : [];
+      const parsed = raw
+        .filter((s) => Array.isArray(s.segment) && s.segment.length === 2)
+        .map((s) => ({
+          start: s.segment[0],
+          end: s.segment[1],
+          category: s.category || 'sponsor',
+          uuid: s.UUID || `${s.segment[0]}-${s.segment[1]}`,
+        }))
+        .sort((a, b) => a.start - b.start);
+
+      sponsorCache.set(videoId, parsed);
+      if (currentSponsorVideoId === videoId) {
+        currentSponsorSegments = parsed;
+      }
+    });
   }
 
   // -----------------------------------------------------------
@@ -1298,6 +1458,8 @@
     updateDislikeCount();
     updateWatchTitle();
     untranslateFeed();
+    updateSponsorSegments();
+    bindVideoSponsorListener();
   });
 
   // Listen for storage changes in real time (e.g. from popup clicks)
@@ -1310,6 +1472,8 @@
       updateDislikeCount();
       updateWatchTitle();
       untranslateFeed();
+      updateSponsorSegments();
+      bindVideoSponsorListener();
     }
   });
 
@@ -1317,16 +1481,24 @@
   window.addEventListener('yt-navigate-start', () => {
     currentOriginalTitle = null;
     currentWatchVideoId = null;
+    currentSponsorVideoId = null;
+    currentSponsorSegments = [];
+    lastSkippedSegmentUuid = null;
   });
 
   window.addEventListener('yt-navigate-finish', () => {
     currentOriginalTitle = null;
     currentWatchVideoId = null;
+    currentSponsorVideoId = null;
+    currentSponsorSegments = [];
+    lastSkippedSegmentUuid = null;
 
     applyStyles(currentSettings);
     updateDislikeCount();
     updateWatchTitle();
     untranslateFeed();
+    updateSponsorSegments();
+    bindVideoSponsorListener();
   });
 
   // Throttled MutationObserver with debounced feed untranslate
@@ -1361,6 +1533,9 @@
         }
         if (currentSettings.untranslateTitles) {
           updateWatchTitle();
+        }
+        if (currentSettings.skipSponsors) {
+          bindVideoSponsorListener();
         }
       }
 

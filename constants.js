@@ -84,6 +84,7 @@ const DEFAULT_SETTINGS = {
   // Power Modules
   showDislikes: true,
   untranslateTitles: true,
+  skipSponsors: true,
   customConfig: {
     hideHomeFeed: false,
     hideSidebar: true,

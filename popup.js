@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Power Modules
     showDislikes: document.getElementById('toggleDislikes'),
     untranslateTitles: document.getElementById('toggleUntranslate'),
+    skipSponsors: document.getElementById('toggleSponsors'),
   };
 
   const chipLabels = document.querySelectorAll('.chip-toggle');
@@ -390,6 +391,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Power Modules: Untranslate titles toggle
   toggles.untranslateTitles?.addEventListener('change', (e) => {
     state.untranslateTitles = e.target.checked;
+    saveState();
+  });
+
+  // Power Modules: Skip sponsors toggle
+  toggles.skipSponsors?.addEventListener('change', (e) => {
+    state.skipSponsors = e.target.checked;
     saveState();
   });
 
