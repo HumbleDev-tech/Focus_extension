@@ -202,6 +202,13 @@ Libertad provides 25 modular toggles organized into four specialized categories 
   * **Dark**: Industrial graphite palette with high readability.
   * **Light**: Clean, high-contrast laboratory aesthetic.
   * **OLED**: Pure `#000000` pitch black engineered for OLED displays and maximum power efficiency.
+
+<p align="center">
+  <img src="assets/libertad-theme-light.png" width="340" alt="Libertad Light Theme" />
+  &nbsp;&nbsp;
+  <img src="assets/libertad-theme-oled.png" width="340" alt="Libertad OLED Pure Black Theme" />
+</p>
+
 * **UI Display Scaling**:
   * One-touch zoom controls for popup comfort: **1x** (Standard), **1.2x** (Optimized for 1440p displays), and **1.4x** (Optimized for 4K / high-DPI displays).
 * **Bilingual Localization (i18n)**:
