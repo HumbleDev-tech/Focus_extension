@@ -254,6 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.sponsorSkipInteraction) count++;
       if (state.sponsorSkipIntro) count++;
       if (state.sponsorSkipOutro) count++;
+      if (state.sponsorSkipMusicOfftopic) count++;
       if (count === 0) {
         countBadge.textContent =
           state.lang === 'es' ? '0/6 (SOLO VER)' : '0/6 (VIEW ONLY)';

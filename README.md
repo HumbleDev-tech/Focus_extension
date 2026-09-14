@@ -22,29 +22,59 @@
 
 ---
 
+## Table of Contents
+
+* [Overview](#overview)
+* [At a Glance](#at-a-glance)
+* [Key Features](#key-features)
+  * [1. Global Preset Bar & Tri-Tab Navigation](#1-global-preset-bar--tri-tab-navigation)
+  * [2. Instant Focus Presets](#2-instant-focus-presets-integrated-matrix)
+  * [3. Granular Distraction Shields](#3-granular-distraction-shields-focus-tab)
+  * [4. YouTube De-Bloating & Action Cleaner](#4-youtube-de-bloating--action-cleaner-cleaner-tab)
+  * [5. Auxiliary Power Modules](#5-auxiliary-power-modules)
+  * [6. Interface & Ergonomics](#6-interface--ergonomics)
+* [Technical Architecture & Performance](#technical-architecture--performance)
+* [Installation (Developer Mode)](#installation-developer-mode)
+* [Quick Start & Usage](#quick-start--usage)
+* [Development & Quality Checks](#development--quality-checks)
+* [Building & Packaging](#building--packaging)
+* [Privacy & Security](#privacy--security)
+* [Acknowledgements](#acknowledgements)
+* [Support & Donations](#support--donations)
+* [License](#license)
+
+---
+
 ## Overview
 
 Modern video platforms are engineered around algorithmic feedback loops designed to maximize watch time rather than viewer intention. **Libertad** is an ultra-lightweight, high-performance browser extension built with pure vanilla web standards. It gives you complete control over YouTube's user interface, eliminating clutter, recommendations, and manipulative engagement mechanics.
 
 Whether you need a distraction-free environment for research and study, or a minimalist aesthetic tailored to OLED displays, Libertad lets you watch what you chose to watch—and nothing else.
 
+### At a Glance
+
+* **One-Click Focus Presets**: Switch instantly between Off, Basic, Balanced (recommended default), and Extreme Zen modes.
+* **Granular Surgical Control**: 30 modular toggles covering Home Feed, watch-next sidebars, comments, shorts, and 25 UI clutter elements.
+* **YouTube Power Utilities**: Restores public dislike metrics, auto-skips sponsored segments with a custom colored progress bar, and reverses automatic title translations.
+* **Pure Vanilla Performance**: Zero frameworks, zero npm runtime dependencies, zero telemetry, and ultra-low memory footprint.
+
 ---
 
 ## Key Features
 
-### 1. Tri-Tab Ergonomic Navigation & Global Preset Bar
+### 1. Global Preset Bar & Tri-Tab Navigation
 Libertad organizes controls into three purpose-built workspaces without vertical clutter, commanded by a top-level global preset bar:
 
 <p align="center">
-  <img src="assets/libertad-tab-navigation.png" width="460" alt="Tri-Tab Ergonomic Navigation" />
+  <img src="assets/libertad-preset-bar.png" width="480" alt="Global Focus Preset Controller" />
 </p>
 
 * **Focus Shield**: High-impact macro distraction blockers for algorithmic feeds, watch-next sidebars, comments, shorts, and end-screen cards.
 * **UI Cleaner**: Surgical removal of 25 promotional, experimental, and clutter elements across YouTube's modern interface organized into 4 distinct categories.
-* **Extras**: Dedicated power modules for YouTube data restorations (Public Dislikes API) and Title Untranslation.
+* **Extras**: Dedicated power modules for YouTube data restorations (Public Dislikes API), SponsorBlock segment skipping, and Title Untranslation.
 
 <p align="center">
-  <img src="assets/libertad-preset-bar.png" width="480" alt="Global Focus Preset Controller" />
+  <img src="assets/libertad-tab-navigation.png" width="460" alt="Tri-Tab Ergonomic Navigation" />
 </p>
 
 ---
@@ -132,6 +162,10 @@ Libertad provides 25 modular toggles organized into four specialized categories 
 
 ### 5. Auxiliary Power Modules
 
+<p align="center">
+  <img src="assets/libertad-player-power-modules.png" width="100%" alt="SponsorBlock Timeline Segments and Restored Dislikes Counter" />
+</p>
+
 * **Restore YouTube Dislikes**:
   * Seamlessly connects to the community-driven [Return YouTube Dislike API](https://returnyoutubedislikeapi.com).
   * Injects public dislike metrics directly into the native YouTube action bar with localized formatting (`1.4K`, `25M`).
@@ -192,6 +226,15 @@ To install and test Libertad locally in any Chromium-based browser (Google Chrom
 3. Enable **Developer mode** via the toggle switch in the top-right corner.
 4. Click **Load unpacked** and select the root directory of this repository (`Focus_extension`).
 5. Pin **Libertad** to your browser toolbar and open [YouTube](https://www.youtube.com).
+
+---
+
+## Quick Start & Usage
+
+1. **Choose a Preset**: Open the popup from your browser toolbar and choose your focus profile (`OFF`, `BASIC`, `BALANCED`, or `EXTREME`). `BALANCED` is recommended for daily study and research.
+2. **Fine-Tune Elements**: Navigate between the **Focus Shield** and **UI Cleaner** tabs to toggle individual elements. Toggling any switch automatically preserves your settings under `CUSTOM`.
+3. **Configure Utilities**: In the **Extras** tab, customize which SponsorBlock segments to auto-skip (Sponsors, Self-Promo, Reminders, Intros, Outros, Off-Topic) or keep them in view-only mode on the timeline.
+4. **Adjust Preferences**: Click the gear icon in the top header to toggle Dark, Light, or OLED themes, select interface scale (1x, 1.2x, 1.4x), or change language between English and Spanish.
 
 ---
 
