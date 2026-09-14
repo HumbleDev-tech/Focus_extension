@@ -1064,6 +1064,20 @@
     }
   }
 
+  function shouldSkipCategory(category, settings) {
+    if (!settings.skipSponsors) return false;
+    if (category === 'outro') {
+      return !!settings.sponsorSkipOutro;
+    }
+    if (category === 'intro' || category === 'preview') {
+      return !!settings.sponsorSkipIntro;
+    }
+    if (category === 'interaction') {
+      return settings.sponsorSkipInteraction !== false;
+    }
+    return settings.sponsorSkipSponsors !== false;
+  }
+
   function checkVideoSponsors(video) {
     if (
       !currentSettings.skipSponsors ||
@@ -1075,6 +1089,9 @@
 
     const currentTime = video.currentTime;
     for (const seg of currentSponsorSegments) {
+      if (!shouldSkipCategory(seg.category, currentSettings)) {
+        continue;
+      }
       if (currentTime >= seg.start - 0.1 && currentTime < seg.end - 0.1) {
         seekVideoPlayer(video, seg.end + 0.05);
         if (lastSkippedSegmentUuid !== seg.uuid) {

@@ -82,6 +82,10 @@ document.addEventListener('DOMContentLoaded', () => {
     showDislikes: document.getElementById('toggleDislikes'),
     untranslateTitles: document.getElementById('toggleUntranslate'),
     skipSponsors: document.getElementById('toggleSponsors'),
+    sponsorSkipSponsors: document.getElementById('toggleSubSponsors'),
+    sponsorSkipInteraction: document.getElementById('toggleSubInteraction'),
+    sponsorSkipOutro: document.getElementById('toggleSubOutro'),
+    sponsorSkipIntro: document.getElementById('toggleSubIntro'),
   };
 
   const chipLabels = document.querySelectorAll('.chip-toggle');
@@ -222,6 +226,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (el) {
         el.checked = !!state[key];
       }
+    }
+
+    // Synchronize SponsorBlock sub-options container
+    const sponsorSubContainer = document.getElementById('sponsorSubOptions');
+    if (sponsorSubContainer) {
+      sponsorSubContainer.classList.toggle('is-disabled', !state.skipSponsors);
     }
 
     // Update chip toggle active styles
@@ -397,6 +407,28 @@ document.addEventListener('DOMContentLoaded', () => {
   // Power Modules: Skip sponsors toggle
   toggles.skipSponsors?.addEventListener('change', (e) => {
     state.skipSponsors = e.target.checked;
+    const sponsorSubContainer = document.getElementById('sponsorSubOptions');
+    if (sponsorSubContainer) {
+      sponsorSubContainer.classList.toggle('is-disabled', !state.skipSponsors);
+    }
+    saveState();
+  });
+
+  // Power Modules: SponsorBlock sub-options
+  toggles.sponsorSkipSponsors?.addEventListener('change', (e) => {
+    state.sponsorSkipSponsors = e.target.checked;
+    saveState();
+  });
+  toggles.sponsorSkipInteraction?.addEventListener('change', (e) => {
+    state.sponsorSkipInteraction = e.target.checked;
+    saveState();
+  });
+  toggles.sponsorSkipOutro?.addEventListener('change', (e) => {
+    state.sponsorSkipOutro = e.target.checked;
+    saveState();
+  });
+  toggles.sponsorSkipIntro?.addEventListener('change', (e) => {
+    state.sponsorSkipIntro = e.target.checked;
     saveState();
   });
 

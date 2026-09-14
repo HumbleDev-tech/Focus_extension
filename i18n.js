@@ -88,6 +88,10 @@ const LIBERTAD_I18N = {
     toggleSponsorsTitle: 'Skip In-Video Sponsors',
     toggleSponsorsDesc:
       'Auto-skip paid promotions, intros, and subscribe reminders via SponsorBlock',
+    subSponsorsTitle: 'Paid Sponsors & Self-Promo',
+    subInteractionTitle: 'Subscribe & Like Reminders',
+    subOutroTitle: 'Outros & Endcards',
+    subIntroTitle: 'Intros & Recaps',
     statusApiOnline: 'API ONLINE',
     statusEngineActive: 'ENGINE ACTIVE',
     statusSponsorBlock: 'SPONSORBLOCK',
@@ -179,6 +183,10 @@ const LIBERTAD_I18N = {
     toggleSponsorsTitle: 'Saltar Patrocinadores',
     toggleSponsorsDesc:
       'Salta automáticamente segmentos patrocinados, intros y recordatorios con SponsorBlock',
+    subSponsorsTitle: 'Patrocinios y Auto-promocion',
+    subInteractionTitle: 'Recordatorios de Suscripcion',
+    subOutroTitle: 'Outros y Pantallas Finales',
+    subIntroTitle: 'Intros y Resumenes',
     statusApiOnline: 'API EN VIVO',
     statusEngineActive: 'MOTOR ACTIVO',
     statusSponsorBlock: 'SPONSORBLOCK',

@@ -85,6 +85,10 @@ const DEFAULT_SETTINGS = {
   showDislikes: true,
   untranslateTitles: true,
   skipSponsors: true,
+  sponsorSkipSponsors: true,
+  sponsorSkipInteraction: true,
+  sponsorSkipOutro: false,
+  sponsorSkipIntro: false,
   customConfig: {
     hideHomeFeed: false,
     hideSidebar: true,

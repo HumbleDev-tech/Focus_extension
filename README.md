@@ -142,7 +142,9 @@ Libertad provides 25 modular toggles organized into four specialized categories 
   * Operates across both watch pages and video feeds using an `IntersectionObserver` viewport scanner with bounded concurrency (`MAX_CONCURRENT_FEED_FETCHES = 3`) to eliminate redundant traffic and prevent rate limits.
 
 * **Skip In-Video Sponsors (SponsorBlock Engine)**:
-  * Automatically detects and skips sponsored segments, creator self-promotions, intros, and subscribe reminders without requiring manual interaction.
+  * Automatically detects and skips sponsored segments and subscribe reminders without requiring manual interaction.
+  * Features a visual colored progress bar overlay rendering segment markers in their authentic categories (Green for sponsors, Yellow for self-promo, Purple for reminders, Blue for outros, Cyan for intros).
+  * Provides granular sub-controls: auto-skips intrusive sponsors and subscribe reminders by default, while **preserving outros and endcards** so you can enjoy closing scenes and music unless you explicitly choose to skip them.
   * Connects to the open [SponsorBlock](https://sponsor.ajay.app) community database, showing a subtle on-screen toast whenever a segment is skipped.
   * Driven by native HTML5 `<video>` playback events and an in-memory segment cache for 0.0% idle CPU overhead.
 
