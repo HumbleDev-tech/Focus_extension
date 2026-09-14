@@ -1075,6 +1075,12 @@
     if (category === 'interaction') {
       return settings.sponsorSkipInteraction !== false;
     }
+    if (category === 'selfpromo') {
+      return !!settings.sponsorSkipSelfpromo;
+    }
+    if (category === 'music_offtopic') {
+      return !!settings.sponsorSkipMusicOfftopic;
+    }
     return settings.sponsorSkipSponsors !== false;
   }
 

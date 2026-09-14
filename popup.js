@@ -83,9 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
     untranslateTitles: document.getElementById('toggleUntranslate'),
     skipSponsors: document.getElementById('toggleSponsors'),
     sponsorSkipSponsors: document.getElementById('toggleSubSponsors'),
+    sponsorSkipSelfpromo: document.getElementById('toggleSubSelfpromo'),
     sponsorSkipInteraction: document.getElementById('toggleSubInteraction'),
-    sponsorSkipOutro: document.getElementById('toggleSubOutro'),
     sponsorSkipIntro: document.getElementById('toggleSubIntro'),
+    sponsorSkipOutro: document.getElementById('toggleSubOutro'),
+    sponsorSkipMusicOfftopic: document.getElementById('toggleSubMusicOfftopic'),
   };
 
   const chipLabels = document.querySelectorAll('.chip-toggle');
@@ -242,6 +244,30 @@ document.addEventListener('DOMContentLoaded', () => {
         chip.classList.toggle('active', input.checked);
       }
     });
+
+    // Update dynamic SponsorBlock skipping summary
+    const summaryEl = document.getElementById('sponsorSummaryText');
+    if (summaryEl) {
+      const activeCats = [];
+      if (state.sponsorSkipSponsors) activeCats.push(t('subSponsorsTitle'));
+      if (state.sponsorSkipSelfpromo) activeCats.push(t('subSelfpromoTitle'));
+      if (state.sponsorSkipInteraction)
+        activeCats.push(t('subInteractionTitle'));
+      if (state.sponsorSkipIntro) activeCats.push(t('subIntroTitle'));
+      if (state.sponsorSkipOutro) activeCats.push(t('subOutroTitle'));
+      if (state.sponsorSkipMusicOfftopic)
+        activeCats.push(t('subMusicOfftopicTitle'));
+
+      const count = activeCats.length;
+      if (count === 0) {
+        summaryEl.textContent = `⚡ ${t('sponsorSummaryZero')}`;
+      } else if (count === 6) {
+        summaryEl.textContent = `⚡ ${t('sponsorSummaryAll')}`;
+      } else {
+        const template = t('sponsorSummaryPart');
+        summaryEl.textContent = `⚡ ${template.replace('{count}', count).replace('{list}', activeCats.join(', '))}`;
+      }
+    }
 
     // Preset buttons active state
     presetButtons.forEach((btn) => {
@@ -419,16 +445,24 @@ document.addEventListener('DOMContentLoaded', () => {
     state.sponsorSkipSponsors = e.target.checked;
     saveState();
   });
+  toggles.sponsorSkipSelfpromo?.addEventListener('change', (e) => {
+    state.sponsorSkipSelfpromo = e.target.checked;
+    saveState();
+  });
   toggles.sponsorSkipInteraction?.addEventListener('change', (e) => {
     state.sponsorSkipInteraction = e.target.checked;
+    saveState();
+  });
+  toggles.sponsorSkipIntro?.addEventListener('change', (e) => {
+    state.sponsorSkipIntro = e.target.checked;
     saveState();
   });
   toggles.sponsorSkipOutro?.addEventListener('change', (e) => {
     state.sponsorSkipOutro = e.target.checked;
     saveState();
   });
-  toggles.sponsorSkipIntro?.addEventListener('change', (e) => {
-    state.sponsorSkipIntro = e.target.checked;
+  toggles.sponsorSkipMusicOfftopic?.addEventListener('change', (e) => {
+    state.sponsorSkipMusicOfftopic = e.target.checked;
     saveState();
   });
 

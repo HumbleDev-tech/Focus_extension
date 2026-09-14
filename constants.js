@@ -86,9 +86,11 @@ const DEFAULT_SETTINGS = {
   untranslateTitles: true,
   skipSponsors: true,
   sponsorSkipSponsors: true,
+  sponsorSkipSelfpromo: false,
   sponsorSkipInteraction: true,
-  sponsorSkipOutro: false,
   sponsorSkipIntro: false,
+  sponsorSkipOutro: false,
+  sponsorSkipMusicOfftopic: false,
   customConfig: {
     hideHomeFeed: false,
     hideSidebar: true,

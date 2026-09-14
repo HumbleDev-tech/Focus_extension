@@ -1059,19 +1059,19 @@ input:checked + .slider:before {
 }
 
 .module-chips-tray {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: calc(4px * var(--ui-scale));
-  padding: calc(5px * var(--ui-scale)) calc(8px * var(--ui-scale))
+  display: flex;
+  flex-direction: column;
+  gap: calc(5px * var(--ui-scale));
+  padding: calc(6px * var(--ui-scale)) calc(8px * var(--ui-scale))
     calc(6px * var(--ui-scale));
   background: var(--surface-subtle);
   border-top: 1px solid var(--border-subtle);
   transition:
-    max-height 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.18s ease,
-    padding 0.22s ease,
-    border-top-color 0.22s ease;
-  max-height: calc(85px * var(--ui-scale));
+    max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease,
+    padding 0.25s ease,
+    border-top-color 0.25s ease;
+  max-height: calc(140px * var(--ui-scale));
   opacity: 1;
   overflow: hidden;
 }
@@ -1083,6 +1083,54 @@ input:checked + .slider:before {
   padding-bottom: 0;
   border-top-color: transparent;
   pointer-events: none;
+}
+
+.tray-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: calc(2px * var(--ui-scale));
+}
+
+.tray-title {
+  font-family: var(--font-mono);
+  font-size: calc(7.5px * var(--ui-scale));
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.tray-badge {
+  font-family: var(--font-mono);
+  font-size: calc(7px * var(--ui-scale));
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  background: var(--accent-soft-bg);
+  border: 1px solid var(--accent-subtle-border);
+  padding: calc(1px * var(--ui-scale)) calc(4px * var(--ui-scale));
+  border-radius: 2px;
+}
+
+.tray-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: calc(4px * var(--ui-scale));
+}
+
+.tray-summary {
+  font-family: var(--font-sans);
+  font-size: calc(8.5px * var(--ui-scale));
+  color: var(--text-muted);
+  line-height: 1.25;
+  border-top: 1px dashed var(--border-subtle);
+  padding-top: calc(4px * var(--ui-scale));
+  margin-top: calc(1px * var(--ui-scale));
+  min-height: calc(14px * var(--ui-scale));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .category-indicator {

@@ -94,6 +94,7 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
       'intro',
       'outro',
       'preview',
+      'music_offtopic',
     ]);
     const url = `https://sponsor.ajay.app/api/skipSegments?videoID=${encodeURIComponent(videoId)}&categories=${encodeURIComponent(categories)}`;
 
