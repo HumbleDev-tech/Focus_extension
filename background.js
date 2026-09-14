@@ -107,7 +107,7 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     const videoId = request.videoId;
     if (!videoId) {
       sendResponse({ success: false, error: 'No video ID provided' });
-      return false;
+      return;
     }
 
     if (sponsorsCache.has(videoId)) {

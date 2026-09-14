@@ -92,9 +92,11 @@
   let currentSponsorVideoDuration = 0;
   let lastSkippedSegmentUuid = null;
   let sponsorPlayInterval = null;
+  let lastRenderedSponsorKey = '';
 
   const feedFetchQueue = [];
   const pendingFeedVideoIds = new Set();
+  const observedTitleNodesByVideoId = new Map();
   let activeFeedFetches = 0;
   const MAX_CONCURRENT_FEED_FETCHES = 3;
   let feedIntersectionObserver = null;
@@ -1012,6 +1014,7 @@
       oldBars.forEach((bar) => {
         bar.remove();
       });
+      lastRenderedSponsorKey = '';
       return;
     }
 
@@ -1032,9 +1035,15 @@
 
     if (!duration || duration <= 0) return;
 
+    const renderKey = `${currentSponsorVideoId || ''}_${duration.toFixed(1)}_${currentSponsorSegments.length}_${currentSponsorSegments.map((s) => s.uuid).join(',')}`;
     let container = progressBar.querySelector(
       '.libertad-sponsor-bar-container',
     );
+
+    if (container && lastRenderedSponsorKey === renderKey) {
+      return;
+    }
+
     if (!container) {
       container = document.createElement('div');
       container.className = 'libertad-sponsor-bar-container';
@@ -1062,6 +1071,8 @@
 
       container.appendChild(segmentEl);
     }
+
+    lastRenderedSponsorKey = renderKey;
   }
 
   function shouldSkipCategory(category, settings) {
@@ -1187,9 +1198,11 @@
       if (!video.paused) {
         startInterval();
       }
-    }
 
-    renderSponsorProgressBar();
+      if (currentSponsorSegments.length > 0) {
+        renderSponsorProgressBar();
+      }
+    }
   }
 
   function updateSponsorSegments() {
@@ -1388,8 +1401,7 @@
     let modified = false;
     const titleNodes = getWatchTitleElements();
     titleNodes.forEach((node) => {
-      if (node.innerText !== clean || node.textContent !== clean) {
-        node.innerText = clean;
+      if (node.textContent !== clean) {
         node.textContent = clean;
         node.removeAttribute('is-empty');
         node.setAttribute('title', clean);
@@ -1534,14 +1546,12 @@
     );
     if (childSpan) {
       childSpan.textContent = cleanTitle;
-      childSpan.innerText = cleanTitle;
     } else if (
       titleNode.children.length === 0 ||
       titleNode.tagName === 'SPAN' ||
       titleNode.tagName === 'YT-FORMATTED-STRING'
     ) {
       titleNode.textContent = cleanTitle;
-      titleNode.innerText = cleanTitle;
     } else {
       const textSpan = titleNode.querySelector('span');
       if (textSpan) {
@@ -1567,8 +1577,19 @@
   // Update all matching elements in the DOM for a given video ID
   function updateFeedElementsForVideoId(videoId, origTitle) {
     const clean = origTitle.trim();
-    const titleNodes = getAllVideoTitleNodes();
+    const registeredNodes = observedTitleNodesByVideoId.get(videoId);
+    if (registeredNodes && registeredNodes.size > 0) {
+      registeredNodes.forEach((node) => {
+        if (node.isConnected) {
+          applyTitleToNode(node, clean, videoId);
+        }
+      });
+      observedTitleNodesByVideoId.delete(videoId);
+      return;
+    }
 
+    // Fallback if node was dynamically moved or replaced
+    const titleNodes = getAllVideoTitleNodes();
     titleNodes.forEach((node) => {
       const vId = extractVideoId(node);
       if (vId === videoId) {
@@ -1606,6 +1627,11 @@
   // Observe video node entering the viewport before triggering network request
   function observeVideoTitleForFeed(node, videoId) {
     if (node.dataset.libertadPendingId === videoId) return;
+
+    if (!observedTitleNodesByVideoId.has(videoId)) {
+      observedTitleNodesByVideoId.set(videoId, new Set());
+    }
+    observedTitleNodesByVideoId.get(videoId).add(node);
 
     if (!window.IntersectionObserver) {
       if (!titlesCache.has(videoId) && !pendingFeedVideoIds.has(videoId)) {
@@ -1737,9 +1763,16 @@
     currentSponsorSegments = [];
     currentSponsorVideoDuration = 0;
     lastSkippedSegmentUuid = null;
+    lastRenderedSponsorKey = '';
     if (sponsorPlayInterval) {
       clearInterval(sponsorPlayInterval);
       sponsorPlayInterval = null;
+    }
+    feedFetchQueue.length = 0;
+    pendingFeedVideoIds.clear();
+    observedTitleNodesByVideoId.clear();
+    if (feedIntersectionObserver) {
+      feedIntersectionObserver.disconnect();
     }
     renderSponsorProgressBar();
   });
