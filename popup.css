@@ -409,7 +409,7 @@ button:focus-visible {
 }
 
 .settings-drawer.open {
-  max-height: calc(146px * var(--ui-scale));
+  max-height: calc(170px * var(--ui-scale));
   opacity: 1;
   padding: calc(8px * var(--ui-scale)) calc(12px * var(--ui-scale))
     calc(10px * var(--ui-scale));
@@ -481,6 +481,8 @@ button:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: calc(6px * var(--ui-scale));
   margin-top: calc(3px * var(--ui-scale));
   padding-top: calc(5px * var(--ui-scale));
   border-top: 1px solid var(--border-subtle);
@@ -489,6 +491,7 @@ button:focus-visible {
 .drawer-links {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: calc(5px * var(--ui-scale));
 }
 
@@ -536,11 +539,13 @@ button:focus-visible {
   font-size: calc(8px * var(--ui-scale));
   font-weight: 700;
   letter-spacing: 0.5px;
-  padding: calc(3.5px * var(--ui-scale)) calc(10px * var(--ui-scale));
+  padding: calc(3.5px * var(--ui-scale)) calc(9px * var(--ui-scale));
   border-radius: 3px;
   cursor: pointer;
   transition: var(--transition-fast);
   text-align: center;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .reset-action-btn:hover {
@@ -978,9 +983,9 @@ input:checked + .slider:before {
 
 .chip-label {
   font-family: var(--font-sans);
-  font-size: calc(8.8px * var(--ui-scale));
+  font-size: calc(8.5px * var(--ui-scale));
   font-weight: 600;
-  letter-spacing: -0.2px;
+  letter-spacing: -0.3px;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -1032,7 +1037,8 @@ input:checked + .slider:before {
 .module-title-row {
   display: flex;
   align-items: center;
-  gap: calc(6px * var(--ui-scale));
+  flex-wrap: wrap;
+  gap: calc(4px * var(--ui-scale)) calc(6px * var(--ui-scale));
 }
 
 .module-tag {
@@ -1047,6 +1053,8 @@ input:checked + .slider:before {
   border-radius: 2px;
   text-transform: uppercase;
   line-height: 1.2;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Unified Module Card & Chips Tray */

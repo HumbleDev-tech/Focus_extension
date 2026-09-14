@@ -477,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (resetBtn) {
       resetBtn.classList.add('is-success');
       resetBtn.textContent =
-        state.lang === 'es' ? 'CONFIG REINICIADA' : 'CONFIG RESTORED';
+        state.lang === 'es' ? 'REINICIADO' : 'CONFIG RESTORED';
       setTimeout(() => {
         resetBtn.classList.remove('is-success');
         resetBtn.textContent = t('resetBtn');
