@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/libertad-ui-cleaner.png" width="380" alt="Libertad Control Interface Preview" />
+  <img src="assets/libertad-watch-focus.png" width="100%" alt="Libertad in Action - Distraction-Free YouTube Watch Experience" />
 </p>
 
 ---
@@ -115,11 +115,6 @@ Switch between curated focus profiles with a single click or tailor your own (30
 
 * **Home Feed & Zen Mode**: Suppresses the infinite video recommendation grid on the homepage (`/`). When enabled, displays an intentional, minimalist search prompt that encourages purposeful searches rather than passive scrolling.
 * **Related Sidebar & Auto-Centering**: Removes watch-next suggestions and algorithmically recommended videos beside the player. Automatically centers the main video player in theater style to prevent awkward whitespace.
-
-<p align="center">
-  <img src="assets/libertad-watch-focus.png" width="100%" alt="Focused Centered Watch Page without Sidebar Distractions" />
-</p>
-
 * **Comments Section**: Hides the entire comment stream across all video watch pages to avoid engagement traps and toxic comment sections.
 * **Shorts Eradication**: Strips Shorts shelves, navigation drawer links, mini-guide buttons, and feed entries across the entire YouTube interface.
 * **End Screen Cards**: Suppresses popup overlay cards, subscribe buttons, and teaser cards that obstruct the final seconds of videos.
@@ -131,7 +126,7 @@ Switch between curated focus profiles with a single click or tailor your own (30
 Libertad provides 25 modular toggles organized into four specialized categories to clean modern YouTube:
 
 <p align="center">
-  <img src="assets/libertad-cleaner-chips.png" width="480" alt="Granular UI Cleaner Modules" />
+  <img src="assets/libertad-ui-cleaner.png" width="380" alt="Granular UI Cleaner Modules (Cleaner Tab)" />
 </p>
 
 #### A. Header & Search Controls
