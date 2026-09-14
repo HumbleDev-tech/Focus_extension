@@ -180,6 +180,10 @@
         ytd-masthead [class*="VoiceSearchButton"],
         ytd-masthead [class*="voice-search-button"],
         ytd-masthead [class*="voiceSearch"],
+        ytd-masthead yt-icon-button:has(yt-icon[icon*="mic"]),
+        ytd-masthead yt-icon-button:has(yt-icon[icon*="voice"]),
+        ytd-masthead yt-button-shape:has(yt-icon[icon*="mic"]),
+        ytd-masthead button:has(yt-icon[icon*="mic"]),
         ytd-masthead yt-icon-button:has([aria-label*="voice" i]),
         ytd-masthead yt-icon-button:has([aria-label*="voz" i]),
         ytd-masthead button[aria-label*="voice" i],
@@ -194,6 +198,12 @@
     // Create / Upload Button in Masthead
     if (settings.hideCreateButton) {
       rules.push(`
+        ytd-masthead ytd-topbar-menu-button-renderer:has(yt-icon[icon*="create"]),
+        ytd-masthead ytd-topbar-menu-button-renderer:has(yt-icon[icon*="add_video"]),
+        ytd-masthead #buttons > :has(yt-icon[icon*="create"]),
+        ytd-masthead #buttons > :has(yt-icon[icon*="add_video"]),
+        ytd-masthead yt-button-shape:has(yt-icon[icon*="create"]),
+        ytd-masthead yt-button-view-model:has(yt-icon[icon*="create"]),
         ytd-masthead ytd-button-renderer:has([aria-label*="create" i]),
         ytd-masthead yt-button-view-model:has([aria-label*="create" i]),
         ytd-masthead yt-button-shape:has([aria-label*="create" i]),
@@ -212,6 +222,10 @@
       rules.push(`
         ytd-notification-topbar-button-renderer,
         notification-topbar-button-view-model,
+        ytd-masthead yt-icon-button:has(yt-icon[icon*="bell"]),
+        ytd-masthead yt-button-shape:has(yt-icon[icon*="bell"]),
+        ytd-masthead [id*="notification-preference"],
+        ytd-masthead #notification-button,
         ytd-masthead [aria-label*="notification" i],
         ytd-masthead yt-icon-button:has([aria-label*="notif" i]) {
           display: none !important;
@@ -224,10 +238,18 @@
       rules.push(`
         ytd-conversational-ai-view-model,
         conversational-ai-button-view-model,
+        watch-metadata-view-model conversational-ai-button-view-model,
+        watch-metadata-view-model [target-id*="conversational"],
         [component-id*="conversational_ai"],
         [target-id*="conversational_ai"],
         [target-id*="conversational-ai"],
         #conversational-ai,
+        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="sparkle"]),
+        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="sparkle"]),
+        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="sparkle"]),
+        #actions yt-button-view-model:has(yt-icon[icon*="sparkle"]),
+        #actions yt-button-shape:has(yt-icon[icon*="sparkle"]),
+        #actions ytd-button-renderer:has(yt-icon[icon*="sparkle"]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="ask" i]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="pregunt" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="ask" i]),
@@ -246,6 +268,13 @@
       rules.push(`
         download-button-view-model,
         ytd-download-button-renderer,
+        watch-metadata-view-model download-button-view-model,
+        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="download"]),
+        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="download"]),
+        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="download"]),
+        #actions yt-button-view-model:has(yt-icon[icon*="download"]),
+        #actions yt-button-shape:has(yt-icon[icon*="download"]),
+        #actions ytd-button-renderer:has(yt-icon[icon*="download"]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="download" i]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="descarg" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="download" i]),
@@ -270,6 +299,18 @@
     // Thanks, Clips, and Remix Buttons (Scoped strictly to watch metadata)
     if (settings.hideThanksClips) {
       rules.push(`
+        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="super-thanks"]),
+        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="clip"]),
+        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="remix"]),
+        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="super-thanks"]),
+        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="clip"]),
+        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="remix"]),
+        #actions yt-button-view-model:has(yt-icon[icon*="super-thanks"]),
+        #actions yt-button-view-model:has(yt-icon[icon*="clip"]),
+        #actions yt-button-view-model:has(yt-icon[icon*="remix"]),
+        #actions yt-button-shape:has(yt-icon[icon*="super-thanks"]),
+        #actions yt-button-shape:has(yt-icon[icon*="clip"]),
+        #actions yt-button-shape:has(yt-icon[icon*="remix"]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="thank" i]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="gracia" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="thank" i]),
@@ -303,6 +344,13 @@
       rules.push(`
         share-button-view-model,
         ytd-share-target-renderer,
+        watch-metadata-view-model share-button-view-model,
+        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="share"]),
+        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="share"]),
+        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="share"]),
+        #actions yt-button-view-model:has(yt-icon[icon*="share"]),
+        #actions yt-button-shape:has(yt-icon[icon*="share"]),
+        #actions ytd-button-renderer:has(yt-icon[icon*="share"]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="share" i]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="compart" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="share" i]),
@@ -322,6 +370,9 @@
         #sponsor-button,
         ytd-sponsor-button-renderer,
         sponsor-button-view-model,
+        watch-metadata-view-model sponsor-button-view-model,
+        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="sponsor"]),
+        #actions ytd-button-renderer:has(yt-icon[icon*="sponsor"]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="unirse" i]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="join" i]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="unirse" i]),
@@ -356,6 +407,11 @@
     // Save / Add to Playlist Button
     if (settings.hideSave) {
       rules.push(`
+        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="playlist-add"]),
+        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="playlist-add"]),
+        #actions yt-button-view-model:has(yt-icon[icon*="playlist-add"]),
+        #actions yt-button-shape:has(yt-icon[icon*="playlist-add"]),
+        watch-metadata-view-model :has(yt-icon[icon*="playlist-add"]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="save" i]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="guardar" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="save" i]),
@@ -862,6 +918,48 @@
     });
   }
 
+  // Canonical YouTube 11-character Video ID parser
+  function parseYouTubeVideoId(input) {
+    if (!input || typeof input !== 'string') return null;
+    const str = input.trim();
+    if (!str) return null;
+
+    // Direct 11-char ID
+    if (/^[a-zA-Z0-9_-]{11}$/.test(str)) {
+      return str;
+    }
+
+    try {
+      const url = new URL(str, window.location.origin);
+      // youtu.be/ID
+      if (url.hostname.includes('youtu.be')) {
+        const m = url.pathname.match(/^\/([a-zA-Z0-9_-]{11})/);
+        if (m) return m[1];
+      }
+      // ?v=ID
+      const v = url.searchParams.get('v');
+      if (v && /^[a-zA-Z0-9_-]{11}$/.test(v)) {
+        return v;
+      }
+      // /shorts/ID, /live/ID, /embed/ID, /v/ID
+      const match = url.pathname.match(
+        /\/(?:shorts|live|embed|v)\/([a-zA-Z0-9_-]{11})/,
+      );
+      if (match) {
+        return match[1];
+      }
+    } catch (_) {
+      const match =
+        str.match(/[?&]v=([a-zA-Z0-9_-]{11})/) ||
+        str.match(/\/(?:shorts|live|embed|v)\/([a-zA-Z0-9_-]{11})/);
+      if (match) {
+        return match[1];
+      }
+    }
+
+    return null;
+  }
+
   // Dislike restoration logic
   function updateDislikeCount() {
     if (!currentSettings.showDislikes) {
@@ -869,12 +967,7 @@
       return;
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    let videoId = urlParams.get('v');
-    if (!videoId && window.location.pathname.startsWith('/shorts/')) {
-      const parts = window.location.pathname.split('/');
-      videoId = parts[2] || null;
-    }
+    const videoId = parseYouTubeVideoId(window.location.href);
     if (!videoId) {
       removeDislikeBadge();
       return;
@@ -943,23 +1036,18 @@
     const moviePlayer = document.getElementById('movie_player');
     if (moviePlayer && typeof moviePlayer.getVideoData === 'function') {
       const data = moviePlayer.getVideoData();
-      if (data?.video_id) return data.video_id;
+      if (data?.video_id && /^[a-zA-Z0-9_-]{11}$/.test(data.video_id)) {
+        return data.video_id;
+      }
     }
     const watchFlexy = document.querySelector('ytd-watch-flexy');
     if (watchFlexy) {
       const attrId = watchFlexy.getAttribute('video-id');
-      if (attrId) return attrId;
+      if (attrId && /^[a-zA-Z0-9_-]{11}$/.test(attrId)) {
+        return attrId;
+      }
     }
-    const urlParams = new URLSearchParams(window.location.search);
-    const v = urlParams.get('v');
-    if (v) return v;
-
-    const match = window.location.pathname.match(
-      /\/(?:live|embed|shorts)\/([a-zA-Z0-9_-]{11})/,
-    );
-    if (match) return match[1];
-
-    return null;
+    return parseYouTubeVideoId(window.location.href);
   }
 
   function seekVideoPlayer(video, targetTime) {
@@ -1018,13 +1106,21 @@
       return;
     }
 
+    const playerContainer =
+      document.querySelector('#movie_player') ||
+      document.querySelector('ytd-watch-flexy #movie_player') ||
+      document.querySelector('ytd-watch-flexy') ||
+      document.querySelector('.html5-video-player');
     const progressBar =
-      document.querySelector('.ytp-progress-bar') ||
-      document.querySelector('.ytp-progress-list') ||
-      document.querySelector('.ytp-progress-bar-container');
+      playerContainer?.querySelector('.ytp-progress-bar') ||
+      playerContainer?.querySelector('.ytp-progress-list') ||
+      playerContainer?.querySelector('.ytp-progress-bar-container') ||
+      document.querySelector('.ytp-progress-bar');
     if (!progressBar) return;
 
-    const video = document.querySelector('video.html5-main-video');
+    const video =
+      playerContainer?.querySelector('video.html5-main-video') ||
+      document.querySelector('video.html5-main-video');
     const duration =
       video && Number.isFinite(video.duration) && video.duration > 0
         ? video.duration
@@ -1359,12 +1455,18 @@
   function getWatchTitleElements() {
     const elements = [];
     const selectors = [
+      'watch-metadata-view-model #title yt-formatted-string',
+      'watch-metadata-view-model #title h1',
+      'watch-metadata-view-model h1',
+      'watch-metadata-view-model [role="heading"]',
       'ytd-watch-metadata #title yt-formatted-string',
       'ytd-watch-metadata #title h1',
       'ytd-watch-metadata h1 yt-formatted-string',
       'ytd-watch-metadata h1',
       '#above-the-fold #title yt-formatted-string',
       '#above-the-fold #title h1',
+      '#above-the-fold h1',
+      '#title:has(h1) h1',
       'h1.style-scope.ytd-watch-metadata yt-formatted-string',
       'h1.style-scope.ytd-watch-metadata',
       '#title.style-scope.ytd-watch-metadata yt-formatted-string',
@@ -1496,17 +1598,15 @@
 
     // Check direct anchor
     if (el.tagName === 'A' && el.href) {
-      const m =
-        el.href.match(/[?&]v=([^&]+)/) || el.href.match(/\/shorts\/([^?&]+)/);
-      if (m) return m[1];
+      const id = parseYouTubeVideoId(el.href);
+      if (id) return id;
     }
 
     // Check closest anchor
     const a = el.closest('a');
     if (a?.href) {
-      const m =
-        a.href.match(/[?&]v=([^&]+)/) || a.href.match(/\/shorts\/([^?&]+)/);
-      if (m) return m[1];
+      const id = parseYouTubeVideoId(a.href);
+      if (id) return id;
     }
 
     // Check containing card for watch/shorts link
@@ -1518,10 +1618,8 @@
         'a[href*="watch?v="], a[href*="/shorts/"], a#video-title-link, a#thumbnail, a.ytd-thumbnail',
       );
       if (link?.href) {
-        const m =
-          link.href.match(/[?&]v=([^&]+)/) ||
-          link.href.match(/\/shorts\/([^?&]+)/);
-        if (m) return m[1];
+        const id = parseYouTubeVideoId(link.href);
+        if (id) return id;
       }
     }
 
