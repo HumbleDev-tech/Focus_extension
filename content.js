@@ -1141,9 +1141,18 @@
       });
 
       const startInterval = () => {
+        const hasAnySkip =
+          currentSettings.sponsorSkipSponsors !== false ||
+          !!currentSettings.sponsorSkipSelfpromo ||
+          currentSettings.sponsorSkipInteraction !== false ||
+          !!currentSettings.sponsorSkipIntro ||
+          !!currentSettings.sponsorSkipOutro ||
+          !!currentSettings.sponsorSkipMusicOfftopic;
+
         if (
           !currentSettings.skipSponsors ||
-          currentSponsorSegments.length === 0
+          currentSponsorSegments.length === 0 ||
+          !hasAnySkip
         ) {
           if (sponsorPlayInterval) {
             clearInterval(sponsorPlayInterval);
