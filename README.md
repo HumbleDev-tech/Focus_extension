@@ -153,7 +153,7 @@ Libertad provides 25 modular toggles organized into four specialized categories 
 ### 6. Interface & Ergonomics
 
 <p align="center">
-  <img src="assets/libertad-settings-drawer.png" width="370" alt="Preferences & Ergonomics Drawer" />
+  <img src="assets/libertad-settings-drawer.png" width="380" alt="Preferences & Ergonomics Drawer" />
 </p>
 
 * **Tri-Theme Engine**:
