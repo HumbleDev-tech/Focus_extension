@@ -56,7 +56,7 @@ Switch between curated focus profiles with a single click or tailor your own (30
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Home Feed (Zen Search Mode)** | Shown | Shown | Shown | **Zen Prompt** | *Saved* |
 | **Related Sidebar & Recommendations** | Shown | Shown | **Hidden** | **Hidden** | *Saved* |
-| **Comments Stream** | Shown | **Hidden** | **Hidden** | **Hidden** | *Saved* |
+| **Comments Stream** | Shown | Shown | Shown | **Hidden** | *Saved* |
 | **Shorts Everywhere (Feeds & Nav)** | Shown | Shown | **Hidden** | **Hidden** | *Saved* |
 | **End Screen Popup Cards** | Shown | **Hidden** | **Hidden** | **Hidden** | *Saved* |
 | **Header (Voice, Create, Notifs)** | Shown | Shown | **Hidden** | **Hidden** | *Saved* |
@@ -70,9 +70,9 @@ Switch between curated focus profiles with a single click or tailor your own (30
 | **Feeds (Live Chat, Trending, More from YT)** | Shown | Shown | **Hidden** | **Hidden** | *Saved* |
 
 * **Off**: Clean passthrough mode; leaves YouTube completely unaltered.
-* **Basic**: Removes common passive watch clutter (comments, end-screen cards, promotional download buttons, experimental AI popups, paid promo banners, watermarks, up next tiles, and merch shelves).
-* **Balanced** *(Recommended Default)*: Breaks algorithmic recommendation feedback loops while keeping personal actions intact. Hides the sidebar, shorts, comments, voice search mic, create button, notifications bell, autoplay, up next, watermarks, paid promotions, miniplayer, AI button, download button, thanks/clips, channel memberships, merch shelves, live chat, trending, and "More from YouTube".
-* **Extreme (Zen Mode)**: Complete distraction and engagement eradication. Replaces the homepage with an intentional minimalist search prompt, hides the sidebar, comments, shorts, header tools, player overlays, action bar (including likes/dislikes, share, save, 3-dots menu, subscribe button, subscriber count, views/date), live chat, and all browsing shelves.
+* **Basic**: Removes common passive watch clutter while keeping comments and feeds intact (suppresses end-screen cards, promotional download buttons, experimental AI popups, paid promo banners, watermarks, up next tiles, and merch shelves).
+* **Balanced** *(Recommended Default)*: Breaks algorithmic recommendation feedback loops while keeping personal actions and comments accessible. Hides the sidebar (centering the player), shorts, autoplay, voice search mic, create button, notifications bell, up next, watermarks, paid promotions, miniplayer, AI button, download button, thanks/clips, channel memberships, merch shelves, live chat, trending, and "More from YouTube". Comments remain visible for timestamps, community code corrections, and tutorials.
+* **Extreme (Zen Mode)**: Complete distraction and engagement eradication ("Monk Mode"). Replaces the homepage with an intentional minimalist search prompt, hides the sidebar, **hides comments**, shorts, header tools, player overlays, action bar (including likes/dislikes, share, save, 3-dots menu, subscribe button, subscriber count, views/date), live chat, and all browsing shelves.
 * **Custom**: Automatically remembers and persists your individual fine-tuned preferences across all 30 switches in both tabs.
 
 ---

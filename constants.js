@@ -49,7 +49,7 @@ const DEFAULT_SETTINGS = {
   activeTab: 'focus', // 'focus', 'cleaner', 'extras'
   hideHomeFeed: false,
   hideSidebar: true,
-  hideComments: true,
+  hideComments: false,
   hideShorts: true,
   hideEndScreens: true,
   // Cleaner: Header & Search
@@ -94,7 +94,7 @@ const DEFAULT_SETTINGS = {
   customConfig: {
     hideHomeFeed: false,
     hideSidebar: true,
-    hideComments: true,
+    hideComments: false,
     hideShorts: true,
     hideEndScreens: true,
     hideVoiceSearch: true,
@@ -162,7 +162,7 @@ const PRESET_MAP = {
   basic: {
     hideHomeFeed: false,
     hideSidebar: false,
-    hideComments: true,
+    hideComments: false,
     hideShorts: false,
     hideEndScreens: true,
     hideVoiceSearch: false,
@@ -195,7 +195,7 @@ const PRESET_MAP = {
   balanced: {
     hideHomeFeed: false,
     hideSidebar: true,
-    hideComments: true,
+    hideComments: false,
     hideShorts: true,
     hideEndScreens: true,
     hideVoiceSearch: true,

@@ -26,11 +26,12 @@ const LIBERTAD_I18N = {
     presetCustom: 'CUSTOM',
     descOff:
       'Default YouTube state. All algorithmic feeds and recommendations visible.',
-    descBasic: 'Suppresses comments and endscreen interactive video overlays.',
+    descBasic:
+      'Suppresses annoying overlays, promotional buttons, and end screens.',
     descBalanced:
-      'Suppresses sidebar recommendations, comments, shorts feeds, and endscreens.',
+      'Suppresses sidebar recommendations, shorts, autoplay, and clutter. Comments preserved.',
     descExtreme:
-      'Zero clutter. Suppresses home feed, sidebar, comments, and shorts. Focus reticle active.',
+      'Zero clutter. Zen home feed, centered player, no comments or metrics. Focus reticle active.',
     descCustom:
       'User tailored configuration. Remembers your personalized preference matrix.',
     parametersLabel: 'PARAMETERS // FINE-TUNE',
@@ -129,11 +130,12 @@ const LIBERTAD_I18N = {
     presetCustom: 'CUSTOM',
     descOff:
       'Estado estandar de YouTube. Todos los feeds y recomendaciones visibles.',
-    descBasic: 'Suprime comentarios y tarjetas interactivas de final de video.',
+    descBasic:
+      'Suprime overlays molestos, botones promocionales y pantallas finales.',
     descBalanced:
-      'Suprime recomendaciones laterales, comentarios, shorts y pantallas finales.',
+      'Suprime recomendaciones laterales, shorts, autoplay y distracciones. Mantiene comentarios.',
     descExtreme:
-      'Cero distracciones. Suprime feed de inicio, barra lateral, comentarios y shorts. Reticula activa.',
+      'Cero distracciones. Modo Zen en inicio, sin comentarios ni métricas. Retícula activa.',
     descCustom:
       'Configuracion personalizada. Recuerda tu matriz de preferencias propia.',
     parametersLabel: 'PARAMETROS // AJUSTE FINO',
