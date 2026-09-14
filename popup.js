@@ -245,28 +245,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Update dynamic SponsorBlock skipping summary
-    const summaryEl = document.getElementById('sponsorSummaryText');
-    if (summaryEl) {
-      const activeCats = [];
-      if (state.sponsorSkipSponsors) activeCats.push(t('subSponsorsTitle'));
-      if (state.sponsorSkipSelfpromo) activeCats.push(t('subSelfpromoTitle'));
-      if (state.sponsorSkipInteraction)
-        activeCats.push(t('subInteractionTitle'));
-      if (state.sponsorSkipIntro) activeCats.push(t('subIntroTitle'));
-      if (state.sponsorSkipOutro) activeCats.push(t('subOutroTitle'));
-      if (state.sponsorSkipMusicOfftopic)
-        activeCats.push(t('subMusicOfftopicTitle'));
-
-      const count = activeCats.length;
-      if (count === 0) {
-        summaryEl.textContent = `⚡ ${t('sponsorSummaryZero')}`;
-      } else if (count === 6) {
-        summaryEl.textContent = `⚡ ${t('sponsorSummaryAll')}`;
-      } else {
-        const template = t('sponsorSummaryPart');
-        summaryEl.textContent = `⚡ ${template.replace('{count}', count).replace('{list}', activeCats.join(', '))}`;
-      }
+    // Update dynamic SponsorBlock count badge
+    const countBadge = document.getElementById('sponsorCountBadge');
+    if (countBadge) {
+      let count = 0;
+      if (state.sponsorSkipSponsors) count++;
+      if (state.sponsorSkipSelfpromo) count++;
+      if (state.sponsorSkipInteraction) count++;
+      if (state.sponsorSkipIntro) count++;
+      if (state.sponsorSkipOutro) count++;
+      if (state.sponsorSkipMusicOfftopic) count++;
+      countBadge.textContent = `${count}/6 ${state.lang === 'es' ? 'ACTIVAS' : 'ACTIVE'}`;
     }
 
     // Preset buttons active state

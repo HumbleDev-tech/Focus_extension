@@ -1141,12 +1141,22 @@
       });
 
       const startInterval = () => {
+        if (
+          !currentSettings.skipSponsors ||
+          currentSponsorSegments.length === 0
+        ) {
+          if (sponsorPlayInterval) {
+            clearInterval(sponsorPlayInterval);
+            sponsorPlayInterval = null;
+          }
+          return;
+        }
         if (!sponsorPlayInterval) {
           sponsorPlayInterval = setInterval(() => {
             if (video && !video.paused) {
               checkVideoSponsors(video);
             }
-          }, 100);
+          }, 150);
         }
       };
 
@@ -1428,52 +1438,35 @@
 
   // Universal selector covering classic Polymer and modern Lockup ViewModels (Wiz)
   function getAllVideoTitleNodes() {
-    const nodes = [];
+    const root =
+      document.querySelector('ytd-page-manager') ||
+      document.querySelector('#contents') ||
+      document.body;
+    if (!root) return [];
 
-    // 1. Classic Polymer title elements
-    document
-      .querySelectorAll(
-        '#video-title, yt-formatted-string#video-title, a#video-title-link, a#video-title',
-      )
-      .forEach((el) => {
-        // Exclude watch page main title, thumbnails, duration badges, and overlays
-        if (
-          !el.closest('ytd-watch-metadata, #above-the-fold') &&
-          !el.closest(
-            '#thumbnail, ytd-thumbnail, [class*="content-image"], [class*="thumbnail"], ytd-playlist-thumbnail',
-          ) &&
-          !nodes.includes(el)
-        ) {
-          nodes.push(el);
-        }
-      });
+    const nodesSet = new Set();
+    const elements = root.querySelectorAll(
+      '#video-title, yt-formatted-string#video-title, a#video-title-link, a#video-title, h3 a[href*="watch?v="], h3 a[href*="/shorts/"], [class*="lockup-metadata"] h3 a, [class*="lockup-metadata"] [role="heading"] a, a.yt-lockup-metadata-view-model-wiz__title, h3.yt-lockup-metadata-view-model-wiz__heading-reset',
+    );
 
-    // 2. Modern YouTube Lockup ViewModels (2024+) & heading title links
-    document
-      .querySelectorAll(
-        'h3 a[href*="watch?v="], h3 a[href*="/shorts/"], [class*="lockup-metadata"] h3 a, [class*="lockup-metadata"] [role="heading"] a, a.yt-lockup-metadata-view-model-wiz__title, h3.yt-lockup-metadata-view-model-wiz__heading-reset',
-      )
-      .forEach((el) => {
-        if (
-          el.closest('ytd-watch-metadata, #above-the-fold') ||
-          el.closest(
-            '#thumbnail, ytd-thumbnail, [class*="content-image"], [class*="thumbnail"], ytd-playlist-thumbnail',
-          )
-        ) {
-          return;
-        }
+    for (let i = 0; i < elements.length; i++) {
+      const el = elements[i];
+      if (
+        el.closest(
+          'ytd-watch-metadata, #above-the-fold, #thumbnail, ytd-thumbnail, [class*="content-image"], [class*="thumbnail"], ytd-playlist-thumbnail',
+        )
+      ) {
+        continue;
+      }
 
-        // If it is a heading container, locate the innermost text-bearing span
-        const inner = el.querySelector(
-          'span.yt-core-attributed-string, span[role="text"], #video-title, yt-formatted-string',
-        );
-        const target = inner || el;
-        if (!nodes.includes(target)) {
-          nodes.push(target);
-        }
-      });
+      // If it is a heading container, locate the innermost text-bearing span
+      const inner = el.querySelector(
+        'span.yt-core-attributed-string, span[role="text"], #video-title, yt-formatted-string',
+      );
+      nodesSet.add(inner || el);
+    }
 
-    return nodes;
+    return Array.from(nodesSet);
   }
 
   // Extract video ID accurately from a title element or its parent card
@@ -1646,11 +1639,19 @@
   function untranslateFeed() {
     if (!currentSettings.untranslateTitles) return;
 
-    const titleNodes = getAllVideoTitleNodes();
+    // Fast-path skips when feeds/sidebars are hidden to save CPU
+    const isHome =
+      window.location.pathname === '/' || window.location.pathname === '';
+    if (isHome && currentSettings.hideHomeFeed) return;
 
-    titleNodes.forEach((node) => {
+    const isWatch = window.location.pathname === '/watch';
+    if (isWatch && currentSettings.hideSidebar) return;
+
+    const titleNodes = getAllVideoTitleNodes();
+    for (let i = 0; i < titleNodes.length; i++) {
+      const node = titleNodes[i];
       const videoId = extractVideoId(node);
-      if (!videoId) return;
+      if (!videoId) continue;
 
       if (titlesCache.has(videoId)) {
         const cached = titlesCache.get(videoId);
@@ -1660,7 +1661,7 @@
       } else if (node.dataset.libertadApplied !== videoId) {
         observeVideoTitleForFeed(node, videoId);
       }
-    });
+    }
   }
 
   // -----------------------------------------------------------
@@ -1801,7 +1802,15 @@
       }
 
       if (currentSettings.untranslateTitles) {
-        debouncedUntranslateFeed();
+        const isHome =
+          window.location.pathname === '/' || window.location.pathname === '';
+        const isWatch = window.location.pathname === '/watch';
+        if (
+          (!isHome || !currentSettings.hideHomeFeed) &&
+          (!isWatch || !currentSettings.hideSidebar)
+        ) {
+          debouncedUntranslateFeed();
+        }
       }
     });
   });

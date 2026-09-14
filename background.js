@@ -12,12 +12,30 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-// Relay external requests to prevent CSP/CORS issues
+// Relay external requests to prevent CSP/CORS issues with bounded in-memory caching
+const dislikesCache = new Map();
+const titlesCache = new Map();
+const sponsorsCache = new Map();
+const MAX_SW_CACHE_SIZE = 200;
+
+function setBoundedCache(cache, key, value) {
+  if (cache.size >= MAX_SW_CACHE_SIZE) {
+    const oldestKey = cache.keys().next().value;
+    cache.delete(oldestKey);
+  }
+  cache.set(key, value);
+}
+
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   if (request.action === 'FETCH_DISLIKES') {
     const videoId = request.videoId;
     if (!videoId) {
       sendResponse({ success: false, error: 'No video ID provided' });
+      return;
+    }
+
+    if (dislikesCache.has(videoId)) {
+      sendResponse({ success: true, data: dislikesCache.get(videoId) });
       return;
     }
 
@@ -34,6 +52,7 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
         return res.json();
       })
       .then((data) => {
+        setBoundedCache(dislikesCache, videoId, data);
         sendResponse({ success: true, data });
       })
       .catch((err) => {
@@ -51,6 +70,11 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
       return;
     }
 
+    if (titlesCache.has(videoId)) {
+      sendResponse(titlesCache.get(videoId));
+      return;
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 6000);
 
@@ -63,11 +87,13 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
         return res.json();
       })
       .then((data) => {
-        sendResponse({
+        const payload = {
           success: true,
           title: data.title,
           author: data.author_name,
-        });
+        };
+        setBoundedCache(titlesCache, videoId, payload);
+        sendResponse(payload);
       })
       .catch((err) => {
         clearTimeout(timeoutId);
@@ -82,6 +108,11 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     if (!videoId) {
       sendResponse({ success: false, error: 'No video ID provided' });
       return false;
+    }
+
+    if (sponsorsCache.has(videoId)) {
+      sendResponse(sponsorsCache.get(videoId));
+      return;
     }
 
     const controller = new AbortController();
@@ -109,10 +140,12 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
         return res.json();
       })
       .then((segments) => {
-        sendResponse({
+        const payload = {
           success: true,
           segments: Array.isArray(segments) ? segments : [],
-        });
+        };
+        setBoundedCache(sponsorsCache, videoId, payload);
+        sendResponse(payload);
       })
       .catch((err) => {
         clearTimeout(timeoutId);
