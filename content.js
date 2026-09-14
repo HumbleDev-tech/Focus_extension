@@ -85,12 +85,13 @@
   const titlesCache = new BoundedCache(300);
   const sponsorCache = new BoundedCache(200);
   let isFetchingDislikes = false;
-  let isFetchingSponsors = false;
   let currentWatchVideoId = null;
   let currentOriginalTitle = null;
   let currentSponsorVideoId = null;
   let currentSponsorSegments = [];
+  let currentSponsorVideoDuration = 0;
   let lastSkippedSegmentUuid = null;
+  let sponsorPlayInterval = null;
 
   const feedFetchQueue = [];
   const pendingFeedVideoIds = new Set();
@@ -688,6 +689,26 @@
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
         transition: opacity 0.3s ease;
       }
+      .libertad-sponsor-bar-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 36;
+      }
+      .libertad-sponsor-bar-segment {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        height: 100%;
+        border-radius: 1px;
+        pointer-events: none;
+        opacity: 0.92;
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.45);
+        transition: opacity 0.15s ease;
+      }
     `);
 
     return rules.join('\n');
@@ -899,8 +920,54 @@
   }
 
   // -----------------------------------------------------------
-  // SponsorBlock Engine: Real-Time Segment Skipping
+  // SponsorBlock Engine: Real-Time Segment Skipping & Progress Bar
   // -----------------------------------------------------------
+
+  const SPONSOR_CATEGORY_COLORS = {
+    sponsor: '#00d406',
+    selfpromo: '#fbc02d',
+    interaction: '#cc00ff',
+    intro: '#00d8d8',
+    outro: '#0268ed',
+    preview: '#008fd6',
+    music_offtopic: '#ff9900',
+  };
+
+  function getActiveVideoId() {
+    const moviePlayer = document.getElementById('movie_player');
+    if (moviePlayer && typeof moviePlayer.getVideoData === 'function') {
+      const data = moviePlayer.getVideoData();
+      if (data?.video_id) return data.video_id;
+    }
+    const watchFlexy = document.querySelector('ytd-watch-flexy');
+    if (watchFlexy) {
+      const attrId = watchFlexy.getAttribute('video-id');
+      if (attrId) return attrId;
+    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const v = urlParams.get('v');
+    if (v) return v;
+
+    const match = window.location.pathname.match(
+      /\/(?:live|embed|shorts)\/([a-zA-Z0-9_-]{11})/,
+    );
+    if (match) return match[1];
+
+    return null;
+  }
+
+  function seekVideoPlayer(video, targetTime) {
+    const moviePlayer = document.getElementById('movie_player');
+    if (moviePlayer && typeof moviePlayer.seekTo === 'function') {
+      try {
+        moviePlayer.seekTo(targetTime, true);
+        return;
+      } catch (_) {}
+    }
+    if (video) {
+      video.currentTime = targetTime;
+    }
+  }
 
   function showSponsorSkipToast(category = 'sponsor') {
     const playerContainer =
@@ -915,12 +982,20 @@
       playerContainer.appendChild(toast);
     }
 
-    const label =
-      category === 'selfpromo'
-        ? 'SELF-PROMO SKIPPED'
-        : category === 'interaction'
-          ? 'REMINDER SKIPPED'
-          : 'SPONSOR SKIPPED';
+    const isEs =
+      currentSettings.lang === 'es' || navigator.language?.startsWith('es');
+    let label = '';
+    if (category === 'selfpromo') {
+      label = isEs ? 'AUTO-PROMOCION SALTADA' : 'SELF-PROMO SKIPPED';
+    } else if (category === 'interaction') {
+      label = isEs ? 'RECORDATORIO SALTADO' : 'REMINDER SKIPPED';
+    } else if (category === 'intro') {
+      label = isEs ? 'INTRO SALTADA' : 'INTRO SKIPPED';
+    } else if (category === 'outro') {
+      label = isEs ? 'OUTRO SALTADA' : 'OUTRO SKIPPED';
+    } else {
+      label = isEs ? 'PATROCINIO SALTADO' : 'SPONSOR SKIPPED';
+    }
 
     toast.textContent = label;
     toast.style.opacity = '1';
@@ -932,20 +1007,75 @@
     }, 1800);
   }
 
+  function renderSponsorProgressBar() {
+    const oldBars = document.querySelectorAll(
+      '.libertad-sponsor-bar-container',
+    );
+    if (!currentSettings.skipSponsors || !currentSponsorSegments.length) {
+      oldBars.forEach((bar) => {
+        bar.remove();
+      });
+      return;
+    }
+
+    const progressBar =
+      document.querySelector('.ytp-progress-bar') ||
+      document.querySelector('.ytp-progress-list');
+    if (!progressBar) return;
+
+    const video = document.querySelector('video.html5-main-video');
+    const duration =
+      video && Number.isFinite(video.duration) && video.duration > 0
+        ? video.duration
+        : currentSponsorVideoDuration;
+
+    if (!duration || duration <= 0) return;
+
+    let container = progressBar.querySelector(
+      '.libertad-sponsor-bar-container',
+    );
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'libertad-sponsor-bar-container';
+      progressBar.appendChild(container);
+    }
+
+    container.innerHTML = '';
+    for (const seg of currentSponsorSegments) {
+      const startPercent = Math.max(
+        0,
+        Math.min(100, (seg.start / duration) * 100),
+      );
+      const endPercent = Math.max(0, Math.min(100, (seg.end / duration) * 100));
+      const widthPercent = Math.max(0.15, endPercent - startPercent);
+
+      const segmentEl = document.createElement('div');
+      segmentEl.className = 'libertad-sponsor-bar-segment';
+      segmentEl.style.left = `${startPercent.toFixed(3)}%`;
+      segmentEl.style.width = `${widthPercent.toFixed(3)}%`;
+      segmentEl.style.backgroundColor =
+        SPONSOR_CATEGORY_COLORS[seg.category] ||
+        SPONSOR_CATEGORY_COLORS.sponsor;
+      segmentEl.dataset.category = seg.category;
+      segmentEl.title = `${seg.category.toUpperCase()} (${Math.round(seg.start)}s - ${Math.round(seg.end)}s)`;
+
+      container.appendChild(segmentEl);
+    }
+  }
+
   function checkVideoSponsors(video) {
     if (
       !currentSettings.skipSponsors ||
       !currentSponsorSegments.length ||
-      !video ||
-      video.paused
+      !video
     ) {
       return;
     }
 
     const currentTime = video.currentTime;
     for (const seg of currentSponsorSegments) {
-      if (currentTime >= seg.start && currentTime < seg.end - 0.2) {
-        video.currentTime = seg.end;
+      if (currentTime >= seg.start - 0.05 && currentTime < seg.end - 0.05) {
+        seekVideoPlayer(video, seg.end + 0.02);
         if (lastSkippedSegmentUuid !== seg.uuid) {
           lastSkippedSegmentUuid = seg.uuid;
           showSponsorSkipToast(seg.category);
@@ -962,31 +1092,69 @@
 
     if (!video.dataset.libertadSponsorBound) {
       video.dataset.libertadSponsorBound = 'true';
-      video.addEventListener(
-        'timeupdate',
-        () => {
-          checkVideoSponsors(video);
-        },
-        { passive: true },
-      );
+
+      const onTimeUpdate = () => checkVideoSponsors(video);
+      video.addEventListener('timeupdate', onTimeUpdate, { passive: true });
+      video.addEventListener('seeked', onTimeUpdate, { passive: true });
+
+      video.addEventListener('durationchange', () => {
+        renderSponsorProgressBar();
+      });
+      video.addEventListener('loadedmetadata', () => {
+        renderSponsorProgressBar();
+      });
+
+      video.addEventListener('play', () => {
+        if (!sponsorPlayInterval) {
+          sponsorPlayInterval = setInterval(() => {
+            if (video && !video.paused) {
+              checkVideoSponsors(video);
+            }
+          }, 150);
+        }
+      });
+      video.addEventListener('pause', () => {
+        if (sponsorPlayInterval) {
+          clearInterval(sponsorPlayInterval);
+          sponsorPlayInterval = null;
+        }
+      });
+      video.addEventListener('ended', () => {
+        if (sponsorPlayInterval) {
+          clearInterval(sponsorPlayInterval);
+          sponsorPlayInterval = null;
+        }
+      });
+
+      if (!video.paused && !sponsorPlayInterval) {
+        sponsorPlayInterval = setInterval(() => {
+          if (video && !video.paused) {
+            checkVideoSponsors(video);
+          }
+        }, 150);
+      }
     }
+
+    renderSponsorProgressBar();
   }
 
   function updateSponsorSegments() {
     if (!currentSettings.skipSponsors) {
       currentSponsorSegments = [];
+      currentSponsorVideoDuration = 0;
+      renderSponsorProgressBar();
       return;
     }
 
     if (window.location.pathname !== '/watch') {
       currentSponsorSegments = [];
+      currentSponsorVideoDuration = 0;
+      renderSponsorProgressBar();
       return;
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const videoId = urlParams.get('v');
+    const videoId = getActiveVideoId();
     if (!videoId) {
-      currentSponsorSegments = [];
       return;
     }
 
@@ -994,6 +1162,7 @@
       currentSponsorVideoId === videoId &&
       currentSponsorSegments.length > 0
     ) {
+      renderSponsorProgressBar();
       return;
     }
 
@@ -1001,36 +1170,51 @@
     lastSkippedSegmentUuid = null;
 
     if (sponsorCache.has(videoId)) {
-      currentSponsorSegments = sponsorCache.get(videoId) || [];
+      const cached = sponsorCache.get(videoId) || {};
+      currentSponsorSegments = cached.segments || [];
+      currentSponsorVideoDuration = cached.duration || 0;
+      renderSponsorProgressBar();
       return;
     }
 
-    if (isFetchingSponsors) return;
     if (!chrome.runtime?.id) return;
-    isFetchingSponsors = true;
 
     chrome.runtime.sendMessage({ action: 'FETCH_SPONSORS', videoId }, (res) => {
-      isFetchingSponsors = false;
       if (chrome.runtime.lastError || !res || !res.success) {
-        sponsorCache.set(videoId, []);
+        sponsorCache.set(videoId, { segments: [], duration: 0 });
         currentSponsorSegments = [];
+        currentSponsorVideoDuration = 0;
+        renderSponsorProgressBar();
         return;
       }
 
       const raw = Array.isArray(res.segments) ? res.segments : [];
+      let detectedDuration = 0;
       const parsed = raw
         .filter((s) => Array.isArray(s.segment) && s.segment.length === 2)
-        .map((s) => ({
-          start: s.segment[0],
-          end: s.segment[1],
-          category: s.category || 'sponsor',
-          uuid: s.UUID || `${s.segment[0]}-${s.segment[1]}`,
-        }))
+        .map((s) => {
+          if (s.videoDuration && s.videoDuration > detectedDuration) {
+            detectedDuration = s.videoDuration;
+          }
+          return {
+            start: s.segment[0],
+            end: s.segment[1],
+            category: s.category || 'sponsor',
+            uuid: s.UUID || `${s.segment[0]}-${s.segment[1]}`,
+            videoDuration: s.videoDuration || 0,
+          };
+        })
         .sort((a, b) => a.start - b.start);
 
-      sponsorCache.set(videoId, parsed);
+      sponsorCache.set(videoId, {
+        segments: parsed,
+        duration: detectedDuration,
+      });
       if (currentSponsorVideoId === videoId) {
         currentSponsorSegments = parsed;
+        currentSponsorVideoDuration = detectedDuration;
+        renderSponsorProgressBar();
+        bindVideoSponsorListener();
       }
     });
   }
@@ -1483,7 +1667,13 @@
     currentWatchVideoId = null;
     currentSponsorVideoId = null;
     currentSponsorSegments = [];
+    currentSponsorVideoDuration = 0;
     lastSkippedSegmentUuid = null;
+    if (sponsorPlayInterval) {
+      clearInterval(sponsorPlayInterval);
+      sponsorPlayInterval = null;
+    }
+    renderSponsorProgressBar();
   });
 
   window.addEventListener('yt-navigate-finish', () => {
@@ -1491,6 +1681,7 @@
     currentWatchVideoId = null;
     currentSponsorVideoId = null;
     currentSponsorSegments = [];
+    currentSponsorVideoDuration = 0;
     lastSkippedSegmentUuid = null;
 
     applyStyles(currentSettings);
@@ -1535,7 +1726,19 @@
           updateWatchTitle();
         }
         if (currentSettings.skipSponsors) {
+          const activeVid = getActiveVideoId();
+          if (activeVid && activeVid !== currentSponsorVideoId) {
+            updateSponsorSegments();
+          }
           bindVideoSponsorListener();
+          const progressBar = document.querySelector('.ytp-progress-bar');
+          if (
+            progressBar &&
+            currentSponsorSegments.length > 0 &&
+            !progressBar.querySelector('.libertad-sponsor-bar-container')
+          ) {
+            renderSponsorProgressBar();
+          }
         }
       }
 

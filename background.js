@@ -87,8 +87,17 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-    const categories = JSON.stringify(['sponsor', 'selfpromo', 'interaction']);
-    const url = `https://sponsor.ajay.app/api/skipSegments?videoID=${encodeURIComponent(videoId)}&categories=${encodeURIComponent(categories)}`;
+    const categories = JSON.stringify([
+      'sponsor',
+      'selfpromo',
+      'interaction',
+      'intro',
+      'outro',
+      'preview',
+      'music_offtopic',
+    ]);
+    const actionTypes = JSON.stringify(['skip']);
+    const url = `https://sponsor.ajay.app/api/skipSegments?videoID=${encodeURIComponent(videoId)}&categories=${encodeURIComponent(categories)}&actionTypes=${encodeURIComponent(actionTypes)}`;
 
     fetch(url, { signal: controller.signal })
       .then((res) => {
