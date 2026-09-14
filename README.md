@@ -318,9 +318,7 @@ Libertad is **100% free, unmonetized, and open-source** under the MIT license. W
 
 If Libertad saves you hours of distraction and you'd like to support continued development, maintenance, and new features, voluntary contributions are deeply appreciated:
 
-* **GitHub Sponsors**: [Sponsor @HumbleDev-tech](https://github.com/sponsors/HumbleDev-tech)
-* **Buy Me a Coffee**: [buymeacoffee.com/humbledev](https://www.buymeacoffee.com)
-* **Ko-fi**: [ko-fi.com/humbledev](https://ko-fi.com)
+* **Ko-fi**: [ko-fi.com/humbledevtech](https://ko-fi.com/humbledevtech)
 
 Every bit of support fuels independent, open-source software built for user autonomy.
 
