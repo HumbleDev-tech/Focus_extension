@@ -109,8 +109,17 @@ Switch between curated focus profiles with a single click or tailor your own (30
 
 ### 3. Granular Distraction Shields (Focus Tab)
 
+<p align="center">
+  <img src="assets/libertad-zen-mode.png" width="100%" alt="YouTube Homepage Zen Search Mode and Focus Shield" />
+</p>
+
 * **Home Feed & Zen Mode**: Suppresses the infinite video recommendation grid on the homepage (`/`). When enabled, displays an intentional, minimalist search prompt that encourages purposeful searches rather than passive scrolling.
 * **Related Sidebar & Auto-Centering**: Removes watch-next suggestions and algorithmically recommended videos beside the player. Automatically centers the main video player in theater style to prevent awkward whitespace.
+
+<p align="center">
+  <img src="assets/libertad-watch-focus.png" width="100%" alt="Focused Centered Watch Page without Sidebar Distractions" />
+</p>
+
 * **Comments Section**: Hides the entire comment stream across all video watch pages to avoid engagement traps and toxic comment sections.
 * **Shorts Eradication**: Strips Shorts shelves, navigation drawer links, mini-guide buttons, and feed entries across the entire YouTube interface.
 * **End Screen Cards**: Suppresses popup overlay cards, subscribe buttons, and teaser cards that obstruct the final seconds of videos.
@@ -161,6 +170,10 @@ Libertad provides 25 modular toggles organized into four specialized categories 
 ---
 
 ### 5. Auxiliary Power Modules
+
+<p align="center">
+  <img src="assets/libertad-extras.png" width="380" alt="Auxiliary Power Modules & SponsorBlock Configuration" />
+</p>
 
 <p align="center">
   <img src="assets/libertad-player-power-modules.png" width="100%" alt="SponsorBlock Timeline Segments and Restored Dislikes Counter" />
