@@ -81,11 +81,11 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     const videoId = request.videoId;
     if (!videoId) {
       sendResponse({ success: false, error: 'No video ID provided' });
-      return;
+      return false;
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     const categories = JSON.stringify([
       'sponsor',
@@ -94,10 +94,8 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
       'intro',
       'outro',
       'preview',
-      'music_offtopic',
     ]);
-    const actionTypes = JSON.stringify(['skip']);
-    const url = `https://sponsor.ajay.app/api/skipSegments?videoID=${encodeURIComponent(videoId)}&categories=${encodeURIComponent(categories)}&actionTypes=${encodeURIComponent(actionTypes)}`;
+    const url = `https://sponsor.ajay.app/api/skipSegments?videoID=${encodeURIComponent(videoId)}&categories=${encodeURIComponent(categories)}`;
 
     fetch(url, { signal: controller.signal })
       .then((res) => {
@@ -117,6 +115,7 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
       })
       .catch((err) => {
         clearTimeout(timeoutId);
+        console.warn('[Libertad ServiceWorker] SponsorBlock fetch error:', err);
         sendResponse({ success: false, error: err.message });
       });
 

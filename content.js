@@ -690,24 +690,28 @@
         transition: opacity 0.3s ease;
       }
       .libertad-sponsor-bar-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 36;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 4px !important;
+        pointer-events: none !important;
+        z-index: 55 !important;
+        overflow: visible !important;
       }
       .libertad-sponsor-bar-segment {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        height: 100%;
-        border-radius: 1px;
-        pointer-events: none;
-        opacity: 0.92;
-        box-shadow: 0 0 2px rgba(0, 0, 0, 0.45);
-        transition: opacity 0.15s ease;
+        position: absolute !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: 100% !important;
+        min-height: 4px !important;
+        min-width: 2px !important;
+        border-radius: 1px !important;
+        pointer-events: none !important;
+        opacity: 0.95 !important;
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.6) !important;
+        z-index: 56 !important;
       }
     `);
 
@@ -957,14 +961,7 @@
   }
 
   function seekVideoPlayer(video, targetTime) {
-    const moviePlayer = document.getElementById('movie_player');
-    if (moviePlayer && typeof moviePlayer.seekTo === 'function') {
-      try {
-        moviePlayer.seekTo(targetTime, true);
-        return;
-      } catch (_) {}
-    }
-    if (video) {
+    if (video && Number.isFinite(targetTime)) {
       video.currentTime = targetTime;
     }
   }
@@ -1020,14 +1017,18 @@
 
     const progressBar =
       document.querySelector('.ytp-progress-bar') ||
-      document.querySelector('.ytp-progress-list');
+      document.querySelector('.ytp-progress-list') ||
+      document.querySelector('.ytp-progress-bar-container');
     if (!progressBar) return;
 
     const video = document.querySelector('video.html5-main-video');
     const duration =
       video && Number.isFinite(video.duration) && video.duration > 0
         ? video.duration
-        : currentSponsorVideoDuration;
+        : currentSponsorVideoDuration ||
+          (currentSponsorSegments[0]
+            ? currentSponsorSegments[0].videoDuration
+            : 0);
 
     if (!duration || duration <= 0) return;
 
@@ -1037,7 +1038,7 @@
     if (!container) {
       container = document.createElement('div');
       container.className = 'libertad-sponsor-bar-container';
-      progressBar.appendChild(container);
+      progressBar.prepend(container);
     }
 
     container.innerHTML = '';
@@ -1047,7 +1048,7 @@
         Math.min(100, (seg.start / duration) * 100),
       );
       const endPercent = Math.max(0, Math.min(100, (seg.end / duration) * 100));
-      const widthPercent = Math.max(0.15, endPercent - startPercent);
+      const widthPercent = Math.max(0.2, endPercent - startPercent);
 
       const segmentEl = document.createElement('div');
       segmentEl.className = 'libertad-sponsor-bar-segment';
@@ -1074,11 +1075,14 @@
 
     const currentTime = video.currentTime;
     for (const seg of currentSponsorSegments) {
-      if (currentTime >= seg.start - 0.05 && currentTime < seg.end - 0.05) {
-        seekVideoPlayer(video, seg.end + 0.02);
+      if (currentTime >= seg.start - 0.1 && currentTime < seg.end - 0.1) {
+        seekVideoPlayer(video, seg.end + 0.05);
         if (lastSkippedSegmentUuid !== seg.uuid) {
           lastSkippedSegmentUuid = seg.uuid;
           showSponsorSkipToast(seg.category);
+          console.log(
+            `[Libertad SponsorBlock] Skipped ${seg.category} (${seg.start.toFixed(1)}s -> ${seg.end.toFixed(1)}s)`,
+          );
         }
         break;
       }
@@ -1093,7 +1097,16 @@
     if (!video.dataset.libertadSponsorBound) {
       video.dataset.libertadSponsorBound = 'true';
 
-      const onTimeUpdate = () => checkVideoSponsors(video);
+      const onTimeUpdate = () => {
+        checkVideoSponsors(video);
+        if (
+          currentSponsorSegments.length > 0 &&
+          !document.querySelector('.libertad-sponsor-bar-container')
+        ) {
+          renderSponsorProgressBar();
+        }
+      };
+
       video.addEventListener('timeupdate', onTimeUpdate, { passive: true });
       video.addEventListener('seeked', onTimeUpdate, { passive: true });
 
@@ -1104,15 +1117,18 @@
         renderSponsorProgressBar();
       });
 
-      video.addEventListener('play', () => {
+      const startInterval = () => {
         if (!sponsorPlayInterval) {
           sponsorPlayInterval = setInterval(() => {
             if (video && !video.paused) {
               checkVideoSponsors(video);
             }
-          }, 150);
+          }, 100);
         }
-      });
+      };
+
+      video.addEventListener('play', startInterval);
+      video.addEventListener('playing', startInterval);
       video.addEventListener('pause', () => {
         if (sponsorPlayInterval) {
           clearInterval(sponsorPlayInterval);
@@ -1126,12 +1142,8 @@
         }
       });
 
-      if (!video.paused && !sponsorPlayInterval) {
-        sponsorPlayInterval = setInterval(() => {
-          if (video && !video.paused) {
-            checkVideoSponsors(video);
-          }
-        }, 150);
+      if (!video.paused) {
+        startInterval();
       }
     }
 
@@ -1180,8 +1192,19 @@
     if (!chrome.runtime?.id) return;
 
     chrome.runtime.sendMessage({ action: 'FETCH_SPONSORS', videoId }, (res) => {
-      if (chrome.runtime.lastError || !res || !res.success) {
-        sponsorCache.set(videoId, { segments: [], duration: 0 });
+      if (chrome.runtime.lastError || !res) {
+        console.warn(
+          '[Libertad SponsorBlock] Communication error:',
+          chrome.runtime.lastError?.message,
+        );
+        currentSponsorSegments = [];
+        currentSponsorVideoDuration = 0;
+        renderSponsorProgressBar();
+        return;
+      }
+
+      if (!res.success) {
+        console.warn('[Libertad SponsorBlock] Fetch error:', res.error);
         currentSponsorSegments = [];
         currentSponsorVideoDuration = 0;
         renderSponsorProgressBar();
@@ -1210,6 +1233,18 @@
         segments: parsed,
         duration: detectedDuration,
       });
+
+      if (parsed.length === 0) {
+        console.log(
+          `[Libertad SponsorBlock] 0 sponsor segments found for video: ${videoId}`,
+        );
+      } else {
+        console.log(
+          `[Libertad SponsorBlock] Found ${parsed.length} sponsor segment(s) for video ${videoId}:`,
+          parsed,
+        );
+      }
+
       if (currentSponsorVideoId === videoId) {
         currentSponsorSegments = parsed;
         currentSponsorVideoDuration = detectedDuration;
