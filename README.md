@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/libertad-interface-preview.png" width="380" alt="Libertad Control Interface Preview" />
+  <img src="assets/libertad-ui-cleaner.png" width="380" alt="Libertad Control Interface Preview" />
 </p>
 
 ---
@@ -34,9 +34,18 @@ Whether you need a distraction-free environment for research and study, or a min
 
 ### 1. Tri-Tab Ergonomic Navigation & Global Preset Bar
 Libertad organizes controls into three purpose-built workspaces without vertical clutter, commanded by a top-level global preset bar:
+
+<p align="center">
+  <img src="assets/libertad-tab-navigation.png" width="460" alt="Tri-Tab Ergonomic Navigation" />
+</p>
+
 * **Focus Shield**: High-impact macro distraction blockers for algorithmic feeds, watch-next sidebars, comments, shorts, and end-screen cards.
 * **UI Cleaner**: Surgical removal of 25 promotional, experimental, and clutter elements across YouTube's modern interface organized into 4 distinct categories.
 * **Extras**: Dedicated power modules for YouTube data restorations (Public Dislikes API) and Title Untranslation.
+
+<p align="center">
+  <img src="assets/libertad-preset-bar.png" width="480" alt="Global Focus Preset Controller" />
+</p>
 
 ---
 
@@ -81,6 +90,10 @@ Switch between curated focus profiles with a single click or tailor your own (30
 ### 4. YouTube De-Bloating & Action Cleaner (Cleaner Tab)
 
 Libertad provides 25 modular toggles organized into four specialized categories to clean modern YouTube:
+
+<p align="center">
+  <img src="assets/libertad-cleaner-chips.png" width="480" alt="Granular UI Cleaner Modules" />
+</p>
 
 #### A. Header & Search Controls
 * **Voice Search Mic**: Removes the microphone icon beside the main search bar for a cleaner masthead.
@@ -131,6 +144,10 @@ Libertad provides 25 modular toggles organized into four specialized categories 
 ---
 
 ### 6. Interface & Ergonomics
+
+<p align="center">
+  <img src="assets/libertad-settings-drawer.png" width="370" alt="Preferences & Ergonomics Drawer" />
+</p>
 
 * **Tri-Theme Engine**:
   * **Dark**: Industrial graphite palette with high readability.
