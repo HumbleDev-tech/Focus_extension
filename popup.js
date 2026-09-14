@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Synchronize SponsorBlock sub-options container
     const sponsorSubContainer = document.getElementById('sponsorSubOptions');
     if (sponsorSubContainer) {
-      sponsorSubContainer.classList.toggle('is-disabled', !state.skipSponsors);
+      sponsorSubContainer.classList.toggle('is-collapsed', !state.skipSponsors);
     }
 
     // Update chip toggle active styles
@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.skipSponsors = e.target.checked;
     const sponsorSubContainer = document.getElementById('sponsorSubOptions');
     if (sponsorSubContainer) {
-      sponsorSubContainer.classList.toggle('is-disabled', !state.skipSponsors);
+      sponsorSubContainer.classList.toggle('is-collapsed', !state.skipSponsors);
     }
     saveState();
   });
