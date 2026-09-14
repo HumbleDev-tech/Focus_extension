@@ -17,6 +17,7 @@ const dislikesCache = new Map();
 const titlesCache = new Map();
 const sponsorsCache = new Map();
 const MAX_SW_CACHE_SIZE = 200;
+const YOUTUBE_VIDEO_ID_REGEX = /^[a-zA-Z0-9_-]{11}$/;
 
 function setBoundedCache(cache, key, value) {
   if (cache.size >= MAX_SW_CACHE_SIZE) {
@@ -29,8 +30,8 @@ function setBoundedCache(cache, key, value) {
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   if (request.action === 'FETCH_DISLIKES') {
     const videoId = request.videoId;
-    if (!videoId) {
-      sendResponse({ success: false, error: 'No video ID provided' });
+    if (!videoId || !YOUTUBE_VIDEO_ID_REGEX.test(videoId)) {
+      sendResponse({ success: false, error: 'Invalid or missing video ID' });
       return;
     }
 
@@ -65,8 +66,8 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 
   if (request.action === 'FETCH_ORIGINAL_TITLE') {
     const videoId = request.videoId;
-    if (!videoId) {
-      sendResponse({ success: false, error: 'No video ID provided' });
+    if (!videoId || !YOUTUBE_VIDEO_ID_REGEX.test(videoId)) {
+      sendResponse({ success: false, error: 'Invalid or missing video ID' });
       return;
     }
 
@@ -105,8 +106,8 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 
   if (request.action === 'FETCH_SPONSORS') {
     const videoId = request.videoId;
-    if (!videoId) {
-      sendResponse({ success: false, error: 'No video ID provided' });
+    if (!videoId || !YOUTUBE_VIDEO_ID_REGEX.test(videoId)) {
+      sendResponse({ success: false, error: 'Invalid or missing video ID' });
       return;
     }
 

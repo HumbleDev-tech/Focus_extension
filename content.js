@@ -1094,6 +1094,25 @@
     }, 1800);
   }
 
+  function getMainPlayerContainer() {
+    return (
+      document.querySelector('#movie_player') ||
+      document.querySelector('ytd-watch-flexy #movie_player') ||
+      document.querySelector('ytd-watch-flexy') ||
+      document.querySelector('.html5-video-player')
+    );
+  }
+
+  function getMainPlayerProgressBar() {
+    const playerContainer = getMainPlayerContainer();
+    return (
+      playerContainer?.querySelector('.ytp-progress-bar') ||
+      playerContainer?.querySelector('.ytp-progress-list') ||
+      playerContainer?.querySelector('.ytp-progress-bar-container') ||
+      document.querySelector('.ytp-progress-bar')
+    );
+  }
+
   function renderSponsorProgressBar() {
     const oldBars = document.querySelectorAll(
       '.libertad-sponsor-bar-container',
@@ -1106,16 +1125,8 @@
       return;
     }
 
-    const playerContainer =
-      document.querySelector('#movie_player') ||
-      document.querySelector('ytd-watch-flexy #movie_player') ||
-      document.querySelector('ytd-watch-flexy') ||
-      document.querySelector('.html5-video-player');
-    const progressBar =
-      playerContainer?.querySelector('.ytp-progress-bar') ||
-      playerContainer?.querySelector('.ytp-progress-list') ||
-      playerContainer?.querySelector('.ytp-progress-bar-container') ||
-      document.querySelector('.ytp-progress-bar');
+    const playerContainer = getMainPlayerContainer();
+    const progressBar = getMainPlayerProgressBar();
     if (!progressBar) return;
 
     const video =
@@ -1492,7 +1503,7 @@
     if (!originalTitle?.trim()) return false;
 
     // Strict guard: ensure we are still on the target video
-    const currentParam = new URLSearchParams(window.location.search).get('v');
+    const currentParam = parseYouTubeVideoId(window.location.href);
     if (videoId && currentParam && currentParam !== videoId) {
       return false;
     }
@@ -1526,8 +1537,7 @@
     if (!currentSettings.untranslateTitles) return;
     if (window.location.pathname !== '/watch') return;
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const videoId = urlParams.get('v');
+    const videoId = parseYouTubeVideoId(window.location.href);
     if (!videoId) return;
 
     if (currentWatchVideoId !== videoId) {
@@ -1536,9 +1546,7 @@
     }
 
     if (currentOriginalTitle) {
-      const primaryTitle = document.querySelector(
-        'ytd-watch-metadata #title yt-formatted-string, #above-the-fold #title yt-formatted-string, h1.title yt-formatted-string',
-      );
+      const primaryTitle = getWatchTitleElements()[0];
       if (
         primaryTitle &&
         primaryTitle.textContent.trim() === currentOriginalTitle
@@ -1551,7 +1559,7 @@
 
     fetchOriginalTitle(videoId).then((orig) => {
       // Guard against race conditions during SPA navigation
-      const currentParam = new URLSearchParams(window.location.search).get('v');
+      const currentParam = parseYouTubeVideoId(window.location.href);
       if (currentParam === videoId && orig) {
         currentOriginalTitle = orig;
         applyWatchTitle(orig, videoId);
@@ -1930,7 +1938,7 @@
             updateSponsorSegments();
           }
           bindVideoSponsorListener();
-          const progressBar = document.querySelector('.ytp-progress-bar');
+          const progressBar = getMainPlayerProgressBar();
           if (
             progressBar &&
             currentSponsorSegments.length > 0 &&
