@@ -36,7 +36,10 @@ function setBoundedCache(cache, key, value, prefix) {
 
 async function getFromCache(cacheMap, prefix, key) {
   if (cacheMap.has(key)) {
-    return cacheMap.get(key);
+    const val = cacheMap.get(key);
+    cacheMap.delete(key);
+    cacheMap.set(key, val);
+    return val;
   }
   if (chrome.storage?.session) {
     try {

@@ -754,7 +754,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     return rules.join('\n');
   }
 
-  // Inject or update the active stylesheet
+  // Inject or update the active stylesheet (avoids re-parsing if CSS is unchanged)
   function applyStyles(settings) {
     let styleEl = document.getElementById(STYLE_ID);
     if (!styleEl) {
@@ -762,7 +762,10 @@ globalThis.Libertad = globalThis.Libertad || {};
       styleEl.id = STYLE_ID;
       (document.head || document.documentElement).appendChild(styleEl);
     }
-    styleEl.textContent = buildStylesheet(settings);
+    const newCss = buildStylesheet(settings);
+    if (styleEl.textContent !== newCss) {
+      styleEl.textContent = newCss;
+    }
     updateZenBanner(settings);
   }
 
@@ -841,7 +844,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         if (targetContainer) {
           const zen = document.createElement('div');
           zen.id = ZEN_CONTAINER_ID;
-          zen.dataset.lang = isSpanish ? 'es' : 'en';
+          zen.dataset.lang = isSpanish ? 'es' : isPortuguese ? 'pt' : 'en';
           zen.innerHTML = cardHtml;
           targetContainer.prepend(zen);
         }
