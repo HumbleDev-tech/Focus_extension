@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="MIT License" />
   <img src="https://img.shields.io/badge/Telemetry-Zero%20%2F%20None-brightgreen.svg?style=flat-square" alt="Zero Telemetry" />
   <img src="https://img.shields.io/badge/Dependencies-Zero%20(Pure%20Vanilla)-orange.svg?style=flat-square" alt="Zero Dependencies" />
-  <img src="https://img.shields.io/badge/Language-EN%20%7C%20ES-lightgrey.svg?style=flat-square" alt="Languages" />
+  <img src="https://img.shields.io/badge/Language-EN%20%7C%20ES%20%7C%20PT-lightgrey.svg?style=flat-square" alt="Languages" />
 </p>
 
 <p align="center">
@@ -54,8 +54,8 @@ Whether you need a distraction-free environment for research and study, or a min
 ### At a Glance
 
 * **One-Click Focus Presets**: Switch instantly between Off, Basic, Balanced (recommended default), and Extreme Zen modes.
-* **Granular Surgical Control**: 30 modular toggles covering Home Feed, watch-next sidebars, comments, shorts, and 25 UI clutter elements.
-* **YouTube Power Utilities**: Restores public dislike metrics, auto-skips sponsored segments with a custom colored progress bar, and reverses automatic title translations.
+* **Granular Surgical Control**: 31 modular toggles covering Home Feed, Direct to Subscriptions, watch-next sidebars, comments, shorts, and 25 UI clutter elements.
+* **YouTube Power Utilities**: Restores public dislike metrics, auto-skips sponsored segments with a custom colored progress bar and one-click Undo/Unskip, and reverses automatic title translations.
 * **Pure Vanilla Performance**: Zero frameworks, zero npm runtime dependencies, zero telemetry, and ultra-low memory footprint.
 
 ---
@@ -80,11 +80,12 @@ Libertad organizes controls into three purpose-built workspaces without vertical
 ---
 
 ### 2. Instant Focus Presets (Integrated Matrix)
-Switch between curated focus profiles with a single click or tailor your own (30 total toggles):
+Switch between curated focus profiles with a single click or tailor your own (31 total toggles):
 
 | Distraction / Clutter Element | OFF | BASIC | BALANCED *(Default)* | EXTREME *(Zen)* | CUSTOM |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Home Feed (Zen Search Mode)** | Shown | Shown | Shown | **Zen Prompt** | *Saved* |
+| **Direct to Subscriptions** | Off | Off | Off | Off | *Saved* |
 | **Related Sidebar & Recommendations** | Shown | Shown | **Hidden** | **Hidden** | *Saved* |
 | **Comments Stream** | Shown | Shown | Shown | **Hidden** | *Saved* |
 | **Shorts Everywhere (Feeds & Nav)** | Shown | Shown | **Hidden** | **Hidden** | *Saved* |
@@ -103,7 +104,7 @@ Switch between curated focus profiles with a single click or tailor your own (30
 * **Basic**: Removes common passive watch clutter while keeping comments and feeds intact (suppresses end-screen cards, promotional download buttons, experimental AI popups, paid promo banners, watermarks, up next tiles, and merch shelves).
 * **Balanced** *(Recommended Default)*: Breaks algorithmic recommendation feedback loops while keeping personal actions and comments accessible. Hides the sidebar (centering the player), shorts, autoplay, voice search mic, create button, notifications bell, up next, watermarks, paid promotions, miniplayer, AI button, download button, thanks/clips, channel memberships, merch shelves, live chat, trending, and "More from YouTube". Comments remain visible for timestamps, community code corrections, and tutorials.
 * **Extreme (Zen Mode)**: Complete distraction and engagement eradication ("Monk Mode"). Replaces the homepage with an intentional minimalist search prompt, hides the sidebar, **hides comments**, shorts, header tools, player overlays, action bar (including likes/dislikes, share, save, 3-dots menu, subscribe button, subscriber count, views/date), live chat, and all browsing shelves.
-* **Custom**: Automatically remembers and persists your individual fine-tuned preferences across all 30 switches in both tabs.
+* **Custom**: Automatically remembers and persists your individual fine-tuned preferences across all 31 switches in both tabs.
 
 ---
 
@@ -189,6 +190,7 @@ Libertad provides 25 modular toggles organized into four specialized categories 
   * Features a visual colored progress bar overlay rendering segment markers in their authentic categories (Green for sponsors, Yellow for self-promo, Purple for reminders, Blue for outros, Cyan for intros).
   * Provides granular sub-controls: auto-skips intrusive sponsors and subscribe reminders by default, while **preserving outros and endcards** so you can enjoy closing scenes and music unless you explicitly choose to skip them.
   * Connects to the open [SponsorBlock](https://sponsor.ajay.app) community database, showing a subtle on-screen toast whenever a segment is skipped.
+  * **Interactive Unskip (Undo)**: Toast notifications feature an on-screen **"UNSKIP" / "DESHACER" / "DESFAZER"** button, allowing you to instantly reverse any auto-skip with a single click if you want to watch that specific segment.
   * Driven by native HTML5 `<video>` playback events and an in-memory segment cache for 0.0% idle CPU overhead.
 
 ---
@@ -223,11 +225,39 @@ Libertad provides 25 modular toggles organized into four specialized categories 
 ## Technical Architecture & Performance
 
 * **Zero External Runtime Dependencies**: Built with 100% pure Vanilla JavaScript, modern HTML5, and CSS variables. Zero npm bloat, zero bundlers required.
-* **Instant Injection (`document_start`)**: Stylesheet rules are injected dynamically at DOM initialization to eliminate Flash of Unstyled Content (FOUC).
-* **SPA Lifecycle Integration**: Listens directly to YouTube's internal single-page navigation events (`yt-navigate-finish`) to ensure styles and modules stay synchronized across client-side page transitions.
-* **Local-First Storage**: User settings and custom toggle states are persisted via `chrome.storage.sync`, synchronizing seamlessly across all logged-in browser instances.
-* **Bounded LRU Memory Cache**: In-memory stores for titles and public dislike metrics are strictly capped with LRU eviction to prevent memory leaks during long-running SPA sessions.
+* **Modular Clean Architecture**: Cleanly decoupled into `src/core/` (Cache, Utilities) and `src/modules/` (Styles, Shorts, Subscriptions, Dislikes, Sponsors, Untranslate), coordinated by a lightweight orchestrator ([content.js](content.js)) without any build-step complexity.
+* **Reverse-FOUC Elimination**: Synchronous `sessionStorage` hydration at `document_start` completely eliminates reverse flash of unstyled content on hard page reloads before asynchronous storage resolves.
+* **Two-Level Service Worker Caching**: Background service worker employs L1 in-memory caching combined with L2 `chrome.storage.session` persistence, allowing cached SponsorBlock segments and Return YouTube Dislike metrics to survive Service Worker lifecycle suspensions without redundant network calls.
+* **SPA Lifecycle Integration & Capture Routing**: Listens to YouTube's internal single-page navigation events (`yt-navigate-start`, `yt-navigate-finish`, `popstate`) and intercepts link clicks in the capture phase to enable instant, zero-reload navigation.
+* **Granular Reactive Diffing**: Reactively listens to `chrome.storage.onChanged` with granular key-level diffing, updating only the specific module affected by a toggle rather than triggering expensive full re-renders.
+* **Bounded LRU Memory Cache**: Memory stores for titles, segments, and dislike metrics are strictly capped using an LRU eviction strategy to prevent memory leaks during long-running SPA sessions.
 * **Manifest V3 Compliant**: Built strictly adhering to the latest Chrome Extension security standards.
+
+```text
+Focus_extension/
+├── _locales/              # Chrome Web Store internationalization (en, es, pt_BR, pt_PT)
+├── icons/                 # Extension brand iconography (16, 48, 128px)
+├── src/
+│   ├── core/
+│   │   ├── cache.js       # Bounded LRU Cache implementation
+│   │   └── utils.js       # Video ID parser, compact number i18n & locale detection
+│   └── modules/
+│       ├── dislikes.js    # Return YouTube Dislike API engine & badge injector
+│       ├── shorts.js      # Shorts blocker and watch player redirector
+│       ├── sponsors.js    # SponsorBlock skipping engine & timeline progress bar
+│       ├── styles.js      # Dynamic stylesheet compiler & Zen Mode interface
+│       ├── subscriptions.js # Direct-to-subscriptions SPA link interceptor
+│       └── untranslate.js # Viewport title untranslation engine
+├── background.js          # Service worker with 2-level persistent caching
+├── constants.js           # Single source of truth for presets and toggle keys
+├── content.js             # High-speed orchestrator and SPA navigation router
+├── i18n.js                # Trilingual dictionary (EN, ES, PT)
+├── popup.html             # Tri-tab control surface with settings drawer
+├── popup.css              # Themeable CSS design system
+├── popup.js               # Interaction controller with automatic system detection
+├── theme-init.js          # Synchronous anti-FOUC theme & scale bootstrapper
+└── pack.py                # Automated Chrome Web Store packaging script
+```
 
 ---
 
@@ -253,7 +283,7 @@ To install and test Libertad locally in any Chromium-based browser (Google Chrom
 1. **Choose a Preset**: Open the popup from your browser toolbar and choose your focus profile (`OFF`, `BASIC`, `BALANCED`, or `EXTREME`). `BALANCED` is recommended for daily study and research.
 2. **Fine-Tune Elements**: Navigate between the **Focus Shield** and **UI Cleaner** tabs to toggle individual elements. Toggling any switch automatically preserves your settings under `CUSTOM`.
 3. **Configure Utilities**: In the **Extras** tab, customize which SponsorBlock segments to auto-skip (Sponsors, Self-Promo, Reminders, Intros, Outros, Off-Topic) or keep them in view-only mode on the timeline.
-4. **Adjust Preferences**: Click the gear icon in the top header to toggle Dark, Light, or OLED themes, select interface scale (1x, 1.2x, 1.4x), or change language between English and Spanish.
+4. **Adjust Preferences**: Click the gear icon in the top header to customize Dark, Light, or OLED themes, select interface scale (1x, 1.2x, 1.4x), or change language between English, Spanish, and Portuguese—all supporting fully automatic system detection via the **AUTO** modes.
 
 ---
 
