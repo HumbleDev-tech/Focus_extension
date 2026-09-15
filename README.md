@@ -199,7 +199,8 @@ Libertad provides 25 modular toggles organized into four specialized categories 
   <img src="assets/libertad-settings-drawer.png" width="380" alt="Preferences & Ergonomics Drawer" />
 </p>
 
-* **Tri-Theme Engine**:
+* **Tri-Theme Engine (with OS Auto-Detection)**:
+  * **Auto**: Dynamically listens to the operating system's color scheme (`prefers-color-scheme`) in real time, automatically switching between Light and Dark modes.
   * **Dark**: Industrial graphite palette with high readability.
   * **Light**: Clean, high-contrast laboratory aesthetic.
   * **OLED**: Pure `#000000` pitch black engineered for OLED displays and maximum power efficiency.
@@ -210,10 +211,12 @@ Libertad provides 25 modular toggles organized into four specialized categories 
   <img src="assets/libertad-theme-oled.png" width="340" alt="Libertad OLED Pure Black Theme" />
 </p>
 
-* **UI Display Scaling**:
-  * One-touch zoom controls for popup comfort: **1x** (Standard), **1.2x** (Optimized for 1440p displays), and **1.4x** (Optimized for 4K / high-DPI displays).
-* **Bilingual Localization (i18n)**:
-  * Full runtime translation between **English (EN)** and **Spanish (ES)** for all popup controls and tooltips, alongside native Chrome `_locales` support.
+* **UI Display Scaling (with DPI Auto-Detection)**:
+  * **Auto**: Evaluates monitor resolution and physical device pixel ratio (`window.devicePixelRatio`) to automatically calibrate the optimal UI scale (100%, 120%, or 140%).
+  * **Manual Controls**: One-touch zoom overrides for custom popup comfort: **1x** (Standard), **1.2x** (1440p / 2K), and **1.4x** (4K / Ultrawide).
+* **Trilingual Localization (i18n)**:
+  * **Auto**: Automatically matches the browser language (`navigator.language` & `chrome.i18n`), launching natively in Portuguese for lusophone locales (`pt-BR`, `pt-PT`, etc.), Spanish for hispanophone locales (`es-419`, `es-ES`, etc.), and English for all others.
+  * **Manual Controls**: Instant one-click toggles between **English (EN)**, **Spanish (ES)**, and **Portuguese (PT)** for all popup controls, tooltips, and on-screen banners.
 
 ---
 

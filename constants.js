@@ -44,8 +44,8 @@ const TOGGLE_KEYS = [
 
 const DEFAULT_SETTINGS = {
   preset: 'balanced', // 'off', 'basic', 'balanced', 'extreme', 'custom'
-  theme: 'dark', // 'dark', 'light', 'oled'
-  lang: 'auto', // 'auto', 'en', 'es'
+  theme: 'auto', // 'auto', 'dark', 'light', 'oled'
+  lang: 'auto', // 'auto', 'en', 'es', 'pt'
   scale: 'auto', // 'auto', '100', '120', '140'
   activeTab: 'focus', // 'focus', 'cleaner', 'extras'
   hideHomeFeed: false,

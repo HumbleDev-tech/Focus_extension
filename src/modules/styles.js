@@ -737,18 +737,33 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (settings.hideHomeFeed && isHomePage) {
       const isSpanish =
         settings.lang === 'es' ||
-        (!settings.lang &&
+        ((!settings.lang || settings.lang === 'auto') &&
           typeof navigator !== 'undefined' &&
-          navigator.language?.startsWith('es'));
+          (globalThis.Libertad.isSpanishLocale
+            ? globalThis.Libertad.isSpanishLocale(navigator.language)
+            : navigator.language?.toLowerCase().startsWith('es')));
+      const isPortuguese =
+        settings.lang === 'pt' ||
+        ((!settings.lang || settings.lang === 'auto') &&
+          typeof navigator !== 'undefined' &&
+          (globalThis.Libertad.isPortugueseLocale
+            ? globalThis.Libertad.isPortugueseLocale(navigator.language)
+            : navigator.language?.toLowerCase().startsWith('pt')));
+
       const badgeText = isSpanish
         ? 'SISTEMA // ENFOQUE_ACTIVO'
-        : 'SYSTEM // FOCUS_ENGAGED';
-      const titleText = isSpanish
-        ? 'Modo Intencional Activo'
-        : 'Intentional Mode Active';
+        : isPortuguese
+          ? 'SISTEMA // FOCO_ATIVO'
+          : 'SYSTEM // FOCUS_ENGAGED';
+      const titleText =
+        isSpanish || isPortuguese
+          ? 'Modo Intencional Activo'
+          : 'Intentional Mode Active';
       const descText = isSpanish
         ? 'Recomendaciones de feed suprimidas. Realiza una búsqueda arriba para encontrar contenido específico.'
-        : 'Feed recommendations suppressed. Execute a search query above to locate specific content.';
+        : isPortuguese
+          ? 'Recomendações de feed suprimidas. Faça uma pesquisa acima para encontrar conteúdo específico.'
+          : 'Feed recommendations suppressed. Execute a search query above to locate specific content.';
 
       const cardHtml = `
         <div class="libertad-zen-card">
@@ -769,7 +784,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       `;
 
       if (existing) {
-        const langKey = isSpanish ? 'es' : 'en';
+        const langKey = isSpanish ? 'es' : isPortuguese ? 'pt' : 'en';
         if (existing.dataset.lang !== langKey) {
           existing.dataset.lang = langKey;
           existing.innerHTML = cardHtml;

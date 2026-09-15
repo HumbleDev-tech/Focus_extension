@@ -110,18 +110,73 @@ document.addEventListener('DOMContentLoaded', () => {
     return '100';
   }
 
+  // Auto-detect system color scheme (dark or light)
+  function detectSystemTheme() {
+    return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches
+      ? 'dark'
+      : 'light';
+  }
+
+  // Detect all Spanish regional variants (es, es-419, es-ES, es-MX, es-AR, etc.)
+  function isSpanishLocale(langStr) {
+    if (!langStr || typeof langStr !== 'string') return false;
+    const clean = langStr.trim().toLowerCase();
+    return clean === 'es' || clean.startsWith('es-') || clean.startsWith('es_');
+  }
+
+  // Detect all Portuguese regional variants (pt, pt-BR, pt-PT, pt-AO, pt-MZ, etc.)
+  function isPortugueseLocale(langStr) {
+    if (!langStr || typeof langStr !== 'string') return false;
+    const clean = langStr.trim().toLowerCase();
+    return clean === 'pt' || clean.startsWith('pt-') || clean.startsWith('pt_');
+  }
+
+  // Auto-detect system language with full support for Spanish and Portuguese regional variants
+  function detectSystemLang() {
+    try {
+      if (typeof chrome !== 'undefined' && chrome.i18n?.getUILanguage) {
+        const uiLang = chrome.i18n.getUILanguage();
+        if (uiLang) {
+          if (isSpanishLocale(uiLang)) return 'es';
+          if (isPortugueseLocale(uiLang)) return 'pt';
+        }
+      }
+      if (typeof navigator !== 'undefined') {
+        if (navigator.language) {
+          if (isSpanishLocale(navigator.language)) return 'es';
+          if (isPortugueseLocale(navigator.language)) return 'pt';
+        }
+        if (Array.isArray(navigator.languages)) {
+          for (let i = 0; i < navigator.languages.length; i++) {
+            const l = navigator.languages[i];
+            if (isSpanishLocale(l)) return 'es';
+            if (isPortugueseLocale(l)) return 'pt';
+          }
+        }
+      }
+    } catch (_) {}
+    return 'en';
+  }
+
   // State initialized with single source of truth defaults
   let state = {
     ...DEFAULT_SETTINGS,
-    lang: navigator.language?.startsWith('es') ? 'es' : 'en',
+    theme: 'auto',
+    lang: 'auto',
     scale: 'auto',
     customConfig: { ...DEFAULT_SETTINGS.customConfig },
   };
 
+  function getEffectiveLang() {
+    return !state.lang || state.lang === 'auto'
+      ? detectSystemLang()
+      : state.lang;
+  }
+
   // Helper for safe translation
   function t(key) {
     if (typeof getTranslation === 'function') {
-      return getTranslation(key, state.lang);
+      return getTranslation(key, getEffectiveLang());
     }
     return key;
   }
@@ -137,15 +192,14 @@ document.addEventListener('DOMContentLoaded', () => {
           ...(saved.customConfig || {}),
         },
       };
-      if (!state.lang || state.lang === 'auto') {
-        state.lang = navigator.language?.startsWith('es') ? 'es' : 'en';
-      }
+      if (!state.lang) state.lang = 'auto';
+      if (!state.theme) state.theme = 'auto';
       if (state.scale === '115') {
         state.scale = '120';
       } else if (state.scale === '125') {
         state.scale = '140';
-      } else if (!state.scale || state.scale === 'auto') {
-        state.scale = detectDefaultScale();
+      } else if (!state.scale) {
+        state.scale = 'auto';
       }
       let savedTab = 'focus';
       try {
@@ -159,18 +213,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Apply visual theme and UI zoom to root
   function applyThemeAndScale() {
-    document.documentElement.setAttribute('data-theme', state.theme);
+    const effectiveTheme =
+      !state.theme || state.theme === 'auto'
+        ? detectSystemTheme()
+        : state.theme;
+    document.documentElement.setAttribute('data-theme', effectiveTheme);
     try {
-      localStorage.setItem('libertad_theme', state.theme);
+      localStorage.setItem('libertad_theme', state.theme || 'auto');
     } catch (_) {}
-    const activeScale =
-      state.scale && state.scale !== 'auto'
-        ? state.scale
-        : detectDefaultScale();
-    document.documentElement.setAttribute('data-scale', activeScale);
+
+    const effectiveScale =
+      !state.scale || state.scale === 'auto'
+        ? detectDefaultScale()
+        : state.scale;
+    document.documentElement.setAttribute('data-scale', effectiveScale);
     try {
-      localStorage.setItem('libertad_scale', activeScale);
+      localStorage.setItem('libertad_scale', state.scale || 'auto');
     } catch (_) {}
+  }
+
+  // Dynamic system theme listener for real-time OS preference changes
+  if (window.matchMedia) {
+    window
+      .matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', () => {
+        if (!state.theme || state.theme === 'auto') {
+          applyThemeAndScale();
+        }
+      });
   }
 
   // Render all interactive elements and localized strings
@@ -188,7 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Theme buttons active state
     themeButtons.forEach((btn) => {
-      if (btn.getAttribute('data-theme') === state.theme) {
+      const btnTheme = btn.getAttribute('data-theme');
+      if (btnTheme === (state.theme || 'auto')) {
         btn.classList.add('active');
       } else {
         btn.classList.remove('active');
@@ -197,7 +268,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Language buttons active state
     langButtons.forEach((btn) => {
-      if (btn.getAttribute('data-lang') === state.lang) {
+      const btnLang = btn.getAttribute('data-lang');
+      if (btnLang === (state.lang || 'auto')) {
         btn.classList.add('active');
       } else {
         btn.classList.remove('active');
@@ -205,12 +277,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Scale buttons active state
-    const currentScale =
-      state.scale && state.scale !== 'auto'
-        ? state.scale
-        : detectDefaultScale();
     scaleButtons.forEach((btn) => {
-      if (btn.getAttribute('data-scale') === currentScale) {
+      const btnScale = btn.getAttribute('data-scale');
+      if (btnScale === (state.scale || 'auto')) {
         btn.classList.add('active');
       } else {
         btn.classList.remove('active');
@@ -260,14 +329,29 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.sponsorSkipIntro) count++;
       if (state.sponsorSkipOutro) count++;
       if (state.sponsorSkipMusicOfftopic) count++;
+      const currentLang = getEffectiveLang();
       if (count === 0) {
         countBadge.textContent =
-          state.lang === 'es' ? '0/6 (SOLO VER)' : '0/6 (VIEW ONLY)';
+          currentLang === 'es'
+            ? '0/6 (SOLO VER)'
+            : currentLang === 'pt'
+              ? '0/6 (APENAS VER)'
+              : '0/6 (VIEW ONLY)';
       } else if (count === 6) {
         countBadge.textContent =
-          state.lang === 'es' ? '6/6 (TODAS)' : '6/6 (ALL)';
+          currentLang === 'es'
+            ? '6/6 (TODAS)'
+            : currentLang === 'pt'
+              ? '6/6 (TODAS)'
+              : '6/6 (ALL)';
       } else {
-        countBadge.textContent = `${count}/6 ${state.lang === 'es' ? 'ACTIVAS' : 'ACTIVE'}`;
+        countBadge.textContent = `${count}/6 ${
+          currentLang === 'es'
+            ? 'ACTIVAS'
+            : currentLang === 'pt'
+              ? 'ATIVAS'
+              : 'ACTIVE'
+        }`;
       }
     }
 
@@ -351,10 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
       const chosenTheme = btn.getAttribute('data-theme');
       state.theme = chosenTheme;
-      document.documentElement.setAttribute('data-theme', chosenTheme);
-      try {
-        localStorage.setItem('libertad_theme', chosenTheme);
-      } catch (_) {}
+      applyThemeAndScale();
       saveState();
     });
   });
@@ -373,10 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
       const chosenScale = btn.getAttribute('data-scale');
       state.scale = chosenScale;
-      document.documentElement.setAttribute('data-scale', chosenScale);
-      try {
-        localStorage.setItem('libertad_scale', chosenScale);
-      } catch (_) {}
+      applyThemeAndScale();
       saveState();
     });
   });
@@ -477,20 +555,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Reset configuration button
   resetBtn?.addEventListener('click', () => {
-    const currentScale = state.scale || detectDefaultScale();
     state = {
       ...DEFAULT_SETTINGS,
-      theme: state.theme || DEFAULT_SETTINGS.theme,
-      lang: state.lang || 'en',
-      scale: currentScale,
+      theme: 'auto',
+      lang: 'auto',
+      scale: 'auto',
       customConfig: { ...DEFAULT_SETTINGS.customConfig },
     };
+    applyThemeAndScale();
     saveState();
 
     if (resetBtn) {
       resetBtn.classList.add('is-success');
+      const currentLang = getEffectiveLang();
       resetBtn.textContent =
-        state.lang === 'es' ? 'REINICIADO' : 'CONFIG RESTORED';
+        currentLang === 'es'
+          ? 'REINICIADO'
+          : currentLang === 'pt'
+            ? 'REDEFINIDO'
+            : 'CONFIG RESTORED';
       setTimeout(() => {
         resetBtn.classList.remove('is-success');
         resetBtn.textContent = t('resetBtn');

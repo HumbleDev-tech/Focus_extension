@@ -54,13 +54,15 @@ globalThis.Libertad = globalThis.Libertad || {};
   function formatNumber(num, userLang) {
     if (typeof num !== 'number' || !Number.isFinite(num)) return '';
     const lang =
-      userLang === 'es'
+      userLang === 'es' || isSpanishLocale(userLang)
         ? 'es-ES'
-        : userLang === 'en'
-          ? 'en-US'
-          : typeof navigator !== 'undefined' && navigator.language
-            ? navigator.language
-            : 'en-US';
+        : userLang === 'pt' || isPortugueseLocale(userLang)
+          ? 'pt-BR'
+          : userLang === 'en'
+            ? 'en-US'
+            : typeof navigator !== 'undefined' && navigator.language
+              ? navigator.language
+              : 'en-US';
     try {
       return new Intl.NumberFormat(lang, {
         notation: 'compact',
@@ -74,6 +76,22 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
   }
 
+  // Detect all Spanish regional variants (es, es-419, es-ES, es-MX, es-AR, etc.)
+  function isSpanishLocale(langStr) {
+    if (!langStr || typeof langStr !== 'string') return false;
+    const clean = langStr.trim().toLowerCase();
+    return clean === 'es' || clean.startsWith('es-') || clean.startsWith('es_');
+  }
+
+  // Detect all Portuguese regional variants (pt, pt-BR, pt-PT, pt-AO, pt-MZ, etc.)
+  function isPortugueseLocale(langStr) {
+    if (!langStr || typeof langStr !== 'string') return false;
+    const clean = langStr.trim().toLowerCase();
+    return clean === 'pt' || clean.startsWith('pt-') || clean.startsWith('pt_');
+  }
+
   globalThis.Libertad.parseYouTubeVideoId = parseYouTubeVideoId;
   globalThis.Libertad.formatNumber = formatNumber;
+  globalThis.Libertad.isSpanishLocale = isSpanishLocale;
+  globalThis.Libertad.isPortugueseLocale = isPortugueseLocale;
 })();

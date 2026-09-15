@@ -432,7 +432,7 @@ button:focus-visible {
 
 .mini-segmented {
   display: grid;
-  width: calc(136px * var(--ui-scale));
+  width: calc(164px * var(--ui-scale));
   background: var(--surface-subtle);
   border: 1px solid var(--border-hairline);
   border-radius: 3px;
@@ -441,15 +441,15 @@ button:focus-visible {
 }
 
 #themeGroup {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
 }
 
 #langGroup {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
 }
 
 #scaleGroup {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .mini-btn {

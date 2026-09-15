@@ -103,23 +103,44 @@ globalThis.Libertad = globalThis.Libertad || {};
     const category = typeof seg === 'object' && seg ? seg.category : seg;
     const isEs =
       settings?.lang === 'es' ||
-      (!settings?.lang &&
+      ((!settings?.lang || settings?.lang === 'auto') &&
         typeof navigator !== 'undefined' &&
-        navigator.language?.startsWith('es'));
+        (globalThis.Libertad.isSpanishLocale
+          ? globalThis.Libertad.isSpanishLocale(navigator.language)
+          : navigator.language?.toLowerCase().startsWith('es')));
+    const isPt =
+      settings?.lang === 'pt' ||
+      ((!settings?.lang || settings?.lang === 'auto') &&
+        typeof navigator !== 'undefined' &&
+        (globalThis.Libertad.isPortugueseLocale
+          ? globalThis.Libertad.isPortugueseLocale(navigator.language)
+          : navigator.language?.toLowerCase().startsWith('pt')));
     let label = '';
     if (category === 'selfpromo') {
-      label = isEs ? 'AUTO-PROMOCION SALTADA' : 'SELF-PROMO SKIPPED';
+      label = isEs
+        ? 'AUTO-PROMOCION SALTADA'
+        : isPt
+          ? 'AUTO-PROMOÇÃO PULADA'
+          : 'SELF-PROMO SKIPPED';
     } else if (category === 'interaction') {
-      label = isEs ? 'RECORDATORIO SALTADO' : 'REMINDER SKIPPED';
+      label = isEs
+        ? 'RECORDATORIO SALTADO'
+        : isPt
+          ? 'LEMBRETE PULADO'
+          : 'REMINDER SKIPPED';
     } else if (category === 'intro') {
-      label = isEs ? 'INTRO SALTADA' : 'INTRO SKIPPED';
+      label = isEs ? 'INTRO SALTADA' : isPt ? 'INTRO PULADA' : 'INTRO SKIPPED';
     } else if (category === 'outro') {
-      label = isEs ? 'OUTRO SALTADA' : 'OUTRO SKIPPED';
+      label = isEs ? 'OUTRO SALTADA' : isPt ? 'FINAL PULADO' : 'OUTRO SKIPPED';
     } else {
-      label = isEs ? 'PATROCINIO SALTADO' : 'SPONSOR SKIPPED';
+      label = isEs
+        ? 'PATROCINIO SALTADO'
+        : isPt
+          ? 'PATROCÍNIO PULADO'
+          : 'SPONSOR SKIPPED';
     }
 
-    const unskipText = isEs ? 'DESHACER' : 'UNSKIP';
+    const unskipText = isEs ? 'DESHACER' : isPt ? 'DESFAZER' : 'UNSKIP';
 
     toast.textContent = '';
     const textSpan = document.createElement('span');
