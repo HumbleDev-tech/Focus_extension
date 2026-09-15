@@ -603,27 +603,108 @@
           </div>
         </label>
 
-        <!-- Module: Untranslate Titles -->
-        <label class="module-row" for="toggleUntranslate">
-          <div class="module-icon">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="2" x2="22" y1="12" y2="12"></line>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-            </svg>
-          </div>
-          <div class="module-meta">
-            <div class="module-title-row">
-              <span class="module-title" data-i18n="toggleUntranslateTitle">Untranslate Titles</span>
-              <span class="module-tag" data-i18n="statusEngineActive">ENGINE ACTIVE</span>
+        <!-- Module: Untranslate Suite (Unified Card) -->
+        <div class="module-card" id="moduleUntranslate">
+          <label class="module-card-header" for="toggleUntranslateMaster">
+            <div class="module-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" x2="22" y1="12" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
             </div>
-            <span class="module-desc" data-i18n="toggleUntranslateDesc">Preserve creators original video title without algorithmic auto-translation</span>
+            <div class="module-meta">
+              <div class="module-title-row">
+                <span class="module-title" data-i18n="toggleUntranslateTitle">Untranslate Suite</span>
+                <span class="module-tag" data-i18n="statusOriginalMedia">ORIGINAL MEDIA</span>
+              </div>
+              <span class="module-desc" data-i18n="toggleUntranslateDesc">Preserve creators original audio, titles, descriptions, and native subtitles</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleUntranslateMaster" aria-label="Untranslate Suite" />
+              <span class="slider"></span>
+            </div>
+          </label>
+
+          <!-- Category Chips Matrix (Integrated Panel) -->
+          <div class="sponsor-subpanel" id="untranslateSubOptions">
+            <div class="sponsor-subpanel-header">
+              <span class="sponsor-subpanel-title" data-i18n="untranslateTrayTitle">UNTRANSLATE SELECTION</span>
+              <span class="sponsor-count-badge" id="untranslateCountBadge">5/5 ACTIVE</span>
+            </div>
+
+            <div class="chip-grid sponsor-chip-grid">
+              <!-- 1. Titles -->
+              <label class="chip-toggle" for="toggleUntranslateTitles" title="Untranslate video and feed titles">
+                <input type="checkbox" id="toggleUntranslateTitles" class="visually-hidden" aria-label="Untranslate Titles" />
+                <span class="chip-icon">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="4 7 4 4 20 4 20 7"></polyline>
+                    <line x1="9" x2="15" y1="20" y2="20"></line>
+                    <line x1="12" x2="12" y1="4" y2="20"></line>
+                  </svg>
+                </span>
+                <span class="chip-label" data-i18n="subUntranslateTitlesTitle">Titles</span>
+              </label>
+
+              <!-- 2. Original Audio -->
+              <label class="chip-toggle" for="toggleUntranslateAudio" title="Force original creator audio track (Anti AI-Dubbing)">
+                <input type="checkbox" id="toggleUntranslateAudio" class="visually-hidden" aria-label="Force Original Audio" />
+                <span class="chip-icon">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                  </svg>
+                </span>
+                <span class="chip-label" data-i18n="subUntranslateAudioTitle">Audio</span>
+              </label>
+
+              <!-- 3. Description -->
+              <label class="chip-toggle" for="toggleUntranslateDesc" title="Restore original video description">
+                <input type="checkbox" id="toggleUntranslateDesc" class="visually-hidden" aria-label="Restore Description" />
+                <span class="chip-icon">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" x2="8" y1="13" y2="13"></line>
+                    <line x1="16" x2="8" y1="17" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                  </svg>
+                </span>
+                <span class="chip-label" data-i18n="subUntranslateDescTitle">Description</span>
+              </label>
+
+              <!-- 4. Captions -->
+              <label class="chip-toggle" for="toggleUntranslateCaptions" title="Block auto-translated subtitles and force original language">
+                <input type="checkbox" id="toggleUntranslateCaptions" class="visually-hidden" aria-label="Native Captions Only" />
+                <span class="chip-icon">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="14" x="3" y="5" rx="2"></rect>
+                    <line x1="7" x2="9" y1="15" y2="15"></line>
+                    <line x1="15" x2="17" y1="15" y2="15"></line>
+                    <path d="M7 11h3a1 1 0 0 1 1 1v0a1 1 0 0 1-1 1H7"></path>
+                    <path d="M13 11h3a1 1 0 0 1 1 1v0a1 1 0 0 1-1 1h-3"></path>
+                  </svg>
+                </span>
+                <span class="chip-label" data-i18n="subUntranslateCaptionsTitle">Captions</span>
+              </label>
+
+              <!-- 5. Chapters -->
+              <label class="chip-toggle" for="toggleUntranslateChapters" title="Restore original creator chapter titles in timeline">
+                <input type="checkbox" id="toggleUntranslateChapters" class="visually-hidden" aria-label="Original Chapters" />
+                <span class="chip-icon">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" x2="20" y1="6" y2="6"></line>
+                    <line x1="4" x2="20" y1="12" y2="12"></line>
+                    <line x1="4" x2="20" y1="18" y2="18"></line>
+                  </svg>
+                </span>
+                <span class="chip-label" data-i18n="subUntranslateChaptersTitle">Chapters</span>
+              </label>
+            </div>
           </div>
-          <div class="switch">
-            <input type="checkbox" id="toggleUntranslate" aria-label="Untranslate Video Titles" />
-            <span class="slider"></span>
-          </div>
-        </label>
+        </div>
 
         <!-- Module: Skip In-Video Sponsors (Unified Card) -->
         <div class="module-card" id="moduleSponsors">

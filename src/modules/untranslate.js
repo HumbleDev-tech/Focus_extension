@@ -32,6 +32,9 @@ globalThis.Libertad = globalThis.Libertad || {};
   let currentWatchVideoId = null;
   let currentOriginalTitle = null;
   let lastAppliedWatchTitleElement = null;
+  let lastRestoredChaptersVideoId = null;
+  let latestOriginalMetadata = null;
+  let activeUntranslateSettings = null;
 
   const feedFetchQueue = [];
   const pendingFeedVideoIds = new Set();
@@ -41,10 +44,51 @@ globalThis.Libertad = globalThis.Libertad || {};
   let feedIntersectionObserver = null;
   let untranslateDebounceTimer = null;
 
+  // Helper to send command to Main World Agent
+  function sendAgentCommand(action) {
+    window.dispatchEvent(
+      new CustomEvent('libertad-agent-cmd', {
+        detail: { action },
+      }),
+    );
+  }
+
+  // Listen for broadcasted metadata from Main World Agent
+  window.addEventListener('libertad-agent-metadata', (event) => {
+    if (event?.detail) {
+      latestOriginalMetadata = event.detail;
+      if (
+        event.detail.title &&
+        window.location.pathname === '/watch' &&
+        (!activeUntranslateSettings ||
+          (activeUntranslateSettings.untranslateMaster !== false &&
+            activeUntranslateSettings.untranslateTitles !== false))
+      ) {
+        applyWatchTitle(event.detail.title, event.detail.videoId);
+      }
+      if (
+        !activeUntranslateSettings ||
+        (activeUntranslateSettings.untranslateMaster !== false &&
+          activeUntranslateSettings.untranslateDescription !== false)
+      ) {
+        restoreOriginalDescription(activeUntranslateSettings);
+      }
+      if (
+        !activeUntranslateSettings ||
+        (activeUntranslateSettings.untranslateMaster !== false &&
+          activeUntranslateSettings.untranslateChapters !== false)
+      ) {
+        restoreOriginalChapters(activeUntranslateSettings);
+      }
+    }
+  });
+
   function resetUntranslateNavigation() {
     currentOriginalTitle = null;
     currentWatchVideoId = null;
     lastAppliedWatchTitleElement = null;
+    lastRestoredChaptersVideoId = null;
+    latestOriginalMetadata = null;
     feedFetchQueue.length = 0;
     pendingFeedVideoIds.clear();
     observedTitleNodesByVideoId.clear();
@@ -183,7 +227,14 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   // Untranslate title on watch page
   function updateWatchTitle(settings) {
-    if (!settings?.untranslateTitles) return;
+    if (settings) activeUntranslateSettings = settings;
+    if (
+      settings &&
+      (settings.untranslateMaster === false ||
+        settings.untranslateTitles === false)
+    ) {
+      return;
+    }
     if (window.location.pathname !== '/watch') return;
 
     const parseId =
@@ -443,7 +494,14 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   function untranslateFeed(settings) {
-    if (!settings?.untranslateTitles) return;
+    if (settings) activeUntranslateSettings = settings;
+    if (
+      settings &&
+      (settings.untranslateMaster === false ||
+        settings.untranslateTitles === false)
+    ) {
+      return;
+    }
 
     const isHome =
       window.location.pathname === '/' || window.location.pathname === '';
@@ -480,8 +538,152 @@ globalThis.Libertad = globalThis.Libertad || {};
     }, 250);
   }
 
+  // Enforce creator's original audio track (Anti AI-Dubbing)
+  function enforceOriginalAudioTrack(settings) {
+    if (settings) activeUntranslateSettings = settings;
+    if (
+      settings &&
+      (settings.untranslateMaster === false ||
+        settings.untranslateAudio === false)
+    ) {
+      return;
+    }
+    if (window.location.pathname !== '/watch') return;
+    sendAgentCommand('ENFORCE_AUDIO');
+  }
+
+  // Clear algorithmic auto-translated subtitles
+  function neutralizeAutoTranslatedCaptions(settings) {
+    if (settings) activeUntranslateSettings = settings;
+    if (
+      settings &&
+      (settings.untranslateMaster === false ||
+        settings.untranslateCaptions === false)
+    ) {
+      return;
+    }
+    if (window.location.pathname !== '/watch') return;
+    sendAgentCommand('NEUTRALIZE_CAPTIONS');
+  }
+
+  // Restore creator's raw untranslated video description
+  function restoreOriginalDescription(settings) {
+    if (settings) activeUntranslateSettings = settings;
+    if (
+      settings &&
+      (settings.untranslateMaster === false ||
+        settings.untranslateDescription === false)
+    ) {
+      return;
+    }
+    if (window.location.pathname !== '/watch') return;
+
+    const parseId =
+      globalThis.Libertad.parseYouTubeVideoId ||
+      function (u) {
+        const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+        return m ? m[1] : null;
+      };
+
+    const videoId = parseId(window.location.href);
+    if (!videoId) return;
+
+    if (!latestOriginalMetadata || latestOriginalMetadata.videoId !== videoId) {
+      sendAgentCommand('REQUEST_METADATA');
+      return;
+    }
+
+    const rawDescription = latestOriginalMetadata.description;
+    if (!rawDescription || typeof rawDescription !== 'string') return;
+
+    const descContainer =
+      document.querySelector(
+        '#description-inline-expander yt-attributed-string',
+      ) ||
+      document.querySelector(
+        '#description-inline-expander yt-formatted-string',
+      ) ||
+      document.querySelector('#description-inline-expander') ||
+      document.querySelector('ytd-watch-metadata #description');
+
+    if (!descContainer) return;
+    if (
+      descContainer.dataset.libertadOrigApplied === videoId &&
+      descContainer.textContent === rawDescription
+    ) {
+      return;
+    }
+
+    descContainer.textContent = rawDescription;
+    descContainer.style.whiteSpace = 'pre-wrap';
+    descContainer.dataset.libertadOrigApplied = videoId;
+  }
+
+  // Restore creator's raw timeline chapter titles
+  function restoreOriginalChapters(settings) {
+    if (settings) activeUntranslateSettings = settings;
+    if (
+      settings &&
+      (settings.untranslateMaster === false ||
+        settings.untranslateChapters === false)
+    ) {
+      return;
+    }
+    if (window.location.pathname !== '/watch') return;
+
+    const parseId =
+      globalThis.Libertad.parseYouTubeVideoId ||
+      function (u) {
+        const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+        return m ? m[1] : null;
+      };
+
+    const videoId = parseId(window.location.href);
+    if (!videoId) return;
+
+    if (lastRestoredChaptersVideoId === videoId) return;
+
+    if (!latestOriginalMetadata || latestOriginalMetadata.videoId !== videoId) {
+      sendAgentCommand('REQUEST_METADATA');
+      return;
+    }
+
+    const rawDesc = latestOriginalMetadata.description;
+    if (!rawDesc) return;
+
+    const chapterRegex =
+      /(?:(?:(\d{1,2}):)?(\d{2}):(\d{2})|(\d{1,2}):(\d{2}))\s*[-–—:]?\s*([^\n\r]+)/g;
+    const chapters = [];
+    const matches = rawDesc.matchAll(chapterRegex);
+    for (const match of matches) {
+      const title = (match[6] || '').trim();
+      if (title && title.length < 80) {
+        chapters.push(title);
+      }
+    }
+
+    if (chapters.length === 0) return;
+
+    const chapterElements = document.querySelectorAll(
+      'ytd-macro-markers-list-item-renderer #details #title, ytd-macro-markers-list-item-renderer h4',
+    );
+    if (chapterElements.length > 0) {
+      chapterElements.forEach((el, index) => {
+        if (chapters[index] && el.textContent.trim() !== chapters[index]) {
+          el.textContent = chapters[index];
+        }
+      });
+      lastRestoredChaptersVideoId = videoId;
+    }
+  }
+
   globalThis.Libertad.updateWatchTitle = updateWatchTitle;
   globalThis.Libertad.untranslateFeed = untranslateFeed;
   globalThis.Libertad.debouncedUntranslateFeed = debouncedUntranslateFeed;
   globalThis.Libertad.resetUntranslateNavigation = resetUntranslateNavigation;
+  globalThis.Libertad.enforceOriginalAudioTrack = enforceOriginalAudioTrack;
+  globalThis.Libertad.neutralizeAutoTranslatedCaptions =
+    neutralizeAutoTranslatedCaptions;
+  globalThis.Libertad.restoreOriginalDescription = restoreOriginalDescription;
+  globalThis.Libertad.restoreOriginalChapters = restoreOriginalChapters;
 })();

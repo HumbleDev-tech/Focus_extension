@@ -17,6 +17,12 @@
   "content_scripts": [
     {
       "matches": ["*://www.youtube.com/*", "*://youtube.com/*"],
+      "js": ["src/injected/agent.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["*://www.youtube.com/*", "*://youtube.com/*"],
       "js": [
         "constants.js",
         "src/core/cache.js",
@@ -30,6 +36,12 @@
         "content.js"
       ],
       "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/injected/agent.js"],
+      "matches": ["*://*.youtube.com/*", "*://youtube.com/*"]
     }
   ],
   "action": {

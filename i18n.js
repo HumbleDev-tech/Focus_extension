@@ -86,9 +86,16 @@ const LIBERTAD_I18N = {
     toggleDislikesTitle: 'Restore Dislikes',
     toggleDislikesDesc:
       'Incorporate public community dislikes metric via Return YouTube Dislike API',
-    toggleUntranslateTitle: 'Untranslate Titles',
+    toggleUntranslateTitle: 'Untranslate Suite',
     toggleUntranslateDesc:
-      'Preserve creators original video title without algorithmic auto-translation',
+      'Preserve creators original audio, titles, descriptions, and native subtitles without algorithmic alteration',
+    subUntranslateTitlesTitle: 'Titles',
+    subUntranslateAudioTitle: 'Audio',
+    subUntranslateDescTitle: 'Description',
+    subUntranslateCaptionsTitle: 'Captions',
+    subUntranslateChaptersTitle: 'Chapters',
+    untranslateTrayTitle: 'UNTRANSLATE SELECTION',
+    statusOriginalMedia: 'ORIGINAL MEDIA',
     toggleSponsorsTitle: 'Skip In-Video Sponsors',
     toggleSponsorsDesc:
       'Auto-skip paid promotions, intros, and subscribe reminders via SponsorBlock',
@@ -192,9 +199,16 @@ const LIBERTAD_I18N = {
     toggleDislikesTitle: 'Restaurar Dislikes',
     toggleDislikesDesc:
       'Muestra el conteo publico de dislikes mediante Return YouTube Dislike API',
-    toggleUntranslateTitle: 'No Traducir Titulos',
+    toggleUntranslateTitle: 'Suite No Traducir',
     toggleUntranslateDesc:
-      'Conserva el titulo original en el idioma del creador sin traducciones forzadas',
+      'Conserva audio, títulos, descripciones y subtítulos originales del creador sin alteración de Google',
+    subUntranslateTitlesTitle: 'Títulos',
+    subUntranslateAudioTitle: 'Audio',
+    subUntranslateDescTitle: 'Descripción',
+    subUntranslateCaptionsTitle: 'Subtítulos',
+    subUntranslateChaptersTitle: 'Capítulos',
+    untranslateTrayTitle: 'SELECCIÓN DE DESTRADUCCIÓN',
+    statusOriginalMedia: 'MEDIOS NATIVOS',
     toggleSponsorsTitle: 'Saltar Patrocinadores',
     toggleSponsorsDesc:
       'Salta automáticamente segmentos patrocinados, intros y recordatorios con SponsorBlock',
@@ -298,9 +312,16 @@ const LIBERTAD_I18N = {
     toggleDislikesTitle: 'Restaurar Dislikes',
     toggleDislikesDesc:
       'Mostra contagem pública de dislikes via Return YouTube Dislike API',
-    toggleUntranslateTitle: 'Não Traduzir Títulos',
+    toggleUntranslateTitle: 'Suite Não Traduzir',
     toggleUntranslateDesc:
-      'Conserva o título original no idioma do criador sem traduções automáticas forçadas',
+      'Preserva áudio, títulos, descrições e legendas originais do criador sem alteração forçada do Google',
+    subUntranslateTitlesTitle: 'Títulos',
+    subUntranslateAudioTitle: 'Áudio',
+    subUntranslateDescTitle: 'Descrição',
+    subUntranslateCaptionsTitle: 'Legendas',
+    subUntranslateChaptersTitle: 'Capítulos',
+    untranslateTrayTitle: 'SELEÇÃO DE DESCONVERSÃO',
+    statusOriginalMedia: 'MÍDIA ORIGINAL',
     toggleSponsorsTitle: 'Pular Patrocínios',
     toggleSponsorsDesc:
       'Pula automaticamente segmentos patrocinados, intros e lembretes via SponsorBlock',

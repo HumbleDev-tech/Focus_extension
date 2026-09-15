@@ -83,7 +83,12 @@ document.addEventListener('DOMContentLoaded', () => {
     hideMoreFromYoutube: document.getElementById('toggleMoreFromYoutube'),
     // Power Modules
     showDislikes: document.getElementById('toggleDislikes'),
-    untranslateTitles: document.getElementById('toggleUntranslate'),
+    untranslateMaster: document.getElementById('toggleUntranslateMaster'),
+    untranslateTitles: document.getElementById('toggleUntranslateTitles'),
+    untranslateAudio: document.getElementById('toggleUntranslateAudio'),
+    untranslateDescription: document.getElementById('toggleUntranslateDesc'),
+    untranslateCaptions: document.getElementById('toggleUntranslateCaptions'),
+    untranslateChapters: document.getElementById('toggleUntranslateChapters'),
     skipSponsors: document.getElementById('toggleSponsors'),
     sponsorSkipSponsors: document.getElementById('toggleSubSponsors'),
     sponsorSkipSelfpromo: document.getElementById('toggleSubSelfpromo'),
@@ -304,6 +309,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Synchronize Untranslate Suite sub-options container
+    const untranslateSubContainer = document.getElementById(
+      'untranslateSubOptions',
+    );
+    if (untranslateSubContainer) {
+      untranslateSubContainer.classList.toggle(
+        'is-collapsed',
+        !state.untranslateMaster,
+      );
+    }
+
     // Synchronize SponsorBlock sub-options container
     const sponsorSubContainer = document.getElementById('sponsorSubOptions');
     if (sponsorSubContainer) {
@@ -318,6 +334,43 @@ document.addEventListener('DOMContentLoaded', () => {
         chip.classList.toggle('active', input.checked);
       }
     });
+
+    // Update dynamic Untranslate count badge
+    const untranslateCountBadge = document.getElementById(
+      'untranslateCountBadge',
+    );
+    if (untranslateCountBadge) {
+      let count = 0;
+      if (state.untranslateTitles) count++;
+      if (state.untranslateAudio) count++;
+      if (state.untranslateDescription) count++;
+      if (state.untranslateCaptions) count++;
+      if (state.untranslateChapters) count++;
+      const currentLang = getEffectiveLang();
+      if (count === 0) {
+        untranslateCountBadge.textContent =
+          currentLang === 'es'
+            ? '0/5 (SOLO VER)'
+            : currentLang === 'pt'
+              ? '0/5 (APENAS VER)'
+              : '0/5 (VIEW ONLY)';
+      } else if (count === 5) {
+        untranslateCountBadge.textContent =
+          currentLang === 'es'
+            ? '5/5 (TODAS)'
+            : currentLang === 'pt'
+              ? '5/5 (TODAS)'
+              : '5/5 (ALL)';
+      } else {
+        untranslateCountBadge.textContent = `${count}/5 ${
+          currentLang === 'es'
+            ? 'ACTIVAS'
+            : currentLang === 'pt'
+              ? 'ATIVAS'
+              : 'ACTIVE'
+        }`;
+      }
+    }
 
     // Update dynamic SponsorBlock count badge
     const countBadge = document.getElementById('sponsorCountBadge');
@@ -511,9 +564,43 @@ document.addEventListener('DOMContentLoaded', () => {
     saveState();
   });
 
-  // Power Modules: Untranslate titles toggle
+  // Power Modules: Untranslate Suite
+  toggles.untranslateMaster?.addEventListener('change', (e) => {
+    state.untranslateMaster = e.target.checked;
+    const untranslateSubContainer = document.getElementById(
+      'untranslateSubOptions',
+    );
+    if (untranslateSubContainer) {
+      untranslateSubContainer.classList.toggle(
+        'is-collapsed',
+        !state.untranslateMaster,
+      );
+    }
+    saveState();
+  });
+
   toggles.untranslateTitles?.addEventListener('change', (e) => {
     state.untranslateTitles = e.target.checked;
+    saveState();
+  });
+
+  toggles.untranslateAudio?.addEventListener('change', (e) => {
+    state.untranslateAudio = e.target.checked;
+    saveState();
+  });
+
+  toggles.untranslateDescription?.addEventListener('change', (e) => {
+    state.untranslateDescription = e.target.checked;
+    saveState();
+  });
+
+  toggles.untranslateCaptions?.addEventListener('change', (e) => {
+    state.untranslateCaptions = e.target.checked;
+    saveState();
+  });
+
+  toggles.untranslateChapters?.addEventListener('change', (e) => {
+    state.untranslateChapters = e.target.checked;
     saveState();
   });
 

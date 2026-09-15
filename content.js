@@ -49,9 +49,13 @@
           hideMerchShelf: true,
           hideLiveChat: true,
           hideTrending: true,
-          hideMoreFromYoutube: true,
           showDislikes: true,
+          untranslateMaster: true,
           untranslateTitles: true,
+          untranslateAudio: true,
+          untranslateDescription: true,
+          untranslateCaptions: true,
+          untranslateChapters: true,
           skipSponsors: true,
         };
 
@@ -102,6 +106,18 @@
     if (Libertad.untranslateFeed) {
       Libertad.untranslateFeed(currentSettings);
     }
+    if (Libertad.enforceOriginalAudioTrack) {
+      Libertad.enforceOriginalAudioTrack(currentSettings);
+    }
+    if (Libertad.restoreOriginalDescription) {
+      Libertad.restoreOriginalDescription(currentSettings);
+    }
+    if (Libertad.neutralizeAutoTranslatedCaptions) {
+      Libertad.neutralizeAutoTranslatedCaptions(currentSettings);
+    }
+    if (Libertad.restoreOriginalChapters) {
+      Libertad.restoreOriginalChapters(currentSettings);
+    }
     if (Libertad.updateSponsorSegments) {
       Libertad.updateSponsorSegments(currentSettings);
     }
@@ -118,7 +134,11 @@
       if (scrollThrottleTimer) return;
       scrollThrottleTimer = setTimeout(() => {
         scrollThrottleTimer = null;
-        if (currentSettings.untranslateTitles && Libertad.untranslateFeed) {
+        if (
+          currentSettings.untranslateMaster !== false &&
+          currentSettings.untranslateTitles !== false &&
+          Libertad.untranslateFeed
+        ) {
           Libertad.untranslateFeed(currentSettings);
         }
       }, 250);
@@ -162,7 +182,7 @@
         currentSettings[key] = changes[key].newValue;
         if (key === 'showDislikes') {
           dislikesChanged = true;
-        } else if (key === 'untranslateTitles') {
+        } else if (key.startsWith('untranslate')) {
           titleChanged = true;
         } else if (
           key.startsWith('skipSponsors') ||
@@ -209,6 +229,18 @@
         }
         if (Libertad.untranslateFeed) {
           Libertad.untranslateFeed(currentSettings);
+        }
+        if (Libertad.enforceOriginalAudioTrack) {
+          Libertad.enforceOriginalAudioTrack(currentSettings);
+        }
+        if (Libertad.restoreOriginalDescription) {
+          Libertad.restoreOriginalDescription(currentSettings);
+        }
+        if (Libertad.neutralizeAutoTranslatedCaptions) {
+          Libertad.neutralizeAutoTranslatedCaptions(currentSettings);
+        }
+        if (Libertad.restoreOriginalChapters) {
+          Libertad.restoreOriginalChapters(currentSettings);
         }
       }
       if (sponsorsChanged) {
@@ -290,8 +322,40 @@
             Libertad.updateDislikeCount(currentSettings);
           }
         }
-        if (currentSettings.untranslateTitles && Libertad.updateWatchTitle) {
+        if (
+          currentSettings.untranslateMaster !== false &&
+          currentSettings.untranslateTitles !== false &&
+          Libertad.updateWatchTitle
+        ) {
           Libertad.updateWatchTitle(currentSettings);
+        }
+        if (
+          currentSettings.untranslateMaster !== false &&
+          currentSettings.untranslateAudio !== false &&
+          Libertad.enforceOriginalAudioTrack
+        ) {
+          Libertad.enforceOriginalAudioTrack(currentSettings);
+        }
+        if (
+          currentSettings.untranslateMaster !== false &&
+          currentSettings.untranslateDescription !== false &&
+          Libertad.restoreOriginalDescription
+        ) {
+          Libertad.restoreOriginalDescription(currentSettings);
+        }
+        if (
+          currentSettings.untranslateMaster !== false &&
+          currentSettings.untranslateCaptions !== false &&
+          Libertad.neutralizeAutoTranslatedCaptions
+        ) {
+          Libertad.neutralizeAutoTranslatedCaptions(currentSettings);
+        }
+        if (
+          currentSettings.untranslateMaster !== false &&
+          currentSettings.untranslateChapters !== false &&
+          Libertad.restoreOriginalChapters
+        ) {
+          Libertad.restoreOriginalChapters(currentSettings);
         }
         if (currentSettings.skipSponsors && Libertad.getActiveVideoId) {
           const activeVid = Libertad.getActiveVideoId();
@@ -327,7 +391,10 @@
         }
       }
 
-      if (currentSettings.untranslateTitles) {
+      if (
+        currentSettings.untranslateMaster !== false &&
+        currentSettings.untranslateTitles !== false
+      ) {
         const isHome =
           window.location.pathname === '/' || window.location.pathname === '';
         const isWatch = window.location.pathname === '/watch';

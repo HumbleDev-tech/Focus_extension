@@ -85,7 +85,12 @@ const DEFAULT_SETTINGS = {
   hideMoreFromYoutube: true,
   // Power Modules
   showDislikes: true,
+  untranslateMaster: true,
   untranslateTitles: true,
+  untranslateAudio: true,
+  untranslateDescription: true,
+  untranslateCaptions: true,
+  untranslateChapters: true,
   skipSponsors: true,
   sponsorSkipSponsors: true,
   sponsorSkipSelfpromo: false,
