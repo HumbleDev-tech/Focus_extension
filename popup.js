@@ -144,9 +144,11 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (!state.scale || state.scale === 'auto') {
         state.scale = detectDefaultScale();
       }
-      if (!state.activeTab) {
-        state.activeTab = 'focus';
-      }
+      let savedTab = 'focus';
+      try {
+        savedTab = localStorage.getItem('libertad_active_tab') || 'focus';
+      } catch (_) {}
+      state.activeTab = savedTab;
     }
     applyThemeAndScale();
     renderUI();
@@ -310,9 +312,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Save current state to storage
+  // Save current state to storage (excluding local popup UI keys)
   function saveState() {
-    chrome.storage.sync.set(state, () => {
+    const syncPayload = { ...state };
+    delete syncPayload.activeTab;
+    chrome.storage.sync.set(syncPayload, () => {
       renderUI();
     });
   }
@@ -325,12 +329,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Tab navigation clicks (Enfoque, Limpieza UI, Extras)
+  // Tab navigation clicks (Enfoque, Limpieza UI, Extras) - local UI only
   tabButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
       const chosenTab = btn.getAttribute('data-tab');
+      if (!chosenTab) return;
       state.activeTab = chosenTab;
-      saveState();
+      try {
+        localStorage.setItem('libertad_active_tab', chosenTab);
+      } catch (_) {}
+      renderUI();
     });
   });
 

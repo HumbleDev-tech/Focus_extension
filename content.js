@@ -80,10 +80,22 @@
           untranslateTitles: true,
         };
 
+  // Synchronous cache hydration to completely eliminate reverse FOUC at document_start
+  try {
+    const cachedSettings = sessionStorage.getItem('libertad_settings');
+    if (cachedSettings) {
+      const parsed = JSON.parse(cachedSettings);
+      if (parsed && typeof parsed === 'object') {
+        currentSettings = { ...currentSettings, ...parsed };
+      }
+    }
+  } catch (_) {}
+
   // Caches and queues with bounded capacity
   const dislikeCache = new BoundedCache(200);
   const titlesCache = new BoundedCache(300);
   const sponsorCache = new BoundedCache(200);
+  const ignoredSegmentUuids = new Set();
   let isFetchingDislikes = false;
   let currentWatchVideoId = null;
   let currentOriginalTitle = null;
@@ -91,7 +103,6 @@
   let currentSponsorSegments = [];
   let currentSponsorVideoDuration = 0;
   let lastSkippedSegmentUuid = null;
-  let sponsorPlayInterval = null;
   let lastRenderedSponsorKey = '';
 
   const feedFetchQueue = [];
@@ -141,7 +152,7 @@
       `);
     }
 
-    // Shorts (Shelves, sidebars, header/navigation links)
+    // Shorts (Shelves, sidebars, header/navigation links, and shorts player)
     if (settings.hideShorts) {
       rules.push(`
         ytd-reel-shelf-renderer,
@@ -151,7 +162,10 @@
         ytd-guide-entry-renderer:has(a[title="Shorts"]),
         ytd-guide-entry-renderer:has(a[href^="/shorts"]),
         ytd-mini-guide-entry-renderer[aria-label="Shorts"],
-        a[title="Shorts"] {
+        a[title="Shorts"],
+        ytd-shorts,
+        #shorts-container,
+        ytd-reel-video-renderer {
           display: none !important;
         }
       `);
@@ -733,19 +747,40 @@
         position: absolute;
         bottom: 64px;
         right: 24px;
-        background: rgba(13, 17, 23, 0.92);
+        background: rgba(13, 17, 23, 0.94);
         border: 1px solid #38bdf8;
         color: #38bdf8;
         font-family: var(--font-mono, ui-monospace, monospace);
         font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.6px;
-        padding: 5px 12px;
+        padding: 6px 12px;
         border-radius: 4px;
         z-index: 9999;
-        pointer-events: none;
+        pointer-events: auto;
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
         transition: opacity 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .libertad-sponsor-toast-unskip {
+        background: rgba(56, 189, 248, 0.15);
+        border: 1px solid #38bdf8;
+        color: #38bdf8;
+        border-radius: 3px;
+        padding: 2px 7px;
+        font-family: inherit;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        outline: none;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+      .libertad-sponsor-toast-unskip:hover {
+        background: #38bdf8;
+        color: #0d1117;
       }
       .libertad-sponsor-bar-container {
         position: absolute !important;
@@ -776,6 +811,26 @@
     return rules.join('\n');
   }
 
+  // Intercept and redirect /shorts/ to /watch?v= when hideShorts is enabled
+  function redirectShortsIfActive() {
+    if (!currentSettings.hideShorts) return;
+    const path = window.location.pathname;
+    if (path.startsWith('/shorts')) {
+      const videoId =
+        (typeof parseYouTubeVideoId === 'function' &&
+          parseYouTubeVideoId(window.location.href)) ||
+        path.split('/shorts/')[1]?.split(/[?&#/]/)[0];
+      if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+        window.location.replace(`/watch?v=${videoId}`);
+      } else if (path === '/shorts' || path === '/shorts/') {
+        window.location.replace('/');
+      }
+    }
+  }
+
+  // Intercept Shorts immediately at document_start
+  redirectShortsIfActive();
+
   // Inject or update the active stylesheet
   function applyStyles(settings) {
     let styleEl = document.getElementById(STYLE_ID);
@@ -788,7 +843,7 @@
     updateZenBanner(settings);
   }
 
-  // Apply default styles immediately at document_start (no storage roundtrip delay)
+  // Apply default styles immediately at document_start (hydrated from sessionStorage or single source of truth)
   applyStyles(currentSettings);
 
   // Show a calm, intentional screen on YouTube home if home feed is disabled
@@ -857,13 +912,28 @@
     }
   }
 
-  // Format number (e.g. 1500 -> 1.5K)
+  // Format number with localized notation (e.g. 1.5K in EN, 1,5 mil in ES)
   function formatNumber(num) {
     if (typeof num !== 'number') return '';
-    if (num >= 1000000)
-      return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-    return num.toString();
+    const userLang =
+      currentSettings.lang === 'es'
+        ? 'es-ES'
+        : currentSettings.lang === 'en'
+          ? 'en-US'
+          : typeof navigator !== 'undefined' && navigator.language
+            ? navigator.language
+            : 'en-US';
+    try {
+      return new Intl.NumberFormat(userLang, {
+        notation: 'compact',
+        maximumFractionDigits: 1,
+      }).format(num);
+    } catch (_) {
+      if (num >= 1000000)
+        return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+      return num.toString();
+    }
   }
 
   // Find modern YouTube dislike button
@@ -1056,7 +1126,7 @@
     }
   }
 
-  function showSponsorSkipToast(category = 'sponsor') {
+  function showSponsorSkipToast(seg, video) {
     const playerContainer =
       document.querySelector('#movie_player') ||
       document.querySelector('.html5-video-player');
@@ -1069,8 +1139,12 @@
       playerContainer.appendChild(toast);
     }
 
+    const category = typeof seg === 'object' && seg ? seg.category : seg;
     const isEs =
-      currentSettings.lang === 'es' || navigator.language?.startsWith('es');
+      currentSettings.lang === 'es' ||
+      (!currentSettings.lang &&
+        typeof navigator !== 'undefined' &&
+        navigator.language?.startsWith('es'));
     let label = '';
     if (category === 'selfpromo') {
       label = isEs ? 'AUTO-PROMOCION SALTADA' : 'SELF-PROMO SKIPPED';
@@ -1084,14 +1158,36 @@
       label = isEs ? 'PATROCINIO SALTADO' : 'SPONSOR SKIPPED';
     }
 
-    toast.textContent = label;
+    const unskipText = isEs ? 'DESHACER' : 'UNSKIP';
+
+    toast.textContent = '';
+    const textSpan = document.createElement('span');
+    textSpan.textContent = label;
+    toast.appendChild(textSpan);
+
+    if (seg && typeof seg.start === 'number' && video) {
+      const unskipBtn = document.createElement('button');
+      unskipBtn.type = 'button';
+      unskipBtn.className = 'libertad-sponsor-toast-unskip';
+      unskipBtn.textContent = unskipText;
+      unskipBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (seg.uuid) ignoredSegmentUuids.add(seg.uuid);
+        seekVideoPlayer(video, Math.max(0, seg.start - 0.2));
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 250);
+      });
+      toast.appendChild(unskipBtn);
+    }
+
     toast.style.opacity = '1';
 
     if (toast.fadeTimeout) clearTimeout(toast.fadeTimeout);
     toast.fadeTimeout = setTimeout(() => {
       toast.style.opacity = '0';
       setTimeout(() => toast.remove(), 350);
-    }, 1800);
+    }, 4000);
   }
 
   function getMainPlayerContainer() {
@@ -1213,6 +1309,9 @@
 
     const currentTime = video.currentTime;
     for (const seg of currentSponsorSegments) {
+      if (seg.uuid && ignoredSegmentUuids.has(seg.uuid)) {
+        continue;
+      }
       if (!shouldSkipCategory(seg.category, currentSettings)) {
         continue;
       }
@@ -1220,7 +1319,7 @@
         seekVideoPlayer(video, seg.end + 0.05);
         if (lastSkippedSegmentUuid !== seg.uuid) {
           lastSkippedSegmentUuid = seg.uuid;
-          showSponsorSkipToast(seg.category);
+          showSponsorSkipToast(seg, video);
           console.log(
             `[Libertad SponsorBlock] Skipped ${seg.category} (${seg.start.toFixed(1)}s -> ${seg.end.toFixed(1)}s)`,
           );
@@ -1257,54 +1356,6 @@
       video.addEventListener('loadedmetadata', () => {
         renderSponsorProgressBar();
       });
-
-      const startInterval = () => {
-        const hasAnySkip =
-          currentSettings.sponsorSkipSponsors !== false ||
-          !!currentSettings.sponsorSkipSelfpromo ||
-          currentSettings.sponsorSkipInteraction !== false ||
-          !!currentSettings.sponsorSkipIntro ||
-          !!currentSettings.sponsorSkipOutro ||
-          !!currentSettings.sponsorSkipMusicOfftopic;
-
-        if (
-          !currentSettings.skipSponsors ||
-          currentSponsorSegments.length === 0 ||
-          !hasAnySkip
-        ) {
-          if (sponsorPlayInterval) {
-            clearInterval(sponsorPlayInterval);
-            sponsorPlayInterval = null;
-          }
-          return;
-        }
-        if (!sponsorPlayInterval) {
-          sponsorPlayInterval = setInterval(() => {
-            if (video && !video.paused) {
-              checkVideoSponsors(video);
-            }
-          }, 150);
-        }
-      };
-
-      video.addEventListener('play', startInterval);
-      video.addEventListener('playing', startInterval);
-      video.addEventListener('pause', () => {
-        if (sponsorPlayInterval) {
-          clearInterval(sponsorPlayInterval);
-          sponsorPlayInterval = null;
-        }
-      });
-      video.addEventListener('ended', () => {
-        if (sponsorPlayInterval) {
-          clearInterval(sponsorPlayInterval);
-          sponsorPlayInterval = null;
-        }
-      });
-
-      if (!video.paused) {
-        startInterval();
-      }
 
       if (currentSponsorSegments.length > 0) {
         renderSponsorProgressBar();
@@ -1837,7 +1888,14 @@
   chrome.storage.sync.get(null, (saved) => {
     if (saved && Object.keys(saved).length > 0) {
       currentSettings = { ...currentSettings, ...saved };
+      try {
+        sessionStorage.setItem(
+          'libertad_settings',
+          JSON.stringify(currentSettings),
+        );
+      } catch (_) {}
     }
+    redirectShortsIfActive();
     applyStyles(currentSettings);
     updateDislikeCount();
     updateWatchTitle();
@@ -1846,23 +1904,63 @@
     bindVideoSponsorListener();
   });
 
-  // Listen for storage changes in real time (e.g. from popup clicks)
+  // Listen for storage changes in real time with granular key diffing
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName === 'sync') {
+      let stylesChanged = false;
+      let dislikesChanged = false;
+      let titleChanged = false;
+      let sponsorsChanged = false;
+      let shortsChanged = false;
+
       for (const key in changes) {
         currentSettings[key] = changes[key].newValue;
+        if (key === 'showDislikes') {
+          dislikesChanged = true;
+        } else if (key === 'untranslateTitles') {
+          titleChanged = true;
+        } else if (
+          key.startsWith('skipSponsors') ||
+          key.startsWith('sponsorSkip')
+        ) {
+          sponsorsChanged = true;
+        } else if (key === 'hideShorts') {
+          stylesChanged = true;
+          shortsChanged = true;
+        } else if (
+          key === 'preset' ||
+          key === 'customConfig' ||
+          (typeof TOGGLE_KEYS !== 'undefined' && TOGGLE_KEYS.includes(key)) ||
+          key === 'lang'
+        ) {
+          stylesChanged = true;
+        }
       }
-      applyStyles(currentSettings);
-      updateDislikeCount();
-      updateWatchTitle();
-      untranslateFeed();
-      updateSponsorSegments();
-      bindVideoSponsorListener();
+
+      try {
+        sessionStorage.setItem(
+          'libertad_settings',
+          JSON.stringify(currentSettings),
+        );
+      } catch (_) {}
+
+      if (stylesChanged) applyStyles(currentSettings);
+      if (shortsChanged) redirectShortsIfActive();
+      if (dislikesChanged) updateDislikeCount();
+      if (titleChanged) {
+        updateWatchTitle();
+        untranslateFeed();
+      }
+      if (sponsorsChanged) {
+        updateSponsorSegments();
+        bindVideoSponsorListener();
+      }
     }
   });
 
   // Handle YouTube SPA Navigation events
   window.addEventListener('yt-navigate-start', () => {
+    redirectShortsIfActive();
     currentOriginalTitle = null;
     currentWatchVideoId = null;
     currentSponsorVideoId = null;
@@ -1870,10 +1968,7 @@
     currentSponsorVideoDuration = 0;
     lastSkippedSegmentUuid = null;
     lastRenderedSponsorKey = '';
-    if (sponsorPlayInterval) {
-      clearInterval(sponsorPlayInterval);
-      sponsorPlayInterval = null;
-    }
+    ignoredSegmentUuids.clear();
     feedFetchQueue.length = 0;
     pendingFeedVideoIds.clear();
     observedTitleNodesByVideoId.clear();
@@ -1884,6 +1979,7 @@
   });
 
   window.addEventListener('yt-navigate-finish', () => {
+    redirectShortsIfActive();
     currentOriginalTitle = null;
     currentWatchVideoId = null;
     currentSponsorVideoId = null;
@@ -1899,7 +1995,9 @@
     bindVideoSponsorListener();
   });
 
-  // Throttled MutationObserver with debounced feed untranslate
+  window.addEventListener('popstate', redirectShortsIfActive);
+
+  // Throttled MutationObserver with debounced feed untranslate and node-addition filtering
   let isCheckingMutation = false;
   let untranslateDebounceTimer = null;
 
@@ -1911,12 +2009,23 @@
     }, 250);
   }
 
-  const observer = new MutationObserver(() => {
+  const observer = new MutationObserver((mutations) => {
+    // Only process if DOM element nodes were actually added to eliminate jank during playback
+    let hasAddedNodes = false;
+    for (let i = 0; i < mutations.length; i++) {
+      if (mutations[i].addedNodes.length > 0) {
+        hasAddedNodes = true;
+        break;
+      }
+    }
+    if (!hasAddedNodes) return;
+
     if (isCheckingMutation) return;
     isCheckingMutation = true;
 
     window.requestAnimationFrame(() => {
       isCheckingMutation = false;
+      redirectShortsIfActive();
       updateZenBanner(currentSettings);
 
       if (window.location.pathname === '/watch') {
@@ -1963,7 +2072,8 @@
     });
   });
 
-  observer.observe(document.documentElement, {
+  const observeTarget = document.body || document.documentElement;
+  observer.observe(observeTarget, {
     childList: true,
     subtree: true,
   });

@@ -12,7 +12,9 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-// Relay external requests to prevent CSP/CORS issues with bounded in-memory caching
+// Relay external requests to prevent CSP/CORS issues with two-level caching:
+// L1: In-memory Map (synchronous)
+// L2: chrome.storage.session (persists across Service Worker lifecycle suspensions)
 const dislikesCache = new Map();
 const titlesCache = new Map();
 const sponsorsCache = new Map();
@@ -27,6 +29,33 @@ function setBoundedCache(cache, key, value) {
   cache.set(key, value);
 }
 
+async function getFromCache(cacheMap, prefix, key) {
+  if (cacheMap.has(key)) {
+    return cacheMap.get(key);
+  }
+  if (chrome.storage?.session) {
+    try {
+      const storageKey = `${prefix}_${key}`;
+      const res = await chrome.storage.session.get(storageKey);
+      if (res && res[storageKey] !== undefined) {
+        setBoundedCache(cacheMap, key, res[storageKey]);
+        return res[storageKey];
+      }
+    } catch (_) {}
+  }
+  return undefined;
+}
+
+async function setToCache(cacheMap, prefix, key, value) {
+  setBoundedCache(cacheMap, key, value);
+  if (chrome.storage?.session) {
+    try {
+      const storageKey = `${prefix}_${key}`;
+      await chrome.storage.session.set({ [storageKey]: value });
+    } catch (_) {}
+  }
+}
+
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   if (request.action === 'FETCH_DISLIKES') {
     const videoId = request.videoId;
@@ -35,31 +64,31 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
       return;
     }
 
-    if (dislikesCache.has(videoId)) {
-      sendResponse({ success: true, data: dislikesCache.get(videoId) });
-      return;
-    }
+    (async () => {
+      const cached = await getFromCache(dislikesCache, 'dislikes', videoId);
+      if (cached) {
+        sendResponse({ success: true, data: cached });
+        return;
+      }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-    fetch(
-      `https://returnyoutubedislikeapi.com/votes?videoId=${encodeURIComponent(videoId)}`,
-      { signal: controller.signal },
-    )
-      .then((res) => {
+      try {
+        const res = await fetch(
+          `https://returnyoutubedislikeapi.com/votes?videoId=${encodeURIComponent(videoId)}`,
+          { signal: controller.signal },
+        );
         clearTimeout(timeoutId);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        setBoundedCache(dislikesCache, videoId, data);
+        const data = await res.json();
+        await setToCache(dislikesCache, 'dislikes', videoId, data);
         sendResponse({ success: true, data });
-      })
-      .catch((err) => {
+      } catch (err) {
         clearTimeout(timeoutId);
         sendResponse({ success: false, error: err.message });
-      });
+      }
+    })();
 
     return true; // Keep channel open for async response
   }
@@ -71,35 +100,35 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
       return;
     }
 
-    if (titlesCache.has(videoId)) {
-      sendResponse(titlesCache.get(videoId));
-      return;
-    }
+    (async () => {
+      const cached = await getFromCache(titlesCache, 'titles', videoId);
+      if (cached) {
+        sendResponse(cached);
+        return;
+      }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-    // YouTube oEmbed endpoint returns untranslated original title
-    const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`;
-    fetch(oembedUrl, { signal: controller.signal })
-      .then((res) => {
+      try {
+        // YouTube oEmbed endpoint returns untranslated original title
+        const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`;
+        const res = await fetch(oembedUrl, { signal: controller.signal });
         clearTimeout(timeoutId);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
+        const data = await res.json();
         const payload = {
           success: true,
           title: data.title,
           author: data.author_name,
         };
-        setBoundedCache(titlesCache, videoId, payload);
+        await setToCache(titlesCache, 'titles', videoId, payload);
         sendResponse(payload);
-      })
-      .catch((err) => {
+      } catch (err) {
         clearTimeout(timeoutId);
         sendResponse({ success: false, error: err.message });
-      });
+      }
+    })();
 
     return true;
   }
@@ -111,48 +140,51 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
       return;
     }
 
-    if (sponsorsCache.has(videoId)) {
-      sendResponse(sponsorsCache.get(videoId));
-      return;
-    }
+    (async () => {
+      const cached = await getFromCache(sponsorsCache, 'sponsors', videoId);
+      if (cached) {
+        sendResponse(cached);
+        return;
+      }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-    const categories = JSON.stringify([
-      'sponsor',
-      'selfpromo',
-      'interaction',
-      'intro',
-      'outro',
-      'preview',
-      'music_offtopic',
-    ]);
-    const url = `https://sponsor.ajay.app/api/skipSegments?videoID=${encodeURIComponent(videoId)}&categories=${encodeURIComponent(categories)}`;
+      const categories = JSON.stringify([
+        'sponsor',
+        'selfpromo',
+        'interaction',
+        'intro',
+        'outro',
+        'preview',
+        'music_offtopic',
+      ]);
+      const url = `https://sponsor.ajay.app/api/skipSegments?videoID=${encodeURIComponent(videoId)}&categories=${encodeURIComponent(categories)}`;
 
-    fetch(url, { signal: controller.signal })
-      .then((res) => {
+      try {
+        const res = await fetch(url, { signal: controller.signal });
         clearTimeout(timeoutId);
         if (res.status === 404) {
           // 404 in SponsorBlock API means no sponsor segments exist for this video
-          return [];
+          const emptyPayload = { success: true, segments: [] };
+          await setToCache(sponsorsCache, 'sponsors', videoId, emptyPayload);
+          sendResponse(emptyPayload);
+          return;
         }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((segments) => {
+        const segments = await res.json();
         const payload = {
           success: true,
           segments: Array.isArray(segments) ? segments : [],
         };
-        setBoundedCache(sponsorsCache, videoId, payload);
+        await setToCache(sponsorsCache, 'sponsors', videoId, payload);
         sendResponse(payload);
-      })
-      .catch((err) => {
+      } catch (err) {
         clearTimeout(timeoutId);
         console.warn('[Libertad ServiceWorker] SponsorBlock fetch error:', err);
         sendResponse({ success: false, error: err.message });
-      });
+      }
+    })();
 
     return true;
   }
