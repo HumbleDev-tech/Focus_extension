@@ -118,7 +118,7 @@ Switch between curated focus profiles with a single click or tailor your own (31
 * **Direct to Subscriptions**: Optionally redirects the YouTube homepage (`/`) directly to your chronological Subscriptions feed (`/feed/subscriptions`), allowing you to view your subscribed creators without algorithmic recommendation traps.
 * **Related Sidebar & Auto-Centering**: Removes watch-next suggestions and algorithmically recommended videos beside the player. Automatically centers the main video player in theater style to prevent awkward whitespace.
 * **Comments Section**: Hides the entire comment stream across all video watch pages to avoid engagement traps and toxic comment sections.
-* **Shorts Eradication & Redirection**: Strips Shorts shelves, navigation drawer links, mini-guide buttons, and feed entries across the entire YouTube interface, automatically redirecting any direct `/shorts/` URLs to the standard watch player (`/watch?v=`).
+* **Shorts Eradication & Redirection**: Strips Shorts shelves, channel tabs (`/@channel/shorts`), navigation drawer links, mini-guide buttons, modern view-models (`ytm-shorts-lockup-view-model`), and feed/search entries across YouTube. Automatically redirects direct `/shorts/` URLs to the standard watch player (`/watch?v=`) and channel `/shorts` tabs directly to the channel's standard `/videos` feed.
 * **End Screen Cards**: Suppresses popup overlay cards, subscribe buttons, and teaser cards that obstruct the final seconds of videos.
 
 ---

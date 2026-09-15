@@ -30,7 +30,10 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (settings.hideSidebar) {
       rules.push(`
         #secondary.ytd-watch-flexy,
+        #secondary-inner.ytd-watch-flexy,
         #related.ytd-watch-flexy,
+        #related,
+        ytd-watch-flexy #related,
         ytd-watch-next-secondary-results-renderer {
           display: none !important;
         }
@@ -45,23 +48,56 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (settings.hideComments) {
       rules.push(`
         #comments,
-        ytd-comments {
+        ytd-comments,
+        ytd-engagement-panel-section-list-renderer[target-id*="comments"],
+        ytd-engagement-panel-section-list-renderer:has(#comments),
+        #engagement-panel-comments-section {
           display: none !important;
         }
       `);
     }
 
-    // Shorts (Shelves, sidebars, header/navigation links, and shorts player)
+    // Shorts (Shelves, sidebars, header/navigation links, channel tabs, and shorts player)
     if (settings.hideShorts) {
       rules.push(`
+        /* Channel Shorts Tab */
+        yt-tab-shape[tab-title="Shorts" i],
+        yt-tab-group-shape yt-tab-shape[tab-title="Shorts" i],
+        ytd-tabbed-page-header yt-tab-shape[tab-title="Shorts" i],
+        yt-tab-shape:has(div[aria-label*="Shorts" i]),
+        yt-tab-shape:has(a[href*="/shorts"]),
+        tp-yt-paper-tab:has(a[href*="/shorts"]),
+        tp-yt-paper-tab:has([title*="Shorts" i]),
+        ytd-c4-tabbed-header-renderer tp-yt-paper-tab:has(a[href*="/shorts"]),
+
+        /* Shelves and Containers */
         ytd-reel-shelf-renderer,
         ytd-rich-shelf-renderer[is-shorts],
         ytd-rich-section-renderer:has(ytd-reel-shelf-renderer),
         ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]),
-        ytd-guide-entry-renderer:has(a[title="Shorts"]),
-        ytd-guide-entry-renderer:has(a[href^="/shorts"]),
-        ytd-mini-guide-entry-renderer[aria-label="Shorts"],
+        ytd-item-section-renderer:has(ytd-reel-shelf-renderer),
+
+        /* Navigation Drawer & Guide */
+        ytd-guide-entry-renderer:has(a[title*="Shorts" i]),
+        ytd-guide-entry-renderer:has(a[href*="/shorts"]),
+        ytd-mini-guide-entry-renderer[aria-label*="Shorts" i],
+        ytd-mini-guide-entry-renderer:has(a[href*="/shorts"]),
+        yt-list-item-view-model:has(a[href*="/shorts"]),
         a[title="Shorts"],
+
+        /* Modern Shorts Lockup & Feeds/Search/Channel Grid Cards */
+        ytm-shorts-lockup-view-model,
+        ytm-shorts-lockup-view-model-v2,
+        ytd-rich-item-renderer:has(ytm-shorts-lockup-view-model),
+        ytd-rich-item-renderer:has(ytm-shorts-lockup-view-model-v2),
+        ytd-rich-item-renderer:has(a[href*="/shorts/"]),
+        ytd-video-renderer:has(a[href*="/shorts/"]),
+        ytd-grid-video-renderer:has(a[href*="/shorts/"]),
+        ytd-compact-video-renderer:has(a[href*="/shorts/"]),
+        yt-lockup-view-model:has(a[href*="/shorts/"]),
+        ytd-reel-item-renderer,
+
+        /* Standalone Player */
         ytd-shorts,
         #shorts-container,
         ytd-reel-video-renderer {
@@ -372,7 +408,11 @@ globalThis.Libertad = globalThis.Libertad || {};
       rules.push(`
         #subscribe-button,
         #subscribe-button-shape,
-        ytd-subscribe-button-renderer {
+        ytd-subscribe-button-renderer,
+        subscribe-button-view-model,
+        ytd-watch-metadata subscribe-button-view-model,
+        ytd-channel-header-renderer subscribe-button-view-model,
+        ytd-c4-tabbed-header-renderer subscribe-button-view-model {
           display: none !important;
         }
       `);
@@ -383,7 +423,11 @@ globalThis.Libertad = globalThis.Libertad || {};
       rules.push(`
         #info-container.ytd-watch-info-text,
         ytd-watch-info-text #info-container,
-        #view-count.ytd-video-view-count-renderer {
+        #view-count.ytd-video-view-count-renderer,
+        watch-metadata-view-model #view-count,
+        watch-metadata-view-model #date,
+        watch-metadata-view-model .view-count,
+        #description-inner #info-container {
           display: none !important;
         }
       `);

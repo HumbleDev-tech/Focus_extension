@@ -33,6 +33,15 @@ globalThis.Libertad = globalThis.Libertad || {};
           : '/';
         window.location.replace(dest);
       }
+      return;
+    }
+
+    // Intercept channel shorts URLs (e.g. /@channel/shorts, /channel/ID/shorts)
+    const channelShortsMatch = path.match(
+      /^(\/(@[^/]+|channel\/[^/]+|c\/[^/]+|user\/[^/]+))\/shorts(?:\/.*)?$/,
+    );
+    if (channelShortsMatch) {
+      window.location.replace(`${channelShortsMatch[1]}/videos`);
     }
   }
 
