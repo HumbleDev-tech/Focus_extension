@@ -38,6 +38,9 @@ const LIBERTAD_I18N = {
     toggleHomeFeedTitle: 'Home Feed',
     toggleHomeFeedDesc:
       'Suppress infinite recommendations grid and engage Zen Mode',
+    toggleRedirectHomeSubscriptionsTitle: 'Direct to Subscriptions',
+    toggleRedirectHomeSubscriptionsDesc:
+      'Redirect YouTube home page directly to your subscribed creators feed',
     toggleSidebarTitle: 'Related Sidebar',
     toggleSidebarDesc: 'Suppress watch-next suggested videos and center player',
     toggleCommentsTitle: 'Comments',
@@ -142,6 +145,9 @@ const LIBERTAD_I18N = {
     toggleHomeFeedTitle: 'Feed Principal',
     toggleHomeFeedDesc:
       'Suprime la cuadricula infinita de recomendaciones y activa Modo Zen',
+    toggleRedirectHomeSubscriptionsTitle: 'Ir a Suscripciones',
+    toggleRedirectHomeSubscriptionsDesc:
+      'Redirige la pagina de inicio de YouTube directamente al feed de tus suscripciones',
     toggleSidebarTitle: 'Barra Lateral',
     toggleSidebarDesc:
       'Suprime videos sugeridos de la barra lateral y centra el reproductor',

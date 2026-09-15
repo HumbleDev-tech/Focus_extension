@@ -22,6 +22,7 @@ FILES_TO_INCLUDE = [
 DIRS_TO_INCLUDE = [
     "icons",
     "_locales",
+    "src",
 ]
 
 def create_package():

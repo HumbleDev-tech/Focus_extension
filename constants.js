@@ -6,6 +6,7 @@
 const TOGGLE_KEYS = [
   // Focus Shield (Macro Distraction Blockers)
   'hideHomeFeed',
+  'redirectHomeToSubscriptions',
   'hideSidebar',
   'hideComments',
   'hideShorts',
@@ -48,6 +49,7 @@ const DEFAULT_SETTINGS = {
   scale: 'auto', // 'auto', '100', '120', '140'
   activeTab: 'focus', // 'focus', 'cleaner', 'extras'
   hideHomeFeed: false,
+  redirectHomeToSubscriptions: false,
   hideSidebar: true,
   hideComments: false,
   hideShorts: true,
@@ -93,6 +95,7 @@ const DEFAULT_SETTINGS = {
   sponsorSkipMusicOfftopic: false,
   customConfig: {
     hideHomeFeed: false,
+    redirectHomeToSubscriptions: false,
     hideSidebar: true,
     hideComments: false,
     hideShorts: true,
@@ -128,6 +131,7 @@ const DEFAULT_SETTINGS = {
 const PRESET_MAP = {
   off: {
     hideHomeFeed: false,
+    redirectHomeToSubscriptions: false,
     hideSidebar: false,
     hideComments: false,
     hideShorts: false,
@@ -161,6 +165,7 @@ const PRESET_MAP = {
   },
   basic: {
     hideHomeFeed: false,
+    redirectHomeToSubscriptions: false,
     hideSidebar: false,
     hideComments: false,
     hideShorts: false,
@@ -194,6 +199,7 @@ const PRESET_MAP = {
   },
   balanced: {
     hideHomeFeed: false,
+    redirectHomeToSubscriptions: false,
     hideSidebar: true,
     hideComments: false,
     hideShorts: true,
@@ -227,6 +233,7 @@ const PRESET_MAP = {
   },
   extreme: {
     hideHomeFeed: true,
+    redirectHomeToSubscriptions: false,
     hideSidebar: true,
     hideComments: true,
     hideShorts: true,

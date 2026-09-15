@@ -17,7 +17,18 @@
   "content_scripts": [
     {
       "matches": ["*://www.youtube.com/*", "*://youtube.com/*"],
-      "js": ["constants.js", "content.js"],
+      "js": [
+        "constants.js",
+        "src/core/cache.js",
+        "src/core/utils.js",
+        "src/modules/styles.js",
+        "src/modules/shorts.js",
+        "src/modules/subscriptions.js",
+        "src/modules/dislikes.js",
+        "src/modules/sponsors.js",
+        "src/modules/untranslate.js",
+        "content.js"
+      ],
       "run_at": "document_start"
     }
   ],

@@ -45,6 +45,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggles = {
     // Focus Macro Shields
     hideHomeFeed: document.getElementById('toggleHomeFeed'),
+    redirectHomeToSubscriptions: document.getElementById(
+      'toggleRedirectHomeSubscriptions',
+    ),
     hideSidebar: document.getElementById('toggleSidebar'),
     hideComments: document.getElementById('toggleComments'),
     hideShorts: document.getElementById('toggleShorts'),
@@ -289,6 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isOff =
       state.preset === 'off' ||
       (!state.hideHomeFeed &&
+        !state.redirectHomeToSubscriptions &&
         !state.hideSidebar &&
         !state.hideComments &&
         !state.hideShorts &&

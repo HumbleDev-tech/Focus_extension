@@ -1,40 +1,13 @@
 /**
- * Libertad - YouTube Content Engine
- * Injects dynamic CSS rules, manages Zen mode, restores Dislikes, and untranslates video titles across Watch page and Feeds.
+ * Libertad - YouTube Content Orchestrator
+ * Central lifecycle entry point connecting modular engines:
+ * Cache, Utils, Styles, Shorts, Subscriptions, Dislikes, Sponsors, and Untranslate.
  */
 
 (function () {
   'use strict';
 
-  const STYLE_ID = 'libertad-focus-styles';
-  const ZEN_CONTAINER_ID = 'libertad-zen-container';
-
-  // Bounded LRU Cache to prevent memory leaks in persistent SPA sessions
-  class BoundedCache {
-    constructor(maxSize = 300) {
-      this.maxSize = maxSize;
-      this.map = new Map();
-    }
-    get(key) {
-      if (!this.map.has(key)) return undefined;
-      const val = this.map.get(key);
-      this.map.delete(key);
-      this.map.set(key, val);
-      return val;
-    }
-    set(key, val) {
-      if (this.map.has(key)) {
-        this.map.delete(key);
-      } else if (this.map.size >= this.maxSize) {
-        const oldestKey = this.map.keys().next().value;
-        this.map.delete(oldestKey);
-      }
-      this.map.set(key, val);
-    }
-    has(key) {
-      return this.map.has(key);
-    }
-  }
+  const Libertad = globalThis.Libertad || {};
 
   // Fallback defaults from single source of truth
   let currentSettings =
@@ -47,6 +20,7 @@
           scale: 'auto',
           activeTab: 'focus',
           hideHomeFeed: false,
+          redirectHomeToSubscriptions: false,
           hideSidebar: true,
           hideComments: true,
           hideShorts: true,
@@ -78,6 +52,7 @@
           hideMoreFromYoutube: true,
           showDislikes: true,
           untranslateTitles: true,
+          skipSponsors: true,
         };
 
   // Synchronous cache hydration to completely eliminate reverse FOUC at document_start
@@ -91,1776 +66,51 @@
     }
   } catch (_) {}
 
-  // Caches and queues with bounded capacity
-  const dislikeCache = new BoundedCache(200);
-  const titlesCache = new BoundedCache(300);
-  const sponsorCache = new BoundedCache(200);
-  const ignoredSegmentUuids = new Set();
-  let isFetchingDislikes = false;
-  let currentWatchVideoId = null;
-  let currentOriginalTitle = null;
-  let currentSponsorVideoId = null;
-  let currentSponsorSegments = [];
-  let currentSponsorVideoDuration = 0;
-  let lastSkippedSegmentUuid = null;
-  let lastRenderedSponsorKey = '';
-
-  const feedFetchQueue = [];
-  const pendingFeedVideoIds = new Set();
-  const observedTitleNodesByVideoId = new Map();
-  let activeFeedFetches = 0;
-  const MAX_CONCURRENT_FEED_FETCHES = 3;
-  let feedIntersectionObserver = null;
-
-  // Build high-efficiency CSS rules based on settings
-  function buildStylesheet(settings) {
-    const rules = [];
-
-    // Home feed
-    if (settings.hideHomeFeed) {
-      rules.push(`
-        ytd-browse[page-subtype="home"] #contents,
-        ytd-browse[page-subtype="home"] #chips-wrapper,
-        ytd-browse[page-subtype="home"] ytd-rich-grid-renderer {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Related / Sidebar
-    if (settings.hideSidebar) {
-      rules.push(`
-        #secondary.ytd-watch-flexy,
-        #related.ytd-watch-flexy,
-        ytd-watch-next-secondary-results-renderer {
-          display: none !important;
-        }
-        ytd-watch-flexy:not([theater]):not([fullscreen]) #primary.ytd-watch-flexy {
-          max-width: 1100px !important;
-          margin: 0 auto !important;
-        }
-      `);
-    }
-
-    // Comments
-    if (settings.hideComments) {
-      rules.push(`
-        #comments,
-        ytd-comments {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Shorts (Shelves, sidebars, header/navigation links, and shorts player)
-    if (settings.hideShorts) {
-      rules.push(`
-        ytd-reel-shelf-renderer,
-        ytd-rich-shelf-renderer[is-shorts],
-        ytd-rich-section-renderer:has(ytd-reel-shelf-renderer),
-        ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]),
-        ytd-guide-entry-renderer:has(a[title="Shorts"]),
-        ytd-guide-entry-renderer:has(a[href^="/shorts"]),
-        ytd-mini-guide-entry-renderer[aria-label="Shorts"],
-        a[title="Shorts"],
-        ytd-shorts,
-        #shorts-container,
-        ytd-reel-video-renderer {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Video Endscreens & Cards
-    if (settings.hideEndScreens) {
-      rules.push(`
-        .ytp-ce-element,
-        .ytp-endscreen-content,
-        .ytp-cards-teaser,
-        .ytp-cards-button {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Voice Search Microphone (Strictly scoped to masthead and searchbox)
-    if (settings.hideVoiceSearch) {
-      rules.push(`
-        #voice-search-button,
-        ytd-searchbox #voice-search-button,
-        yt-searchbox #voice-search-button,
-        ytd-masthead #voice-search-button,
-        ytd-voice-search-dialog-renderer,
-        ytd-masthead [class*="VoiceSearchButton"],
-        ytd-masthead [class*="voice-search-button"],
-        ytd-masthead [class*="voiceSearch"],
-        ytd-masthead yt-icon-button:has(yt-icon[icon*="mic"]),
-        ytd-masthead yt-icon-button:has(yt-icon[icon*="voice"]),
-        ytd-masthead yt-button-shape:has(yt-icon[icon*="mic"]),
-        ytd-masthead button:has(yt-icon[icon*="mic"]),
-        ytd-masthead yt-icon-button:has([aria-label*="voice" i]),
-        ytd-masthead yt-icon-button:has([aria-label*="voz" i]),
-        ytd-masthead button[aria-label*="voice" i],
-        ytd-masthead button[aria-label*="voz" i],
-        ytd-masthead button[title*="voice" i],
-        ytd-masthead button[title*="voz" i] {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Create / Upload Button in Masthead
-    if (settings.hideCreateButton) {
-      rules.push(`
-        ytd-masthead ytd-topbar-menu-button-renderer:has(yt-icon[icon*="create"]),
-        ytd-masthead ytd-topbar-menu-button-renderer:has(yt-icon[icon*="add_video"]),
-        ytd-masthead #buttons > :has(yt-icon[icon*="create"]),
-        ytd-masthead #buttons > :has(yt-icon[icon*="add_video"]),
-        ytd-masthead yt-button-shape:has(yt-icon[icon*="create"]),
-        ytd-masthead yt-button-view-model:has(yt-icon[icon*="create"]),
-        ytd-masthead ytd-button-renderer:has([aria-label*="create" i]),
-        ytd-masthead yt-button-view-model:has([aria-label*="create" i]),
-        ytd-masthead yt-button-shape:has([aria-label*="create" i]),
-        ytd-masthead ytd-button-renderer:has([aria-label*="crear" i]),
-        ytd-masthead yt-button-view-model:has([aria-label*="crear" i]),
-        ytd-masthead yt-button-shape:has([aria-label*="crear" i]),
-        ytd-masthead ytd-topbar-menu-button-renderer:has([aria-label*="create" i]),
-        ytd-masthead ytd-topbar-menu-button-renderer:has([aria-label*="crear" i]) {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Notification Bell in Masthead
-    if (settings.hideNotifications) {
-      rules.push(`
-        ytd-notification-topbar-button-renderer,
-        notification-topbar-button-view-model,
-        ytd-masthead yt-icon-button:has(yt-icon[icon*="bell"]),
-        ytd-masthead yt-button-shape:has(yt-icon[icon*="bell"]),
-        ytd-masthead [id*="notification-preference"],
-        ytd-masthead #notification-button,
-        ytd-masthead [aria-label*="notification" i],
-        ytd-masthead yt-icon-button:has([aria-label*="notif" i]) {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Ask AI Assistant Button (Scoped strictly to watch metadata and conversational AI elements)
-    if (settings.hideAskAi) {
-      rules.push(`
-        ytd-conversational-ai-view-model,
-        conversational-ai-button-view-model,
-        watch-metadata-view-model conversational-ai-button-view-model,
-        watch-metadata-view-model [target-id*="conversational"],
-        [component-id*="conversational_ai"],
-        [target-id*="conversational_ai"],
-        [target-id*="conversational-ai"],
-        #conversational-ai,
-        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="sparkle"]),
-        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="sparkle"]),
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="sparkle"]),
-        #actions yt-button-view-model:has(yt-icon[icon*="sparkle"]),
-        #actions yt-button-shape:has(yt-icon[icon*="sparkle"]),
-        #actions ytd-button-renderer:has(yt-icon[icon*="sparkle"]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="ask" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="pregunt" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="ask" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="pregunt" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="ask" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="pregunt" i]),
-        #actions yt-button-view-model:has([aria-label*="ask" i]),
-        #actions yt-button-view-model:has([aria-label*="pregunt" i]) {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Promotional Premium Download Button (Scoped strictly to watch metadata and overflow menus)
-    if (settings.hideDownload) {
-      rules.push(`
-        download-button-view-model,
-        ytd-download-button-renderer,
-        watch-metadata-view-model download-button-view-model,
-        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="download"]),
-        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="download"]),
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="download"]),
-        #actions yt-button-view-model:has(yt-icon[icon*="download"]),
-        #actions yt-button-shape:has(yt-icon[icon*="download"]),
-        #actions ytd-button-renderer:has(yt-icon[icon*="download"]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="download" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="descarg" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="download" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="descarg" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="download" i]),
-        ytd-watch-metadata ytd-button-renderer:has(a[href*="premium"]),
-        ytd-menu-service-item-renderer:has([aria-label*="descarg" i]),
-        ytd-menu-service-item-renderer:has([aria-label*="download" i]),
-        ytd-menu-navigation-item-renderer:has([aria-label*="descarg" i]),
-        ytd-menu-navigation-item-renderer:has([aria-label*="download" i]),
-        ytd-menu-navigation-item-renderer:has(a[href*="premium"]),
-        ytd-menu-popup-renderer ytd-menu-service-item-renderer:has(yt-icon[icon*="download"]),
-        ytd-menu-popup-renderer ytd-menu-navigation-item-renderer:has(yt-icon[icon*="download"]),
-        ytd-menu-popup-renderer tp-yt-paper-item:has(yt-icon[icon*="download"]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="descarg" i]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="download" i]) {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Thanks, Clips, and Remix Buttons (Scoped strictly to watch metadata)
-    if (settings.hideThanksClips) {
-      rules.push(`
-        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="super-thanks"]),
-        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="clip"]),
-        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="remix"]),
-        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="super-thanks"]),
-        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="clip"]),
-        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="remix"]),
-        #actions yt-button-view-model:has(yt-icon[icon*="super-thanks"]),
-        #actions yt-button-view-model:has(yt-icon[icon*="clip"]),
-        #actions yt-button-view-model:has(yt-icon[icon*="remix"]),
-        #actions yt-button-shape:has(yt-icon[icon*="super-thanks"]),
-        #actions yt-button-shape:has(yt-icon[icon*="clip"]),
-        #actions yt-button-shape:has(yt-icon[icon*="remix"]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="thank" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="gracia" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="thank" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="gracia" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="thank" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="gracia" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="clip" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="clip" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="clip" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="remix" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="remix" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="remix" i]),
-        #actions yt-button-view-model:has([aria-label*="thank" i]),
-        #actions yt-button-view-model:has([aria-label*="gracia" i]),
-        #actions yt-button-view-model:has([aria-label*="clip" i]),
-        #actions yt-button-view-model:has([aria-label*="remix" i]),
-        #actions button[aria-label*="thank" i],
-        #actions button[aria-label*="gracia" i],
-        #actions button[aria-label*="clip" i],
-        #actions button[aria-label*="remix" i],
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="super-thanks"]),
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="clip"]),
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="remix"]) {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Share Button (Scoped strictly to watch metadata)
-    if (settings.hideShare) {
-      rules.push(`
-        share-button-view-model,
-        ytd-share-target-renderer,
-        watch-metadata-view-model share-button-view-model,
-        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="share"]),
-        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="share"]),
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="share"]),
-        #actions yt-button-view-model:has(yt-icon[icon*="share"]),
-        #actions yt-button-shape:has(yt-icon[icon*="share"]),
-        #actions ytd-button-renderer:has(yt-icon[icon*="share"]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="share" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="compart" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="share" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="compart" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="share" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="compart" i]),
-        #actions yt-button-view-model:has([aria-label*="share" i]),
-        #actions yt-button-view-model:has([aria-label*="compart" i]) {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Channel Memberships / Join Button
-    if (settings.hideJoinButton) {
-      rules.push(`
-        #sponsor-button,
-        ytd-sponsor-button-renderer,
-        sponsor-button-view-model,
-        watch-metadata-view-model sponsor-button-view-model,
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="sponsor"]),
-        #actions ytd-button-renderer:has(yt-icon[icon*="sponsor"]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="unirse" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="join" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="unirse" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="join" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="unirse" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="join" i]),
-        ytd-watch-metadata #sponsor-button {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Merchandise, Shopping & Products Shelves
-    if (settings.hideMerchShelf) {
-      rules.push(`
-        ytd-merch-shelf-renderer,
-        merch-shelf-view-model,
-        ytd-shopping-item-card-list-renderer,
-        ytd-vertical-product-shelf-renderer,
-        ytd-rich-shelf-renderer:has(ytd-shopping-item-card-list-renderer),
-        ytd-engagement-panel-section-list-renderer[target-id*="shopping"],
-        ytd-engagement-panel-section-list-renderer:has(#shopping),
-        #shopping-panel,
-        [target-id*="shopping"],
-        [target-id*="merch"],
-        ytd-product-shelf-renderer {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Save / Add to Playlist Button
-    if (settings.hideSave) {
-      rules.push(`
-        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="playlist-add"]),
-        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="playlist-add"]),
-        #actions yt-button-view-model:has(yt-icon[icon*="playlist-add"]),
-        #actions yt-button-shape:has(yt-icon[icon*="playlist-add"]),
-        watch-metadata-view-model :has(yt-icon[icon*="playlist-add"]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="save" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="guardar" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="save" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="guardar" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="save" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="guardar" i]),
-        #actions yt-button-view-model:has([aria-label*="save" i]),
-        #actions yt-button-view-model:has([aria-label*="guardar" i]),
-        #actions ytd-button-renderer:has(yt-icon[icon*="playlist-add"]),
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="playlist-add"]) {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Like & Dislike Social Block
-    if (settings.hideLikeDislike) {
-      rules.push(`
-        segmented-like-dislike-button-view-model,
-        ytd-segmented-like-dislike-button-renderer,
-        #segmented-like-button,
-        #segmented-dislike-button,
-        like-button-view-model,
-        dislike-button-view-model,
-        #dislike-button,
-        #like-button {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Channel Subscriber Count
-    if (settings.hideSubscriberCount) {
-      rules.push(`
-        #owner-sub-count,
-        ytd-video-owner-renderer #owner-sub-count,
-        yt-formatted-string#owner-sub-count {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Channel Subscribe Button
-    if (settings.hideSubscribeButton) {
-      rules.push(`
-        #subscribe-button,
-        #subscribe-button-shape,
-        ytd-subscribe-button-renderer {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Video Views Count & Upload Date
-    if (settings.hideViewsDate) {
-      rules.push(`
-        #info-container.ytd-watch-info-text,
-        ytd-watch-info-text #info-container,
-        #view-count.ytd-video-view-count-renderer {
-          display: none !important;
-        }
-      `);
-    }
-
-    // 3-Dots Overflow Menu & Report Actions (Action Bar More actions button + Report option)
-    if (settings.hideMoreActions) {
-      rules.push(`
-        ytd-watch-metadata #actions ytd-menu-renderer > yt-icon-button.dropdown-trigger,
-        ytd-watch-metadata #actions ytd-menu-renderer > yt-button-shape,
-        ytd-watch-metadata #actions ytd-menu-renderer #top-level-buttons-computed ~ yt-button-shape,
-        ytd-watch-metadata #actions ytd-menu-renderer #top-level-buttons-computed ~ yt-icon-button,
-        ytd-watch-metadata #actions ytd-menu-renderer #top-level-buttons-computed ~ ytd-button-renderer,
-        ytd-watch-metadata #actions yt-icon-button[aria-label*="más acciones" i],
-        ytd-watch-metadata #actions yt-icon-button[aria-label*="more actions" i],
-        ytd-watch-metadata #actions yt-icon-button[aria-label*="otras acciones" i],
-        ytd-watch-metadata #actions button[aria-label*="más acciones" i],
-        ytd-watch-metadata #actions button[aria-label*="more actions" i],
-        ytd-watch-metadata #actions button[aria-label*="otras acciones" i],
-        ytd-watch-metadata #actions yt-button-shape:has(button[aria-label*="más acciones" i]),
-        ytd-watch-metadata #actions yt-button-shape:has(button[aria-label*="more actions" i]),
-        ytd-watch-metadata #actions yt-button-shape:has(button[aria-label*="otras acciones" i]),
-        ytd-menu-service-item-renderer:has(yt-icon[icon*="report"]),
-        ytd-menu-service-item-renderer:has(yt-icon[icon*="flag"]),
-        ytd-menu-service-item-renderer:has([aria-label*="report" i]),
-        ytd-menu-service-item-renderer:has([aria-label*="denunciar" i]),
-        ytd-menu-service-item-renderer:has([aria-label*="notificar" i]),
-        ytd-menu-popup-renderer tp-yt-paper-item:has(yt-icon[icon*="report"]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="report" i]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="denunciar" i]) {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Autoplay Player Switch
-    if (settings.hideAutoplay) {
-      rules.push(`
-        .ytp-autonav-toggle-button-container,
-        .ytp-button[data-tooltip-target-id*="autonav"],
-        .ytp-autonav-toggle-button {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Up Next Countdown Screen
-    if (settings.hideUpNext) {
-      rules.push(`
-        .ytp-upnext,
-        .ytp-upnext-autoplay-icon,
-        .ytp-upnext-container {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Video Player Channel Watermark
-    if (settings.hideWatermark) {
-      rules.push(`
-        .annotation-type-custom.iv-branding,
-        .iv-branding,
-        .ytp-featured-watermark {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Paid Promotion Banner Overlay
-    if (settings.hidePaidPromo) {
-      rules.push(`
-        .ytp-paid-content-overlay {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Miniplayer Button in Player Controls
-    if (settings.hideMiniplayer) {
-      rules.push(`
-        .ytp-miniplayer-button {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Search Box Autocomplete Suggestions
-    if (settings.hideSearchSuggestions) {
-      rules.push(`
-        .sbdd_b,
-        .sbsb_a,
-        yt-searchbox-suggestions,
-        .gstl_50,
-        ytd-searchbox .sbdd_a {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Search and Feed Filter Chips
-    if (settings.hideFilterChips) {
-      rules.push(`
-        ytd-feed-filter-chip-bar-renderer,
-        #chips-wrapper.ytd-feed-filter-chip-bar-renderer,
-        ytd-feed-filter-chip-bar-renderer iron-selector#chips {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Left Drawer Trending & Explore Section
-    if (settings.hideTrending) {
-      rules.push(`
-        ytd-guide-section-renderer:has(a[href*="/feed/trending"]),
-        ytd-guide-entry-renderer:has(a[href*="/feed/trending"]),
-        ytd-guide-entry-renderer:has(a[href*="/feed/explore"]),
-        ytd-mini-guide-entry-renderer:has(a[href*="/feed/trending"]) {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Left Drawer "More from YouTube" Links
-    if (settings.hideMoreFromYoutube) {
-      rules.push(`
-        ytd-guide-section-renderer:has(a[href*="premium"]),
-        ytd-guide-section-renderer:has(a[href*="studio.youtube.com"]) {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Live Chat & Live Chat Replay
-    if (settings.hideLiveChat) {
-      rules.push(`
-        #chat,
-        #chat-container,
-        ytd-live-chat-frame {
-          display: none !important;
-        }
-      `);
-    }
-
-    // Dislike Button Fix & Expansion (Only injected when dislikes are active and not suppressed)
-    if (settings.showDislikes && !settings.hideLikeDislike) {
-      rules.push(`
-        /* Ensure Dislike button container allows text expansion and proper padding */
-        ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button,
-        segmented-like-dislike-button-view-model dislike-button-view-model button,
-        dislike-button-view-model button,
-        #segmented-dislike-button button,
-        #dislike-button button {
-          width: auto !important;
-          min-width: 48px !important;
-          padding-left: 8px !important;
-          padding-right: 12px !important;
-          display: inline-flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-        }
-
-        .libertad-dislike-badge {
-          display: inline-flex !important;
-          align-items: center !important;
-          font-family: "Roboto", "Segoe UI", Arial, sans-serif !important;
-          font-size: 14px !important;
-          font-weight: 500 !important;
-          line-height: 1 !important;
-          color: inherit !important;
-          margin-left: 6px !important;
-          pointer-events: none !important;
-          white-space: nowrap !important;
-        }
-      `);
-    }
-
-    // Libertad UI Elements styling
-    rules.push(`
-      #libertad-zen-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 52vh;
-        text-align: center;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        color: var(--yt-spec-text-primary, #f1f1f1);
-        padding: 40px 20px;
-        animation: libertadFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      @keyframes libertadFadeIn {
-        from { opacity: 0; transform: translateY(6px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      .libertad-zen-card {
-        background: var(--yt-spec-brand-background-primary, #0e1219);
-        border: 1px solid var(--yt-spec-10-percent-layer, rgba(255, 255, 255, 0.1));
-        border-radius: 6px;
-        padding: 32px 36px;
-        max-width: 440px;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-      .libertad-zen-badge {
-        font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, monospace;
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 1.2px;
-        color: var(--yt-spec-call-to-action, #065fd4);
-        background: rgba(6, 95, 212, 0.08);
-        border: 1px solid rgba(6, 95, 212, 0.28);
-        border-radius: 3px;
-        padding: 2px 8px;
-        margin-bottom: 16px;
-        text-transform: uppercase;
-      }
-      html[dark] .libertad-zen-badge {
-        color: #38bdf8;
-        background: rgba(56, 189, 248, 0.08);
-        border: 1px solid rgba(56, 189, 248, 0.28);
-      }
-      .libertad-zen-icon-wrapper {
-        color: var(--yt-spec-call-to-action, #065fd4);
-        margin-bottom: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 44px;
-        height: 44px;
-        background: rgba(6, 95, 212, 0.06);
-        border: 1px solid rgba(6, 95, 212, 0.2);
-        border-radius: 4px;
-        box-shadow: 0 0 16px rgba(6, 95, 212, 0.12);
-      }
-      html[dark] .libertad-zen-icon-wrapper {
-        color: #38bdf8;
-        background: rgba(56, 189, 248, 0.06);
-        border: 1px solid rgba(56, 189, 248, 0.2);
-        box-shadow: 0 0 16px rgba(56, 189, 248, 0.12);
-      }
-      .libertad-zen-svg {
-        display: block;
-      }
-      .libertad-zen-title {
-        font-size: 18px;
-        font-weight: 600;
-        letter-spacing: -0.2px;
-        margin: 0 0 8px 0;
-        color: var(--yt-spec-text-primary, #ffffff);
-      }
-      .libertad-zen-desc {
-        font-size: 13px;
-        line-height: 1.5;
-        color: var(--yt-spec-text-secondary, #8b949e);
-        margin: 0;
-      }
-      .libertad-sponsor-toast {
-        position: absolute;
-        bottom: 64px;
-        right: 24px;
-        background: rgba(13, 17, 23, 0.94);
-        border: 1px solid #38bdf8;
-        color: #38bdf8;
-        font-family: var(--font-mono, ui-monospace, monospace);
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.6px;
-        padding: 6px 12px;
-        border-radius: 4px;
-        z-index: 9999;
-        pointer-events: auto;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
-        transition: opacity 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .libertad-sponsor-toast-unskip {
-        background: rgba(56, 189, 248, 0.15);
-        border: 1px solid #38bdf8;
-        color: #38bdf8;
-        border-radius: 3px;
-        padding: 2px 7px;
-        font-family: inherit;
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-        cursor: pointer;
-        outline: none;
-        transition: background 0.15s ease, color 0.15s ease;
-      }
-      .libertad-sponsor-toast-unskip:hover {
-        background: #38bdf8;
-        color: #0d1117;
-      }
-      .libertad-sponsor-bar-container {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        min-height: 4px !important;
-        pointer-events: none !important;
-        z-index: 55 !important;
-        overflow: visible !important;
-      }
-      .libertad-sponsor-bar-segment {
-        position: absolute !important;
-        top: 0 !important;
-        bottom: 0 !important;
-        height: 100% !important;
-        min-height: 4px !important;
-        min-width: 2px !important;
-        border-radius: 1px !important;
-        pointer-events: none !important;
-        opacity: 0.95 !important;
-        box-shadow: 0 0 2px rgba(0, 0, 0, 0.6) !important;
-        z-index: 56 !important;
-      }
-    `);
-
-    return rules.join('\n');
+  // Early route checks at document_start
+  if (Libertad.redirectShortsIfActive) {
+    Libertad.redirectShortsIfActive(currentSettings);
+  }
+  if (Libertad.redirectHomeToSubscriptions) {
+    Libertad.redirectHomeToSubscriptions(currentSettings);
   }
 
-  // Intercept and redirect /shorts/ to /watch?v= when hideShorts is enabled
-  function redirectShortsIfActive() {
-    if (!currentSettings.hideShorts) return;
-    const path = window.location.pathname;
-    if (path.startsWith('/shorts')) {
-      const videoId =
-        (typeof parseYouTubeVideoId === 'function' &&
-          parseYouTubeVideoId(window.location.href)) ||
-        path.split('/shorts/')[1]?.split(/[?&#/]/)[0];
-      if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
-        window.location.replace(`/watch?v=${videoId}`);
-      } else if (path === '/shorts' || path === '/shorts/') {
-        window.location.replace('/');
-      }
+  // Initialize SPA link interceptor for instantaneous subscription routing
+  if (Libertad.setupSubscriptionsLinkInterceptor) {
+    Libertad.setupSubscriptionsLinkInterceptor(() => currentSettings);
+  }
+
+  // Apply styles immediately at document_start
+  if (Libertad.applyStyles) {
+    Libertad.applyStyles(currentSettings);
+  }
+
+  // Synchronize all modules with current settings
+  function syncAllModules() {
+    if (Libertad.applyStyles) Libertad.applyStyles(currentSettings);
+    if (Libertad.redirectShortsIfActive) {
+      Libertad.redirectShortsIfActive(currentSettings);
+    }
+    if (Libertad.redirectHomeToSubscriptions) {
+      Libertad.redirectHomeToSubscriptions(currentSettings);
+    }
+    if (Libertad.updateDislikeCount) {
+      Libertad.updateDislikeCount(currentSettings);
+    }
+    if (Libertad.updateWatchTitle) {
+      Libertad.updateWatchTitle(currentSettings);
+    }
+    if (Libertad.untranslateFeed) {
+      Libertad.untranslateFeed(currentSettings);
+    }
+    if (Libertad.updateSponsorSegments) {
+      Libertad.updateSponsorSegments(currentSettings);
+    }
+    if (Libertad.bindVideoSponsorListener) {
+      Libertad.bindVideoSponsorListener(currentSettings);
     }
   }
 
-  // Intercept Shorts immediately at document_start
-  redirectShortsIfActive();
-
-  // Inject or update the active stylesheet
-  function applyStyles(settings) {
-    let styleEl = document.getElementById(STYLE_ID);
-    if (!styleEl) {
-      styleEl = document.createElement('style');
-      styleEl.id = STYLE_ID;
-      (document.head || document.documentElement).appendChild(styleEl);
-    }
-    styleEl.textContent = buildStylesheet(settings);
-    updateZenBanner(settings);
-  }
-
-  // Apply default styles immediately at document_start (hydrated from sessionStorage or single source of truth)
-  applyStyles(currentSettings);
-
-  // Show a calm, intentional screen on YouTube home if home feed is disabled
-  function updateZenBanner(settings) {
-    const isHomePage =
-      window.location.pathname === '/' || window.location.pathname === '';
-    const existing = document.getElementById(ZEN_CONTAINER_ID);
-
-    if (settings.hideHomeFeed && isHomePage) {
-      const isSpanish =
-        settings.lang === 'es' ||
-        (!settings.lang &&
-          typeof navigator !== 'undefined' &&
-          navigator.language?.startsWith('es'));
-      const badgeText = isSpanish
-        ? 'SISTEMA // ENFOQUE_ACTIVO'
-        : 'SYSTEM // FOCUS_ENGAGED';
-      const titleText = isSpanish
-        ? 'Modo Intencional Activo'
-        : 'Intentional Mode Active';
-      const descText = isSpanish
-        ? 'Recomendaciones de feed suprimidas. Realiza una búsqueda arriba para encontrar contenido específico.'
-        : 'Feed recommendations suppressed. Execute a search query above to locate specific content.';
-
-      const cardHtml = `
-        <div class="libertad-zen-card">
-          <div class="libertad-zen-badge">${badgeText}</div>
-          <div class="libertad-zen-icon-wrapper">
-            <svg class="libertad-zen-svg" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="9"/>
-              <line x1="12" y1="2" x2="12" y2="6"/>
-              <line x1="12" y1="18" x2="12" y2="22"/>
-              <line x1="2" y1="12" x2="6" y2="12"/>
-              <line x1="18" y1="12" x2="22" y2="12"/>
-              <circle cx="12" cy="12" r="2.5"/>
-            </svg>
-          </div>
-          <div class="libertad-zen-title">${titleText}</div>
-          <p class="libertad-zen-desc">${descText}</p>
-        </div>
-      `;
-
-      if (existing) {
-        const langKey = isSpanish ? 'es' : 'en';
-        if (existing.dataset.lang !== langKey) {
-          existing.dataset.lang = langKey;
-          existing.innerHTML = cardHtml;
-        }
-      } else {
-        const targetContainer =
-          document.querySelector('ytd-browse[page-subtype="home"] #primary') ||
-          document.querySelector('ytd-browse[page-subtype="home"]') ||
-          document.querySelector('ytd-page-manager');
-        if (targetContainer) {
-          const zen = document.createElement('div');
-          zen.id = ZEN_CONTAINER_ID;
-          zen.dataset.lang = isSpanish ? 'es' : 'en';
-          zen.innerHTML = cardHtml;
-          targetContainer.prepend(zen);
-        }
-      }
-    } else {
-      if (existing) {
-        existing.remove();
-      }
-    }
-  }
-
-  // Format number with localized notation (e.g. 1.5K in EN, 1,5 mil in ES)
-  function formatNumber(num) {
-    if (typeof num !== 'number') return '';
-    const userLang =
-      currentSettings.lang === 'es'
-        ? 'es-ES'
-        : currentSettings.lang === 'en'
-          ? 'en-US'
-          : typeof navigator !== 'undefined' && navigator.language
-            ? navigator.language
-            : 'en-US';
-    try {
-      return new Intl.NumberFormat(userLang, {
-        notation: 'compact',
-        maximumFractionDigits: 1,
-      }).format(num);
-    } catch (_) {
-      if (num >= 1000000)
-        return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-      if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-      return num.toString();
-    }
-  }
-
-  // Find modern YouTube dislike button
-  function findDislikeButton() {
-    return (
-      document.querySelector(
-        'ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button',
-      ) ||
-      document.querySelector(
-        'segmented-like-dislike-button-view-model dislike-button-view-model button',
-      ) ||
-      document.querySelector('dislike-button-view-model button') ||
-      document.querySelector('#segmented-dislike-button button') ||
-      document.querySelector(
-        'like-button-view-model + dislike-button-view-model button',
-      ) ||
-      document.querySelector('#dislike-button button')
-    );
-  }
-
-  // Inject or update the dislike badge
-  function injectDislikeBadge(button, formattedCount) {
-    button.classList.remove('yt-spec-button-shape-next--icon-button');
-    button.classList.add('yt-spec-button-shape-next--icon-leading');
-
-    let textWrapper = button.querySelector(
-      '.yt-spec-button-shape-next__button-text-content',
-    );
-    if (!textWrapper) {
-      textWrapper = button.querySelector('.libertad-dislike-badge');
-    }
-
-    if (!textWrapper) {
-      textWrapper = document.createElement('div');
-      textWrapper.className =
-        'yt-spec-button-shape-next__button-text-content libertad-dislike-badge';
-      button.appendChild(textWrapper);
-    } else {
-      textWrapper.classList.add('libertad-dislike-badge');
-    }
-
-    if (textWrapper.textContent !== formattedCount) {
-      textWrapper.textContent = formattedCount;
-    }
-    button.setAttribute('aria-label', `Dislike (${formattedCount})`);
-  }
-
-  function removeDislikeBadge() {
-    const badges = document.querySelectorAll('.libertad-dislike-badge');
-    badges.forEach((b) => {
-      b.remove();
-    });
-  }
-
-  // Canonical YouTube 11-character Video ID parser
-  function parseYouTubeVideoId(input) {
-    if (!input || typeof input !== 'string') return null;
-    const str = input.trim();
-    if (!str) return null;
-
-    // Direct 11-char ID
-    if (/^[a-zA-Z0-9_-]{11}$/.test(str)) {
-      return str;
-    }
-
-    try {
-      const url = new URL(str, window.location.origin);
-      // youtu.be/ID
-      if (url.hostname.includes('youtu.be')) {
-        const m = url.pathname.match(/^\/([a-zA-Z0-9_-]{11})/);
-        if (m) return m[1];
-      }
-      // ?v=ID
-      const v = url.searchParams.get('v');
-      if (v && /^[a-zA-Z0-9_-]{11}$/.test(v)) {
-        return v;
-      }
-      // /shorts/ID, /live/ID, /embed/ID, /v/ID
-      const match = url.pathname.match(
-        /\/(?:shorts|live|embed|v)\/([a-zA-Z0-9_-]{11})/,
-      );
-      if (match) {
-        return match[1];
-      }
-    } catch (_) {
-      const match =
-        str.match(/[?&]v=([a-zA-Z0-9_-]{11})/) ||
-        str.match(/\/(?:shorts|live|embed|v)\/([a-zA-Z0-9_-]{11})/);
-      if (match) {
-        return match[1];
-      }
-    }
-
-    return null;
-  }
-
-  // Dislike restoration logic
-  function updateDislikeCount() {
-    if (!currentSettings.showDislikes) {
-      removeDislikeBadge();
-      return;
-    }
-
-    const videoId = parseYouTubeVideoId(window.location.href);
-    if (!videoId) {
-      removeDislikeBadge();
-      return;
-    }
-
-    const dislikeButton = findDislikeButton();
-    if (!dislikeButton) return;
-
-    if (dislikeCache.has(videoId)) {
-      injectDislikeBadge(dislikeButton, dislikeCache.get(videoId));
-      return;
-    }
-
-    if (isFetchingDislikes) return;
-    if (!chrome.runtime?.id) return;
-    isFetchingDislikes = true;
-
-    const fetchPromise = new Promise((resolve) => {
-      chrome.runtime.sendMessage(
-        { action: 'FETCH_DISLIKES', videoId },
-        (res) => {
-          if (!chrome.runtime.lastError && res && res.success && res.data) {
-            resolve(res.data);
-          } else {
-            resolve(null);
-          }
-        },
-      );
-    });
-
-    fetchPromise
-      .then((data) => {
-        isFetchingDislikes = false;
-        if (data && typeof data.dislikes === 'number') {
-          const formatted = formatNumber(data.dislikes);
-          dislikeCache.set(videoId, formatted);
-          const currentBtn = findDislikeButton();
-          if (currentBtn) {
-            injectDislikeBadge(currentBtn, formatted);
-          }
-        } else {
-          dislikeCache.set(videoId, null);
-        }
-      })
-      .catch(() => {
-        isFetchingDislikes = false;
-        dislikeCache.set(videoId, null);
-      });
-  }
-
-  // -----------------------------------------------------------
-  // SponsorBlock Engine: Real-Time Segment Skipping & Progress Bar
-  // -----------------------------------------------------------
-
-  const SPONSOR_CATEGORY_COLORS = {
-    sponsor: '#00d406',
-    selfpromo: '#fbc02d',
-    interaction: '#cc00ff',
-    intro: '#00d8d8',
-    outro: '#0268ed',
-    preview: '#008fd6',
-    music_offtopic: '#ff9900',
-  };
-
-  function getActiveVideoId() {
-    const moviePlayer = document.getElementById('movie_player');
-    if (moviePlayer && typeof moviePlayer.getVideoData === 'function') {
-      const data = moviePlayer.getVideoData();
-      if (data?.video_id && /^[a-zA-Z0-9_-]{11}$/.test(data.video_id)) {
-        return data.video_id;
-      }
-    }
-    const watchFlexy = document.querySelector('ytd-watch-flexy');
-    if (watchFlexy) {
-      const attrId = watchFlexy.getAttribute('video-id');
-      if (attrId && /^[a-zA-Z0-9_-]{11}$/.test(attrId)) {
-        return attrId;
-      }
-    }
-    return parseYouTubeVideoId(window.location.href);
-  }
-
-  function seekVideoPlayer(video, targetTime) {
-    if (video && Number.isFinite(targetTime)) {
-      video.currentTime = targetTime;
-    }
-  }
-
-  function showSponsorSkipToast(seg, video) {
-    const playerContainer =
-      document.querySelector('#movie_player') ||
-      document.querySelector('.html5-video-player');
-    if (!playerContainer) return;
-
-    let toast = playerContainer.querySelector('.libertad-sponsor-toast');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.className = 'libertad-sponsor-toast';
-      playerContainer.appendChild(toast);
-    }
-
-    const category = typeof seg === 'object' && seg ? seg.category : seg;
-    const isEs =
-      currentSettings.lang === 'es' ||
-      (!currentSettings.lang &&
-        typeof navigator !== 'undefined' &&
-        navigator.language?.startsWith('es'));
-    let label = '';
-    if (category === 'selfpromo') {
-      label = isEs ? 'AUTO-PROMOCION SALTADA' : 'SELF-PROMO SKIPPED';
-    } else if (category === 'interaction') {
-      label = isEs ? 'RECORDATORIO SALTADO' : 'REMINDER SKIPPED';
-    } else if (category === 'intro') {
-      label = isEs ? 'INTRO SALTADA' : 'INTRO SKIPPED';
-    } else if (category === 'outro') {
-      label = isEs ? 'OUTRO SALTADA' : 'OUTRO SKIPPED';
-    } else {
-      label = isEs ? 'PATROCINIO SALTADO' : 'SPONSOR SKIPPED';
-    }
-
-    const unskipText = isEs ? 'DESHACER' : 'UNSKIP';
-
-    toast.textContent = '';
-    const textSpan = document.createElement('span');
-    textSpan.textContent = label;
-    toast.appendChild(textSpan);
-
-    if (seg && typeof seg.start === 'number' && video) {
-      const unskipBtn = document.createElement('button');
-      unskipBtn.type = 'button';
-      unskipBtn.className = 'libertad-sponsor-toast-unskip';
-      unskipBtn.textContent = unskipText;
-      unskipBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        if (seg.uuid) ignoredSegmentUuids.add(seg.uuid);
-        seekVideoPlayer(video, Math.max(0, seg.start - 0.2));
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 250);
-      });
-      toast.appendChild(unskipBtn);
-    }
-
-    toast.style.opacity = '1';
-
-    if (toast.fadeTimeout) clearTimeout(toast.fadeTimeout);
-    toast.fadeTimeout = setTimeout(() => {
-      toast.style.opacity = '0';
-      setTimeout(() => toast.remove(), 350);
-    }, 4000);
-  }
-
-  function getMainPlayerContainer() {
-    return (
-      document.querySelector('#movie_player') ||
-      document.querySelector('ytd-watch-flexy #movie_player') ||
-      document.querySelector('ytd-watch-flexy') ||
-      document.querySelector('.html5-video-player')
-    );
-  }
-
-  function getMainPlayerProgressBar() {
-    const playerContainer = getMainPlayerContainer();
-    return (
-      playerContainer?.querySelector('.ytp-progress-bar') ||
-      playerContainer?.querySelector('.ytp-progress-list') ||
-      playerContainer?.querySelector('.ytp-progress-bar-container') ||
-      document.querySelector('.ytp-progress-bar')
-    );
-  }
-
-  function renderSponsorProgressBar() {
-    const oldBars = document.querySelectorAll(
-      '.libertad-sponsor-bar-container',
-    );
-    if (!currentSettings.skipSponsors || !currentSponsorSegments.length) {
-      oldBars.forEach((bar) => {
-        bar.remove();
-      });
-      lastRenderedSponsorKey = '';
-      return;
-    }
-
-    const playerContainer = getMainPlayerContainer();
-    const progressBar = getMainPlayerProgressBar();
-    if (!progressBar) return;
-
-    const video =
-      playerContainer?.querySelector('video.html5-main-video') ||
-      document.querySelector('video.html5-main-video');
-    const duration =
-      video && Number.isFinite(video.duration) && video.duration > 0
-        ? video.duration
-        : currentSponsorVideoDuration ||
-          (currentSponsorSegments[0]
-            ? currentSponsorSegments[0].videoDuration
-            : 0);
-
-    if (!duration || duration <= 0) return;
-
-    const renderKey = `${currentSponsorVideoId || ''}_${duration.toFixed(1)}_${currentSponsorSegments.length}_${currentSponsorSegments.map((s) => s.uuid).join(',')}`;
-    let container = progressBar.querySelector(
-      '.libertad-sponsor-bar-container',
-    );
-
-    if (container && lastRenderedSponsorKey === renderKey) {
-      return;
-    }
-
-    if (!container) {
-      container = document.createElement('div');
-      container.className = 'libertad-sponsor-bar-container';
-      progressBar.prepend(container);
-    }
-
-    container.innerHTML = '';
-    for (const seg of currentSponsorSegments) {
-      const startPercent = Math.max(
-        0,
-        Math.min(100, (seg.start / duration) * 100),
-      );
-      const endPercent = Math.max(0, Math.min(100, (seg.end / duration) * 100));
-      const widthPercent = Math.max(0.2, endPercent - startPercent);
-
-      const segmentEl = document.createElement('div');
-      segmentEl.className = 'libertad-sponsor-bar-segment';
-      segmentEl.style.left = `${startPercent.toFixed(3)}%`;
-      segmentEl.style.width = `${widthPercent.toFixed(3)}%`;
-      segmentEl.style.backgroundColor =
-        SPONSOR_CATEGORY_COLORS[seg.category] ||
-        SPONSOR_CATEGORY_COLORS.sponsor;
-      segmentEl.dataset.category = seg.category;
-      segmentEl.title = `${seg.category.toUpperCase()} (${Math.round(seg.start)}s - ${Math.round(seg.end)}s)`;
-
-      container.appendChild(segmentEl);
-    }
-
-    lastRenderedSponsorKey = renderKey;
-  }
-
-  function shouldSkipCategory(category, settings) {
-    if (!settings.skipSponsors) return false;
-    if (category === 'outro') {
-      return !!settings.sponsorSkipOutro;
-    }
-    if (category === 'intro' || category === 'preview') {
-      return !!settings.sponsorSkipIntro;
-    }
-    if (category === 'interaction') {
-      return settings.sponsorSkipInteraction !== false;
-    }
-    if (category === 'selfpromo') {
-      return !!settings.sponsorSkipSelfpromo;
-    }
-    if (category === 'music_offtopic') {
-      return !!settings.sponsorSkipMusicOfftopic;
-    }
-    return settings.sponsorSkipSponsors !== false;
-  }
-
-  function checkVideoSponsors(video) {
-    if (
-      !currentSettings.skipSponsors ||
-      !currentSponsorSegments.length ||
-      !video
-    ) {
-      return;
-    }
-
-    const currentTime = video.currentTime;
-    for (const seg of currentSponsorSegments) {
-      if (seg.uuid && ignoredSegmentUuids.has(seg.uuid)) {
-        continue;
-      }
-      if (!shouldSkipCategory(seg.category, currentSettings)) {
-        continue;
-      }
-      if (currentTime >= seg.start - 0.1 && currentTime < seg.end - 0.1) {
-        seekVideoPlayer(video, seg.end + 0.05);
-        if (lastSkippedSegmentUuid !== seg.uuid) {
-          lastSkippedSegmentUuid = seg.uuid;
-          showSponsorSkipToast(seg, video);
-          console.log(
-            `[Libertad SponsorBlock] Skipped ${seg.category} (${seg.start.toFixed(1)}s -> ${seg.end.toFixed(1)}s)`,
-          );
-        }
-        break;
-      }
-    }
-  }
-
-  function bindVideoSponsorListener() {
-    if (window.location.pathname !== '/watch') return;
-    const video = document.querySelector('video.html5-main-video');
-    if (!video) return;
-
-    if (!video.dataset.libertadSponsorBound) {
-      video.dataset.libertadSponsorBound = 'true';
-
-      const onTimeUpdate = () => {
-        checkVideoSponsors(video);
-        if (
-          currentSponsorSegments.length > 0 &&
-          !document.querySelector('.libertad-sponsor-bar-container')
-        ) {
-          renderSponsorProgressBar();
-        }
-      };
-
-      video.addEventListener('timeupdate', onTimeUpdate, { passive: true });
-      video.addEventListener('seeked', onTimeUpdate, { passive: true });
-
-      video.addEventListener('durationchange', () => {
-        renderSponsorProgressBar();
-      });
-      video.addEventListener('loadedmetadata', () => {
-        renderSponsorProgressBar();
-      });
-
-      if (currentSponsorSegments.length > 0) {
-        renderSponsorProgressBar();
-      }
-    }
-  }
-
-  function updateSponsorSegments() {
-    if (!currentSettings.skipSponsors) {
-      currentSponsorSegments = [];
-      currentSponsorVideoDuration = 0;
-      renderSponsorProgressBar();
-      return;
-    }
-
-    if (window.location.pathname !== '/watch') {
-      currentSponsorSegments = [];
-      currentSponsorVideoDuration = 0;
-      renderSponsorProgressBar();
-      return;
-    }
-
-    const videoId = getActiveVideoId();
-    if (!videoId) {
-      return;
-    }
-
-    if (
-      currentSponsorVideoId === videoId &&
-      currentSponsorSegments.length > 0
-    ) {
-      renderSponsorProgressBar();
-      return;
-    }
-
-    currentSponsorVideoId = videoId;
-    lastSkippedSegmentUuid = null;
-
-    if (sponsorCache.has(videoId)) {
-      const cached = sponsorCache.get(videoId) || {};
-      currentSponsorSegments = cached.segments || [];
-      currentSponsorVideoDuration = cached.duration || 0;
-      renderSponsorProgressBar();
-      return;
-    }
-
-    if (!chrome.runtime?.id) return;
-
-    chrome.runtime.sendMessage({ action: 'FETCH_SPONSORS', videoId }, (res) => {
-      if (chrome.runtime.lastError || !res) {
-        console.warn(
-          '[Libertad SponsorBlock] Communication error:',
-          chrome.runtime.lastError?.message,
-        );
-        currentSponsorSegments = [];
-        currentSponsorVideoDuration = 0;
-        renderSponsorProgressBar();
-        return;
-      }
-
-      if (!res.success) {
-        console.warn('[Libertad SponsorBlock] Fetch error:', res.error);
-        currentSponsorSegments = [];
-        currentSponsorVideoDuration = 0;
-        renderSponsorProgressBar();
-        return;
-      }
-
-      const raw = Array.isArray(res.segments) ? res.segments : [];
-      let detectedDuration = 0;
-      const parsed = raw
-        .filter((s) => Array.isArray(s.segment) && s.segment.length === 2)
-        .map((s) => {
-          if (s.videoDuration && s.videoDuration > detectedDuration) {
-            detectedDuration = s.videoDuration;
-          }
-          return {
-            start: s.segment[0],
-            end: s.segment[1],
-            category: s.category || 'sponsor',
-            uuid: s.UUID || `${s.segment[0]}-${s.segment[1]}`,
-            videoDuration: s.videoDuration || 0,
-          };
-        })
-        .sort((a, b) => a.start - b.start);
-
-      sponsorCache.set(videoId, {
-        segments: parsed,
-        duration: detectedDuration,
-      });
-
-      if (parsed.length === 0) {
-        console.log(
-          `[Libertad SponsorBlock] 0 sponsor segments found for video: ${videoId}`,
-        );
-      } else {
-        console.log(
-          `[Libertad SponsorBlock] Found ${parsed.length} sponsor segment(s) for video ${videoId}:`,
-          parsed,
-        );
-      }
-
-      if (currentSponsorVideoId === videoId) {
-        currentSponsorSegments = parsed;
-        currentSponsorVideoDuration = detectedDuration;
-        renderSponsorProgressBar();
-        bindVideoSponsorListener();
-      }
-    });
-  }
-
-  // -----------------------------------------------------------
-  // Untranslate Engine: Watch Page & Feeds
-  // -----------------------------------------------------------
-
-  // Fetch true original title (direct same-origin oEmbed + background fallback)
-  async function fetchOriginalTitle(videoId) {
-    if (!videoId) return null;
-    if (titlesCache.has(videoId)) {
-      const cached = titlesCache.get(videoId);
-      return cached ? cached : null;
-    }
-
-    // 1. Direct same-origin oEmbed fetch (~25ms response, strictly bound to videoId)
-    try {
-      const oembedUrl = `/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`;
-      const res = await fetch(oembedUrl);
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.title) {
-          const t = data.title.trim();
-          titlesCache.set(videoId, t);
-          return t;
-        }
-      }
-    } catch (_e) {}
-
-    // 2. Fallback to background worker
-    if (!chrome.runtime?.id) return null;
-    return new Promise((resolve) => {
-      chrome.runtime.sendMessage(
-        { action: 'FETCH_ORIGINAL_TITLE', videoId },
-        (res) => {
-          if (!chrome.runtime.lastError && res && res.success && res.title) {
-            const t = res.title.trim();
-            titlesCache.set(videoId, t);
-            resolve(t);
-          } else {
-            // Cache negative result to prevent infinite refetch loops
-            titlesCache.set(videoId, false);
-            resolve(null);
-          }
-        },
-      );
-    });
-  }
-
-  // Comprehensive watch title selectors
-  function getWatchTitleElements() {
-    const elements = [];
-    const selectors = [
-      'watch-metadata-view-model #title yt-formatted-string',
-      'watch-metadata-view-model #title h1',
-      'watch-metadata-view-model h1',
-      'watch-metadata-view-model [role="heading"]',
-      'ytd-watch-metadata #title yt-formatted-string',
-      'ytd-watch-metadata #title h1',
-      'ytd-watch-metadata h1 yt-formatted-string',
-      'ytd-watch-metadata h1',
-      '#above-the-fold #title yt-formatted-string',
-      '#above-the-fold #title h1',
-      '#above-the-fold h1',
-      '#title:has(h1) h1',
-      'h1.style-scope.ytd-watch-metadata yt-formatted-string',
-      'h1.style-scope.ytd-watch-metadata',
-      '#title.style-scope.ytd-watch-metadata yt-formatted-string',
-      'ytd-watch-flexy:not([hidden]) #container > h1 > yt-formatted-string',
-      'ytd-video-primary-info-renderer h1.title yt-formatted-string',
-      'h1.title yt-formatted-string',
-      'h1.title > *',
-    ];
-
-    for (const sel of selectors) {
-      const nodes = document.querySelectorAll(sel);
-      nodes.forEach((node) => {
-        if (!elements.includes(node)) {
-          elements.push(node);
-        }
-      });
-    }
-    return elements;
-  }
-
-  // Apply original title to watch page
-  function applyWatchTitle(originalTitle, videoId) {
-    if (!originalTitle?.trim()) return false;
-
-    // Strict guard: ensure we are still on the target video
-    const currentParam = parseYouTubeVideoId(window.location.href);
-    if (videoId && currentParam && currentParam !== videoId) {
-      return false;
-    }
-
-    const clean = originalTitle.trim();
-    currentOriginalTitle = clean;
-
-    let modified = false;
-    const titleNodes = getWatchTitleElements();
-    titleNodes.forEach((node) => {
-      if (node.textContent !== clean) {
-        node.textContent = clean;
-        node.removeAttribute('is-empty');
-        node.setAttribute('title', clean);
-        modified = true;
-      }
-      if (node.parentElement && node.parentElement.tagName === 'H1') {
-        node.parentElement.setAttribute('title', clean);
-      }
-    });
-
-    if (document.title && !document.title.startsWith(clean)) {
-      document.title = `${clean} - YouTube`;
-    }
-
-    return modified;
-  }
-
-  // Untranslate title on watch page
-  function updateWatchTitle() {
-    if (!currentSettings.untranslateTitles) return;
-    if (window.location.pathname !== '/watch') return;
-
-    const videoId = parseYouTubeVideoId(window.location.href);
-    if (!videoId) return;
-
-    if (currentWatchVideoId !== videoId) {
-      currentWatchVideoId = videoId;
-      currentOriginalTitle = null;
-    }
-
-    if (currentOriginalTitle) {
-      const primaryTitle = getWatchTitleElements()[0];
-      if (
-        primaryTitle &&
-        primaryTitle.textContent.trim() === currentOriginalTitle
-      ) {
-        return;
-      }
-      applyWatchTitle(currentOriginalTitle, videoId);
-      return;
-    }
-
-    fetchOriginalTitle(videoId).then((orig) => {
-      // Guard against race conditions during SPA navigation
-      const currentParam = parseYouTubeVideoId(window.location.href);
-      if (currentParam === videoId && orig) {
-        currentOriginalTitle = orig;
-        applyWatchTitle(orig, videoId);
-      }
-    });
-  }
-
-  // Universal selector covering classic Polymer and modern Lockup ViewModels (Wiz)
-  function getAllVideoTitleNodes() {
-    const root =
-      document.querySelector('ytd-page-manager') ||
-      document.querySelector('#contents') ||
-      document.body;
-    if (!root) return [];
-
-    const nodesSet = new Set();
-    const elements = root.querySelectorAll(
-      '#video-title, yt-formatted-string#video-title, a#video-title-link, a#video-title, h3 a[href*="watch?v="], h3 a[href*="/shorts/"], [class*="lockup-metadata"] h3 a, [class*="lockup-metadata"] [role="heading"] a, a.yt-lockup-metadata-view-model-wiz__title, h3.yt-lockup-metadata-view-model-wiz__heading-reset',
-    );
-
-    for (let i = 0; i < elements.length; i++) {
-      const el = elements[i];
-      if (
-        el.closest(
-          'ytd-watch-metadata, #above-the-fold, #thumbnail, ytd-thumbnail, [class*="content-image"], [class*="thumbnail"], ytd-playlist-thumbnail',
-        )
-      ) {
-        continue;
-      }
-
-      // If it is a heading container, locate the innermost text-bearing span
-      const inner = el.querySelector(
-        'span.yt-core-attributed-string, span[role="text"], #video-title, yt-formatted-string',
-      );
-      nodesSet.add(inner || el);
-    }
-
-    return Array.from(nodesSet);
-  }
-
-  // Extract video ID accurately from a title element or its parent card
-  function extractVideoId(el) {
-    if (!el) return null;
-
-    // Check direct anchor
-    if (el.tagName === 'A' && el.href) {
-      const id = parseYouTubeVideoId(el.href);
-      if (id) return id;
-    }
-
-    // Check closest anchor
-    const a = el.closest('a');
-    if (a?.href) {
-      const id = parseYouTubeVideoId(a.href);
-      if (id) return id;
-    }
-
-    // Check containing card for watch/shorts link
-    const card = el.closest(
-      'ytd-rich-item-renderer, ytd-rich-grid-media, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, ytd-playlist-video-renderer, ytd-reel-item-renderer, yt-lockup-view-model, [class*="lockup"], [class*="item-section"]',
-    );
-    if (card) {
-      const link = card.querySelector(
-        'a[href*="watch?v="], a[href*="/shorts/"], a#video-title-link, a#thumbnail, a.ytd-thumbnail',
-      );
-      if (link?.href) {
-        const id = parseYouTubeVideoId(link.href);
-        if (id) return id;
-      }
-    }
-
-    return null;
-  }
-
-  // Apply original title exclusively to the title text node (without destroying parent structure)
-  function applyTitleToNode(titleNode, cleanTitle, videoId) {
-    if (!titleNode || !cleanTitle) return;
-
-    // Avoid redundant work if already applied
-    if (
-      titleNode.dataset.libertadApplied === videoId &&
-      titleNode.textContent.trim() === cleanTitle
-    ) {
-      return;
-    }
-
-    // 1. If titleNode has an inner text-bearing span (e.g. Wiz / attributed string / formatted string)
-    const childSpan = titleNode.querySelector(
-      'span.yt-core-attributed-string, span[role="text"]',
-    );
-    if (childSpan) {
-      childSpan.textContent = cleanTitle;
-    } else if (
-      titleNode.children.length === 0 ||
-      titleNode.tagName === 'SPAN' ||
-      titleNode.tagName === 'YT-FORMATTED-STRING'
-    ) {
-      titleNode.textContent = cleanTitle;
-    } else {
-      const textSpan = titleNode.querySelector('span');
-      if (textSpan) {
-        textSpan.textContent = cleanTitle;
-      } else {
-        titleNode.textContent = cleanTitle;
-      }
-    }
-
-    titleNode.setAttribute('title', cleanTitle);
-    titleNode.removeAttribute('is-empty');
-    titleNode.dataset.libertadApplied = videoId;
-
-    // Update title/aria-label tooltip on parent anchor if present
-    const parentA =
-      titleNode.tagName === 'A' ? titleNode : titleNode.closest('a');
-    if (parentA) {
-      parentA.setAttribute('title', cleanTitle);
-      parentA.setAttribute('aria-label', cleanTitle);
-    }
-  }
-
-  // Update all matching elements in the DOM for a given video ID
-  function updateFeedElementsForVideoId(videoId, origTitle) {
-    const clean = origTitle.trim();
-    const registeredNodes = observedTitleNodesByVideoId.get(videoId);
-    if (registeredNodes && registeredNodes.size > 0) {
-      registeredNodes.forEach((node) => {
-        if (node.isConnected) {
-          applyTitleToNode(node, clean, videoId);
-        }
-      });
-      observedTitleNodesByVideoId.delete(videoId);
-      return;
-    }
-
-    // Fallback if node was dynamically moved or replaced
-    const titleNodes = getAllVideoTitleNodes();
-    titleNodes.forEach((node) => {
-      const vId = extractVideoId(node);
-      if (vId === videoId) {
-        applyTitleToNode(node, clean, videoId);
-      }
-    });
-  }
-
-  // Concurrency queue processor
-  function processFeedFetchQueue() {
-    while (
-      activeFeedFetches < MAX_CONCURRENT_FEED_FETCHES &&
-      feedFetchQueue.length > 0
-    ) {
-      const videoId = feedFetchQueue.shift();
-      activeFeedFetches++;
-
-      fetchOriginalTitle(videoId)
-        .then((origTitle) => {
-          activeFeedFetches--;
-          pendingFeedVideoIds.delete(videoId);
-          if (origTitle) {
-            updateFeedElementsForVideoId(videoId, origTitle);
-          }
-          processFeedFetchQueue();
-        })
-        .catch(() => {
-          activeFeedFetches--;
-          pendingFeedVideoIds.delete(videoId);
-          processFeedFetchQueue();
-        });
-    }
-  }
-
-  // Observe video node entering the viewport before triggering network request
-  function observeVideoTitleForFeed(node, videoId) {
-    if (node.dataset.libertadPendingId === videoId) return;
-
-    if (!observedTitleNodesByVideoId.has(videoId)) {
-      observedTitleNodesByVideoId.set(videoId, new Set());
-    }
-    observedTitleNodesByVideoId.get(videoId).add(node);
-
-    if (!window.IntersectionObserver) {
-      if (!titlesCache.has(videoId) && !pendingFeedVideoIds.has(videoId)) {
-        pendingFeedVideoIds.add(videoId);
-        feedFetchQueue.push(videoId);
-        processFeedFetchQueue();
-      }
-      return;
-    }
-
-    if (!feedIntersectionObserver) {
-      feedIntersectionObserver = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (entry.isIntersecting) {
-              const target = entry.target;
-              feedIntersectionObserver.unobserve(target);
-              const vId = target.dataset.libertadPendingId;
-              if (
-                vId &&
-                !titlesCache.has(vId) &&
-                !pendingFeedVideoIds.has(vId)
-              ) {
-                pendingFeedVideoIds.add(vId);
-                feedFetchQueue.push(vId);
-                processFeedFetchQueue();
-              }
-            }
-          }
-        },
-        { rootMargin: '250px 0px' },
-      );
-    }
-
-    node.dataset.libertadPendingId = videoId;
-    feedIntersectionObserver.observe(node);
-  }
-
-  // Automatically untranslate all video titles visible in Home, Search, and Recommendations
-  function untranslateFeed() {
-    if (!currentSettings.untranslateTitles) return;
-
-    // Fast-path skips when feeds/sidebars are hidden to save CPU
-    const isHome =
-      window.location.pathname === '/' || window.location.pathname === '';
-    if (isHome && currentSettings.hideHomeFeed) return;
-
-    const isWatch = window.location.pathname === '/watch';
-    if (isWatch && currentSettings.hideSidebar) return;
-
-    const titleNodes = getAllVideoTitleNodes();
-    for (let i = 0; i < titleNodes.length; i++) {
-      const node = titleNodes[i];
-      const videoId = extractVideoId(node);
-      if (!videoId) continue;
-
-      if (titlesCache.has(videoId)) {
-        const cached = titlesCache.get(videoId);
-        if (cached) {
-          applyTitleToNode(node, cached, videoId);
-        }
-      } else if (node.dataset.libertadApplied !== videoId) {
-        observeVideoTitleForFeed(node, videoId);
-      }
-    }
-  }
-
-  // -----------------------------------------------------------
-  // Lifecycle & Watchdogs
-  // -----------------------------------------------------------
-
-  // Throttled scroll listener
+  // Throttled scroll listener for feed titles
   let scrollThrottleTimer = null;
   window.addEventListener(
     'scroll',
@@ -1868,23 +118,23 @@
       if (scrollThrottleTimer) return;
       scrollThrottleTimer = setTimeout(() => {
         scrollThrottleTimer = null;
-        if (currentSettings.untranslateTitles) {
-          untranslateFeed();
+        if (currentSettings.untranslateTitles && Libertad.untranslateFeed) {
+          Libertad.untranslateFeed(currentSettings);
         }
       }, 150);
     },
     { passive: true },
   );
 
-  // Page load listeners
+  // Initial load and DOMContentLoaded events
   document.addEventListener('DOMContentLoaded', () => {
-    untranslateFeed();
+    if (Libertad.untranslateFeed) Libertad.untranslateFeed(currentSettings);
   });
   window.addEventListener('load', () => {
-    untranslateFeed();
+    if (Libertad.untranslateFeed) Libertad.untranslateFeed(currentSettings);
   });
 
-  // Initialize and load saved settings
+  // Load saved settings from storage
   chrome.storage.sync.get(null, (saved) => {
     if (saved && Object.keys(saved).length > 0) {
       currentSettings = { ...currentSettings, ...saved };
@@ -1895,13 +145,7 @@
         );
       } catch (_) {}
     }
-    redirectShortsIfActive();
-    applyStyles(currentSettings);
-    updateDislikeCount();
-    updateWatchTitle();
-    untranslateFeed();
-    updateSponsorSegments();
-    bindVideoSponsorListener();
+    syncAllModules();
   });
 
   // Listen for storage changes in real time with granular key diffing
@@ -1912,6 +156,7 @@
       let titleChanged = false;
       let sponsorsChanged = false;
       let shortsChanged = false;
+      let subscriptionsChanged = false;
 
       for (const key in changes) {
         currentSettings[key] = changes[key].newValue;
@@ -1927,6 +172,8 @@
         } else if (key === 'hideShorts') {
           stylesChanged = true;
           shortsChanged = true;
+        } else if (key === 'redirectHomeToSubscriptions') {
+          subscriptionsChanged = true;
         } else if (
           key === 'preset' ||
           key === 'customConfig' ||
@@ -1944,73 +191,69 @@
         );
       } catch (_) {}
 
-      if (stylesChanged) applyStyles(currentSettings);
-      if (shortsChanged) redirectShortsIfActive();
-      if (dislikesChanged) updateDislikeCount();
+      if (stylesChanged && Libertad.applyStyles) {
+        Libertad.applyStyles(currentSettings);
+      }
+      if (shortsChanged && Libertad.redirectShortsIfActive) {
+        Libertad.redirectShortsIfActive(currentSettings);
+      }
+      if (subscriptionsChanged && Libertad.redirectHomeToSubscriptions) {
+        Libertad.redirectHomeToSubscriptions(currentSettings);
+      }
+      if (dislikesChanged && Libertad.updateDislikeCount) {
+        Libertad.updateDislikeCount(currentSettings);
+      }
       if (titleChanged) {
-        updateWatchTitle();
-        untranslateFeed();
+        if (Libertad.updateWatchTitle) {
+          Libertad.updateWatchTitle(currentSettings);
+        }
+        if (Libertad.untranslateFeed) {
+          Libertad.untranslateFeed(currentSettings);
+        }
       }
       if (sponsorsChanged) {
-        updateSponsorSegments();
-        bindVideoSponsorListener();
+        if (Libertad.updateSponsorSegments) {
+          Libertad.updateSponsorSegments(currentSettings);
+        }
+        if (Libertad.bindVideoSponsorListener) {
+          Libertad.bindVideoSponsorListener(currentSettings);
+        }
       }
     }
   });
 
   // Handle YouTube SPA Navigation events
-  window.addEventListener('yt-navigate-start', () => {
-    redirectShortsIfActive();
-    currentOriginalTitle = null;
-    currentWatchVideoId = null;
-    currentSponsorVideoId = null;
-    currentSponsorSegments = [];
-    currentSponsorVideoDuration = 0;
-    lastSkippedSegmentUuid = null;
-    lastRenderedSponsorKey = '';
-    ignoredSegmentUuids.clear();
-    feedFetchQueue.length = 0;
-    pendingFeedVideoIds.clear();
-    observedTitleNodesByVideoId.clear();
-    if (feedIntersectionObserver) {
-      feedIntersectionObserver.disconnect();
+  window.addEventListener('yt-navigate-start', (event) => {
+    const targetUrl = event?.detail?.url;
+    if (Libertad.redirectShortsIfActive) {
+      Libertad.redirectShortsIfActive(currentSettings, targetUrl);
     }
-    renderSponsorProgressBar();
+    if (Libertad.redirectHomeToSubscriptions) {
+      Libertad.redirectHomeToSubscriptions(currentSettings, targetUrl);
+    }
+    if (Libertad.resetSponsorNavigation) Libertad.resetSponsorNavigation();
+    if (Libertad.resetUntranslateNavigation) {
+      Libertad.resetUntranslateNavigation();
+    }
   });
 
   window.addEventListener('yt-navigate-finish', () => {
-    redirectShortsIfActive();
-    currentOriginalTitle = null;
-    currentWatchVideoId = null;
-    currentSponsorVideoId = null;
-    currentSponsorSegments = [];
-    currentSponsorVideoDuration = 0;
-    lastSkippedSegmentUuid = null;
-
-    applyStyles(currentSettings);
-    updateDislikeCount();
-    updateWatchTitle();
-    untranslateFeed();
-    updateSponsorSegments();
-    bindVideoSponsorListener();
+    syncAllModules();
   });
 
-  window.addEventListener('popstate', redirectShortsIfActive);
+  window.addEventListener('popstate', () => {
+    if (Libertad.redirectShortsIfActive) {
+      Libertad.redirectShortsIfActive(currentSettings);
+    }
+    if (Libertad.redirectHomeToSubscriptions) {
+      Libertad.redirectHomeToSubscriptions(currentSettings);
+    }
+  });
 
-  // Throttled MutationObserver with debounced feed untranslate and node-addition filtering
+  // Throttled MutationObserver with node-addition filtering
   let isCheckingMutation = false;
-  let untranslateDebounceTimer = null;
-
-  function debouncedUntranslateFeed() {
-    if (untranslateDebounceTimer) return;
-    untranslateDebounceTimer = setTimeout(() => {
-      untranslateDebounceTimer = null;
-      untranslateFeed();
-    }, 250);
-  }
 
   const observer = new MutationObserver((mutations) => {
-    // Only process if DOM element nodes were actually added to eliminate jank during playback
     let hasAddedNodes = false;
     for (let i = 0; i < mutations.length; i++) {
       if (mutations[i].addedNodes.length > 0) {
@@ -2025,35 +268,61 @@
 
     window.requestAnimationFrame(() => {
       isCheckingMutation = false;
-      redirectShortsIfActive();
-      updateZenBanner(currentSettings);
+
+      if (Libertad.redirectShortsIfActive) {
+        Libertad.redirectShortsIfActive(currentSettings);
+      }
+      if (Libertad.redirectHomeToSubscriptions) {
+        Libertad.redirectHomeToSubscriptions(currentSettings);
+      }
+      if (Libertad.updateZenBanner) {
+        Libertad.updateZenBanner(currentSettings);
+      }
 
       if (window.location.pathname === '/watch') {
-        if (currentSettings.showDislikes) {
-          const dislikeBtn = findDislikeButton();
+        if (currentSettings.showDislikes && Libertad.findDislikeButton) {
+          const dislikeBtn = Libertad.findDislikeButton();
           if (
             dislikeBtn &&
-            !dislikeBtn.querySelector('.libertad-dislike-badge')
+            !dislikeBtn.querySelector('.libertad-dislike-badge') &&
+            Libertad.updateDislikeCount
           ) {
-            updateDislikeCount();
+            Libertad.updateDislikeCount(currentSettings);
           }
         }
-        if (currentSettings.untranslateTitles) {
-          updateWatchTitle();
+        if (currentSettings.untranslateTitles && Libertad.updateWatchTitle) {
+          Libertad.updateWatchTitle(currentSettings);
         }
-        if (currentSettings.skipSponsors) {
-          const activeVid = getActiveVideoId();
-          if (activeVid && activeVid !== currentSponsorVideoId) {
-            updateSponsorSegments();
+        if (currentSettings.skipSponsors && Libertad.getActiveVideoId) {
+          const activeVid = Libertad.getActiveVideoId();
+          const currentSponsorVid =
+            typeof Libertad.getCurrentSponsorVideoId === 'function'
+              ? Libertad.getCurrentSponsorVideoId()
+              : null;
+          if (
+            activeVid &&
+            activeVid !== currentSponsorVid &&
+            Libertad.updateSponsorSegments
+          ) {
+            Libertad.updateSponsorSegments(currentSettings);
           }
-          bindVideoSponsorListener();
-          const progressBar = getMainPlayerProgressBar();
+          if (Libertad.bindVideoSponsorListener) {
+            Libertad.bindVideoSponsorListener(currentSettings);
+          }
+          const progressBar = Libertad.getMainPlayerProgressBar
+            ? Libertad.getMainPlayerProgressBar()
+            : null;
+          const segments =
+            typeof Libertad.getCurrentSponsorSegments === 'function'
+              ? Libertad.getCurrentSponsorSegments()
+              : [];
           if (
             progressBar &&
-            currentSponsorSegments.length > 0 &&
-            !progressBar.querySelector('.libertad-sponsor-bar-container')
+            segments.length > 0 &&
+            !progressBar.querySelector('.libertad-sponsor-bar-container') &&
+            Libertad.renderSponsorProgressBar
           ) {
-            renderSponsorProgressBar();
+            Libertad.renderSponsorProgressBar();
           }
         }
       }
@@ -2064,9 +333,10 @@
         const isWatch = window.location.pathname === '/watch';
         if (
           (!isHome || !currentSettings.hideHomeFeed) &&
-          (!isWatch || !currentSettings.hideSidebar)
+          (!isWatch || !currentSettings.hideSidebar) &&
+          Libertad.debouncedUntranslateFeed
         ) {
-          debouncedUntranslateFeed();
+          Libertad.debouncedUntranslateFeed(currentSettings);
         }
       }
     });

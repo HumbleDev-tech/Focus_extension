@@ -114,9 +114,10 @@ Switch between curated focus profiles with a single click or tailor your own (30
 </p>
 
 * **Home Feed & Zen Mode**: Suppresses the infinite video recommendation grid on the homepage (`/`). When enabled, displays an intentional, minimalist search prompt that encourages purposeful searches rather than passive scrolling.
+* **Direct to Subscriptions**: Optionally redirects the YouTube homepage (`/`) directly to your chronological Subscriptions feed (`/feed/subscriptions`), allowing you to view your subscribed creators without algorithmic recommendation traps.
 * **Related Sidebar & Auto-Centering**: Removes watch-next suggestions and algorithmically recommended videos beside the player. Automatically centers the main video player in theater style to prevent awkward whitespace.
 * **Comments Section**: Hides the entire comment stream across all video watch pages to avoid engagement traps and toxic comment sections.
-* **Shorts Eradication**: Strips Shorts shelves, navigation drawer links, mini-guide buttons, and feed entries across the entire YouTube interface.
+* **Shorts Eradication & Redirection**: Strips Shorts shelves, navigation drawer links, mini-guide buttons, and feed entries across the entire YouTube interface, automatically redirecting any direct `/shorts/` URLs to the standard watch player (`/watch?v=`).
 * **End Screen Cards**: Suppresses popup overlay cards, subscribe buttons, and teaser cards that obstruct the final seconds of videos.
 
 ---
