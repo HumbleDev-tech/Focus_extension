@@ -121,7 +121,7 @@
         if (currentSettings.untranslateTitles && Libertad.untranslateFeed) {
           Libertad.untranslateFeed(currentSettings);
         }
-      }, 150);
+      }, 250);
     },
     { passive: true },
   );

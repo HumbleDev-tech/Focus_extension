@@ -31,6 +31,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   const titlesCache = new BoundedCache(300);
   let currentWatchVideoId = null;
   let currentOriginalTitle = null;
+  let lastAppliedWatchTitleElement = null;
 
   const feedFetchQueue = [];
   const pendingFeedVideoIds = new Set();
@@ -43,6 +44,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   function resetUntranslateNavigation() {
     currentOriginalTitle = null;
     currentWatchVideoId = null;
+    lastAppliedWatchTitleElement = null;
     feedFetchQueue.length = 0;
     pendingFeedVideoIds.clear();
     observedTitleNodesByVideoId.clear();
@@ -70,6 +72,14 @@ globalThis.Libertad = globalThis.Libertad || {};
           titlesCache.set(videoId, t);
           return t;
         }
+      } else if (
+        res.status === 404 ||
+        res.status === 401 ||
+        res.status === 403
+      ) {
+        // Definitive client/video error: skip redundant background worker fetch
+        titlesCache.set(videoId, false);
+        return null;
       }
     } catch (_) {}
 
@@ -149,6 +159,9 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     let modified = false;
     const titleNodes = getWatchTitleElements();
+    if (titleNodes.length > 0) {
+      lastAppliedWatchTitleElement = titleNodes[0];
+    }
     titleNodes.forEach((node) => {
       if (node.textContent !== clean) {
         node.textContent = clean;
@@ -189,6 +202,16 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
 
     if (currentOriginalTitle) {
+      // Fast path: if the previously updated title element is still connected and intact, avoid running queries
+      if (
+        lastAppliedWatchTitleElement?.isConnected &&
+        lastAppliedWatchTitleElement.textContent.trim() ===
+          currentOriginalTitle &&
+        (!document.title || document.title.startsWith(currentOriginalTitle))
+      ) {
+        return;
+      }
+
       const titleNodes = getWatchTitleElements();
       const needsUpdate = titleNodes.some(
         (node) => node.textContent.trim() !== currentOriginalTitle,
@@ -245,6 +268,10 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   function extractVideoId(el) {
     if (!el) return null;
+    if (el.dataset?.libertadVideoId) {
+      return el.dataset.libertadVideoId;
+    }
+
     const parseId =
       globalThis.Libertad.parseYouTubeVideoId ||
       function (u) {
@@ -252,31 +279,38 @@ globalThis.Libertad = globalThis.Libertad || {};
         return m ? m[1] : null;
       };
 
+    let foundId = null;
+
     if (el.tagName === 'A' && el.href) {
-      const id = parseId(el.href);
-      if (id) return id;
+      foundId = parseId(el.href);
     }
 
-    const a = el.closest('a');
-    if (a?.href) {
-      const id = parseId(a.href);
-      if (id) return id;
-    }
-
-    const card = el.closest(
-      'ytd-rich-item-renderer, ytd-rich-grid-media, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, ytd-playlist-video-renderer, ytd-reel-item-renderer, yt-lockup-view-model, [class*="lockup"], [class*="item-section"]',
-    );
-    if (card) {
-      const link = card.querySelector(
-        'a[href*="watch?v="], a[href*="/shorts/"], a#video-title-link, a#thumbnail, a.ytd-thumbnail',
-      );
-      if (link?.href) {
-        const id = parseId(link.href);
-        if (id) return id;
+    if (!foundId) {
+      const a = el.closest('a');
+      if (a?.href) {
+        foundId = parseId(a.href);
       }
     }
 
-    return null;
+    if (!foundId) {
+      const card = el.closest(
+        'ytd-rich-item-renderer, ytd-rich-grid-media, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, ytd-playlist-video-renderer, ytd-reel-item-renderer, yt-lockup-view-model, [class*="lockup"], [class*="item-section"]',
+      );
+      if (card) {
+        const link = card.querySelector(
+          'a[href*="watch?v="], a[href*="/shorts/"], a#video-title-link, a#thumbnail, a.ytd-thumbnail',
+        );
+        if (link?.href) {
+          foundId = parseId(link.href);
+        }
+      }
+    }
+
+    if (foundId && el.dataset) {
+      el.dataset.libertadVideoId = foundId;
+    }
+
+    return foundId;
   }
 
   function applyTitleToNode(titleNode, cleanTitle, videoId) {
@@ -324,18 +358,12 @@ globalThis.Libertad = globalThis.Libertad || {};
     const observedNodes = observedTitleNodesByVideoId.get(videoId);
     if (observedNodes) {
       observedNodes.forEach((node) => {
-        applyTitleToNode(node, origTitle, videoId);
+        if (node.isConnected) {
+          applyTitleToNode(node, origTitle, videoId);
+        }
       });
       observedTitleNodesByVideoId.delete(videoId);
     }
-
-    const allCurrentNodes = getAllVideoTitleNodes();
-    allCurrentNodes.forEach((node) => {
-      const vId = extractVideoId(node);
-      if (vId === videoId) {
-        applyTitleToNode(node, origTitle, videoId);
-      }
-    });
   }
 
   function processFeedFetchQueue() {
@@ -360,11 +388,14 @@ globalThis.Libertad = globalThis.Libertad || {};
         activeFeedFetches--;
         if (origTitle) {
           updateFeedElementsForVideoId(videoId, origTitle);
+        } else {
+          observedTitleNodesByVideoId.delete(videoId);
         }
         processFeedFetchQueue();
       })
       .catch(() => {
         activeFeedFetches--;
+        observedTitleNodesByVideoId.delete(videoId);
         processFeedFetchQueue();
       });
   }
@@ -432,7 +463,10 @@ globalThis.Libertad = globalThis.Libertad || {};
         if (cached) {
           applyTitleToNode(node, cached, videoId);
         }
-      } else if (node.dataset.libertadApplied !== videoId) {
+      } else if (
+        node.dataset.libertadApplied !== videoId &&
+        node.dataset.libertadPendingId !== videoId
+      ) {
         observeVideoTitleForFeed(node, videoId);
       }
     }

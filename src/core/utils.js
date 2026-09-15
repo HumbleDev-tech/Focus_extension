@@ -19,33 +19,33 @@ globalThis.Libertad = globalThis.Libertad || {};
       return str;
     }
 
+    // High-performance regex fast paths (avoids URL object heap allocation)
+    const fastV = str.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+    if (fastV) return fastV[1];
+
+    const fastPath = str.match(
+      /(?:youtu\.be\/|\/(?:shorts|live|embed|v)\/)([a-zA-Z0-9_-]{11})/,
+    );
+    if (fastPath) return fastPath[1];
+
+    // Fallback parser via standard URL
     try {
       const url = new URL(str, window.location.origin);
-      // youtu.be/ID
       if (url.hostname.includes('youtu.be')) {
         const m = url.pathname.match(/^\/([a-zA-Z0-9_-]{11})/);
         if (m) return m[1];
       }
-      // ?v=ID
       const v = url.searchParams.get('v');
       if (v && /^[a-zA-Z0-9_-]{11}$/.test(v)) {
         return v;
       }
-      // /shorts/ID, /live/ID, /embed/ID, /v/ID
       const match = url.pathname.match(
         /\/(?:shorts|live|embed|v)\/([a-zA-Z0-9_-]{11})/,
       );
       if (match) {
         return match[1];
       }
-    } catch (_) {
-      const match =
-        str.match(/[?&]v=([a-zA-Z0-9_-]{11})/) ||
-        str.match(/\/(?:shorts|live|embed|v)\/([a-zA-Z0-9_-]{11})/);
-      if (match) {
-        return match[1];
-      }
-    }
+    } catch (_) {}
 
     return null;
   }

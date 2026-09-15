@@ -21,10 +21,15 @@ const sponsorsCache = new Map();
 const MAX_SW_CACHE_SIZE = 200;
 const YOUTUBE_VIDEO_ID_REGEX = /^[a-zA-Z0-9_-]{11}$/;
 
-function setBoundedCache(cache, key, value) {
+function setBoundedCache(cache, key, value, prefix) {
   if (cache.size >= MAX_SW_CACHE_SIZE) {
     const oldestKey = cache.keys().next().value;
     cache.delete(oldestKey);
+    if (prefix && chrome.storage?.session) {
+      try {
+        chrome.storage.session.remove(`${prefix}_${oldestKey}`);
+      } catch (_) {}
+    }
   }
   cache.set(key, value);
 }
@@ -38,7 +43,7 @@ async function getFromCache(cacheMap, prefix, key) {
       const storageKey = `${prefix}_${key}`;
       const res = await chrome.storage.session.get(storageKey);
       if (res && res[storageKey] !== undefined) {
-        setBoundedCache(cacheMap, key, res[storageKey]);
+        setBoundedCache(cacheMap, key, res[storageKey], prefix);
         return res[storageKey];
       }
     } catch (_) {}
@@ -47,7 +52,7 @@ async function getFromCache(cacheMap, prefix, key) {
 }
 
 async function setToCache(cacheMap, prefix, key, value) {
-  setBoundedCache(cacheMap, key, value);
+  setBoundedCache(cacheMap, key, value, prefix);
   if (chrome.storage?.session) {
     try {
       const storageKey = `${prefix}_${key}`;
