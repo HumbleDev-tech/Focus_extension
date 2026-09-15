@@ -55,7 +55,7 @@ Whether you need a distraction-free environment for research and study, or a min
 
 * **One-Click Focus Presets**: Switch instantly between Off, Basic, Balanced (recommended default), and Extreme Zen modes.
 * **Granular Surgical Control**: 31 modular toggles covering Home Feed, Direct to Subscriptions, watch-next sidebars, comments, shorts, and 25 UI clutter elements.
-* **YouTube Power Utilities**: Restores public dislike metrics, auto-skips sponsored segments with a custom colored progress bar and one-click Undo/Unskip, and reverses automatic title translations.
+* **YouTube Power Utilities**: Restores public dislike metrics, auto-skips sponsored segments with a custom colored progress bar and one-click Undo/Unskip, and features a modular Untranslate Suite (Anti-AI Dubbing, Original Titles, Descriptions, Captions, Chapters).
 * **Pure Vanilla Performance**: Zero frameworks, zero npm runtime dependencies, zero telemetry, and ultra-low memory footprint.
 
 ---
@@ -71,7 +71,7 @@ Libertad organizes controls into three purpose-built workspaces without vertical
 
 * **Focus Shield**: High-impact macro distraction blockers for algorithmic feeds, watch-next sidebars, comments, shorts, and end-screen cards.
 * **UI Cleaner**: Surgical removal of 25 promotional, experimental, and clutter elements across YouTube's modern interface organized into 4 distinct categories.
-* **Extras**: Dedicated power modules for YouTube data restorations (Public Dislikes API), SponsorBlock segment skipping, and Title Untranslation.
+* **Extras**: Dedicated power modules for YouTube data restorations (Public Dislikes API), SponsorBlock segment skipping, and the Untranslate & Anti-AI Dubbing Suite.
 
 <p align="center">
   <img src="assets/libertad-tab-navigation.png" width="460" alt="Tri-Tab Ergonomic Navigation" />
@@ -181,9 +181,13 @@ Libertad provides 25 modular toggles organized into four specialized categories 
   * Injects public dislike metrics directly into the native YouTube action bar with localized formatting (`1.4K`, `25M`).
   * Features an in-memory cache to prevent redundant network requests and maximize responsiveness.
 
-* **Title Untranslation Engine**:
-  * Reverses YouTube's forced automatic translations, restoring the creator's original video title in the original language.
-  * Operates across both watch pages and video feeds using an `IntersectionObserver` viewport scanner with bounded concurrency (`MAX_CONCURRENT_FEED_FETCHES = 3`) to eliminate redundant traffic and prevent rate limits.
+* **Untranslate & Anti-AI Dubbing Suite**:
+  * **Original Audio & Anti-AI Dubbing**: Employs an isolated player agent running in YouTube's execution context (`world: "MAIN"`) to intercept native player audio track controls, neutralizing forced multilingual AI/synthetic dubs and locking playback to the creator's genuine vocal performance across multiple language variants.
+  * **Original Video Titles**: Reverses automatic title translations across both watch pages and video feeds using an `IntersectionObserver` viewport scanner with bounded concurrency (`MAX_CONCURRENT_FEED_FETCHES = 3`) to eliminate redundant traffic and prevent rate limits.
+  * **Authentic Descriptions**: Restores the creator's original video description, maintaining the true text even after expanding the description container ("Show more" / "...more").
+  * **Subtitles & Captions Normalization**: Prevents forced auto-translated caption tracks from displaying automatically.
+  * **Timeline Chapters**: Reverts translated chapter timestamps and titles along the player scrubber back to their original text.
+  * **Modular SponsorBlock-Style UX**: Master toggle switch accompanied by 5 interactive category chips with a real-time active counter badge (`X/5 ACTIVAS` / `X/5 ACTIVE`).
 
 * **Skip In-Video Sponsors (SponsorBlock Engine)**:
   * Automatically detects and skips sponsored segments and subscribe reminders without requiring manual interaction.
@@ -225,7 +229,8 @@ Libertad provides 25 modular toggles organized into four specialized categories 
 ## Technical Architecture & Performance
 
 * **Zero External Runtime Dependencies**: Built with 100% pure Vanilla JavaScript, modern HTML5, and CSS variables. Zero npm bloat, zero bundlers required.
-* **Modular Clean Architecture**: Cleanly decoupled into `src/core/` (Cache, Utilities) and `src/modules/` (Styles, Shorts, Subscriptions, Dislikes, Sponsors, Untranslate), coordinated by a lightweight orchestrator ([content.js](content.js)) without any build-step complexity.
+* **Modular Clean Architecture**: Cleanly decoupled into `src/core/` (Cache, Utilities), `src/injected/` (Main-World Player Agent), and `src/modules/` (Styles, Shorts, Subscriptions, Dislikes, Sponsors, Untranslate), coordinated by a lightweight orchestrator ([content.js](content.js)) without any build-step complexity.
+* **Isolated Main-World Player Agent (`world: "MAIN"`)**: Injects an isolated player agent ([src/injected/agent.js](src/injected/agent.js)) at `document_start` to interface directly with YouTube's internal player APIs (`ytplayer`, `setAudioTrack`, `getAudioTrack`). Safely neutralizes AI auto-dubbing and extracts un-localized video models without monkey-patching `window.fetch` or conflicting with adblockers.
 * **Reverse-FOUC Elimination**: Synchronous `sessionStorage` hydration at `document_start` completely eliminates reverse flash of unstyled content on hard page reloads before asynchronous storage resolves.
 * **Two-Level Service Worker Caching**: Background service worker employs L1 in-memory caching combined with L2 `chrome.storage.session` persistence, allowing cached SponsorBlock segments and Return YouTube Dislike metrics to survive Service Worker lifecycle suspensions without redundant network calls.
 * **SPA Lifecycle Integration & Capture Routing**: Listens to YouTube's internal single-page navigation events (`yt-navigate-start`, `yt-navigate-finish`, `popstate`) and intercepts link clicks in the capture phase to enable instant, zero-reload navigation.
@@ -241,13 +246,15 @@ Focus_extension/
 │   ├── core/
 │   │   ├── cache.js       # Bounded LRU Cache implementation
 │   │   └── utils.js       # Video ID parser, compact number i18n & locale detection
+│   ├── injected/
+│   │   └── agent.js       # Main-world player API agent (Anti-AI dubbing & raw metadata)
 │   └── modules/
 │       ├── dislikes.js    # Return YouTube Dislike API engine & badge injector
 │       ├── shorts.js      # Shorts blocker and watch player redirector
 │       ├── sponsors.js    # SponsorBlock skipping engine & timeline progress bar
 │       ├── styles.js      # Dynamic stylesheet compiler & Zen Mode interface
 │       ├── subscriptions.js # Direct-to-subscriptions SPA link interceptor
-│       └── untranslate.js # Viewport title untranslation engine
+│       └── untranslate.js # Viewport title untranslation & Untranslate Suite coordinator
 ├── background.js          # Service worker with 2-level persistent caching
 ├── constants.js           # Single source of truth for presets and toggle keys
 ├── content.js             # High-speed orchestrator and SPA navigation router
@@ -282,7 +289,7 @@ To install and test Libertad locally in any Chromium-based browser (Google Chrom
 
 1. **Choose a Preset**: Open the popup from your browser toolbar and choose your focus profile (`OFF`, `BASIC`, `BALANCED`, or `EXTREME`). `BALANCED` is recommended for daily study and research.
 2. **Fine-Tune Elements**: Navigate between the **Focus Shield** and **UI Cleaner** tabs to toggle individual elements. Toggling any switch automatically preserves your settings under `CUSTOM`.
-3. **Configure Utilities**: In the **Extras** tab, customize which SponsorBlock segments to auto-skip (Sponsors, Self-Promo, Reminders, Intros, Outros, Off-Topic) or keep them in view-only mode on the timeline.
+3. **Configure Utilities**: In the **Extras** tab, customize which SponsorBlock segments to auto-skip (Sponsors, Self-Promo, Reminders, Intros, Outros, Off-Topic) or keep them in view-only mode on the timeline, and tailor the Untranslate Suite (toggle original audio / anti-AI dubbing, titles, descriptions, captions, and chapters via interactive chips).
 4. **Adjust Preferences**: Click the gear icon in the top header to customize Dark, Light, or OLED themes, select interface scale (1x, 1.2x, 1.4x), or change language between English, Spanish, and Portuguese—all supporting fully automatic system detection via the **AUTO** modes.
 
 ---
@@ -342,6 +349,7 @@ Libertad is built on open standards and stands on the shoulders of exceptional o
 * **[SponsorBlock](https://sponsor.ajay.app)**: For providing community-curated sponsorship timestamps licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Uses SponsorBlock data from [https://sponsor.ajay.app/](https://sponsor.ajay.app/).
 * **[Feather Icons](https://feathericons.com)** / **[Lucide](https://lucide.dev)**: For the clean, open-source SVG line iconography utilized across the popup control surface.
 * **[Biome](https://biomejs.dev)**: For providing world-class, ultra-fast formatting and linting tooling.
+* **YouTube Untranslate Community**: Inspired by open-source community research and scripts exploring client-side metadata preservation and anti-translation techniques.
 * **Distraction-Free Community**: Inspired by the pioneering ethos of tools like *Unhook* and *DF Tube*, re-engineered with zero runtime dependencies and modern Manifest V3 standards.
 
 ---
