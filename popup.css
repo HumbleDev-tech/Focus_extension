@@ -477,6 +477,51 @@ button:focus-visible {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
+/* Specialized OLED pure-black pill styling (implicitly denoting dedicated hardware mode) */
+.theme-btn[data-theme="oled"] {
+  position: relative;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.5px;
+}
+
+[data-theme="light"] .theme-btn[data-theme="oled"] {
+  background: rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.theme-btn[data-theme="oled"]:hover {
+  background: rgba(0, 0, 0, 0.7);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: var(--text-primary);
+  box-shadow:
+    0 0 6px rgba(56, 189, 248, 0.2),
+    inset 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+[data-theme="light"] .theme-btn[data-theme="oled"]:hover {
+  background: rgba(15, 23, 42, 0.14);
+  border-color: var(--accent);
+}
+
+.theme-btn[data-theme="oled"].active {
+  background: #000000;
+  color: #ffffff;
+  border-color: var(--accent);
+  box-shadow:
+    0 0 8px var(--accent-glow),
+    inset 0 0 4px rgba(0, 0, 0, 1);
+}
+
+[data-theme="light"] .theme-btn[data-theme="oled"].active {
+  background: #000000;
+  color: #38bdf8;
+  border-color: #000000;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
 .drawer-actions {
   display: flex;
   align-items: center;
