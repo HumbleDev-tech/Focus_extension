@@ -173,7 +173,7 @@ const PRESET_MAP = {
     redirectHomeToSubscriptions: false,
     hideSidebar: false,
     hideComments: false,
-    hideShorts: false,
+    hideShorts: true,
     hideEndScreens: true,
     hideVoiceSearch: false,
     hideCreateButton: false,

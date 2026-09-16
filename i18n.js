@@ -27,7 +27,7 @@ const LIBERTAD_I18N = {
     descOff:
       'Default YouTube state. All algorithmic feeds and recommendations visible.',
     descBasic:
-      'Suppresses annoying overlays, promotional buttons, and end screens.',
+      'Suppresses shorts, annoying overlays, promotional buttons, and end screens.',
     descBalanced:
       'Suppresses sidebar recommendations, shorts, autoplay, and clutter. Comments preserved.',
     descExtreme:
@@ -141,7 +141,7 @@ const LIBERTAD_I18N = {
     descOff:
       'Estado estandar de YouTube. Todos los feeds y recomendaciones visibles.',
     descBasic:
-      'Suprime overlays molestos, botones promocionales y pantallas finales.',
+      'Suprime shorts, overlays molestos, botones promocionales y pantallas finales.',
     descBalanced:
       'Suprime recomendaciones laterales, shorts, autoplay y distracciones. Mantiene comentarios.',
     descExtreme:
@@ -254,7 +254,7 @@ const LIBERTAD_I18N = {
     descOff:
       'Estado padrão do YouTube. Todos os feeds e recomendações visíveis.',
     descBasic:
-      'Suprime sobreposições intrusivas, botões promocionais e telas finais.',
+      'Suprime shorts, sobreposições intrusivas, botões promocionais e telas finais.',
     descBalanced:
       'Suprime vídeos sugeridos na lateral, shorts, reprodução automática e distrações. Mantém comentários.',
     descExtreme:

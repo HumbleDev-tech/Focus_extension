@@ -63,7 +63,7 @@ Choose a curated mode directly from the top preset bar, or customize any of the 
 | **Home Feed (Zen Prompt)** | Shown | Shown | Shown | **Minimal Search** |
 | **Direct to Subscriptions** | Off | Off | Off | Off |
 | **Related Sidebar & Up Next** | Shown | Shown | **Hidden** | **Hidden** |
-| **Shorts (Feeds, Nav & Redirects)** | Shown | Shown | **Hidden** | **Hidden** |
+| **Shorts (Feeds, Nav & Redirects)** | Shown | **Hidden** | **Hidden** | **Hidden** |
 | **End Screen Cards** | Shown | **Hidden** | **Hidden** | **Hidden** |
 | **Comments Stream** | Shown | Shown | Shown | **Hidden** |
 | **Header (Voice, Create, Bell)** | Shown | Shown | **Hidden** | **Hidden** |
