@@ -607,84 +607,159 @@ globalThis.Libertad = globalThis.Libertad || {};
     // Libertad UI Elements styling
     rules.push(`
       #libertad-zen-container {
+        --zen-scale: 1;
+        --zen-bg: #131722;
+        --zen-border: rgba(255, 255, 255, 0.08);
+        --zen-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+        --zen-text-primary: #f0f3f6;
+        --zen-text-secondary: #9aa4b2;
+        --zen-accent: #38bdf8;
+        --zen-accent-glow: rgba(56, 189, 248, 0.35);
+        --zen-accent-soft: rgba(56, 189, 248, 0.08);
+        --zen-accent-border: rgba(56, 189, 248, 0.28);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        min-height: 52vh;
+        min-height: 56vh;
         text-align: center;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        color: var(--yt-spec-text-primary, #f1f1f1);
-        padding: 40px 20px;
+        color: var(--zen-text-primary);
+        padding: calc(40px * var(--zen-scale)) calc(20px * var(--zen-scale));
+        box-sizing: border-box;
         animation: libertadFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       }
       @keyframes libertadFadeIn {
         from { opacity: 0; transform: translateY(6px); }
         to { opacity: 1; transform: translateY(0); }
       }
+
+      /* Scale Adaptations */
+      #libertad-zen-container[data-scale="100"] {
+        --zen-scale: 1;
+      }
+      #libertad-zen-container[data-scale="120"] {
+        --zen-scale: 1.2;
+      }
+      #libertad-zen-container[data-scale="140"] {
+        --zen-scale: 1.4;
+      }
+
+      /* Theme Adaptations */
+      #libertad-zen-container[data-theme="dark"] {
+        --zen-bg: #131722;
+        --zen-border: rgba(255, 255, 255, 0.08);
+        --zen-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+        --zen-text-primary: #f0f3f6;
+        --zen-text-secondary: #9aa4b2;
+        --zen-accent: #38bdf8;
+        --zen-accent-glow: rgba(56, 189, 248, 0.35);
+        --zen-accent-soft: rgba(56, 189, 248, 0.08);
+        --zen-accent-border: rgba(56, 189, 248, 0.28);
+      }
+      #libertad-zen-container[data-theme="oled"] {
+        --zen-bg: #040508;
+        --zen-border: #171a21;
+        --zen-shadow: 0 8px 32px rgba(0, 0, 0, 0.85);
+        --zen-text-primary: #ffffff;
+        --zen-text-secondary: #a1a1aa;
+        --zen-accent: #38bdf8;
+        --zen-accent-glow: rgba(56, 189, 248, 0.45);
+        --zen-accent-soft: rgba(56, 189, 248, 0.1);
+        --zen-accent-border: rgba(56, 189, 248, 0.32);
+      }
+      #libertad-zen-container[data-theme="light"] {
+        --zen-bg: #ffffff;
+        --zen-border: #cbd5e1;
+        --zen-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        --zen-text-primary: #0f172a;
+        --zen-text-secondary: #475569;
+        --zen-accent: #0284c7;
+        --zen-accent-glow: rgba(2, 132, 199, 0.25);
+        --zen-accent-soft: rgba(2, 132, 199, 0.08);
+        --zen-accent-border: rgba(2, 132, 199, 0.28);
+      }
+
       .libertad-zen-card {
-        background: var(--yt-spec-brand-background-primary, #0e1219);
-        border: 1px solid var(--yt-spec-10-percent-layer, rgba(255, 255, 255, 0.1));
-        border-radius: 6px;
-        padding: 32px 36px;
-        max-width: 440px;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+        background: var(--zen-bg);
+        border: 1px solid var(--zen-border);
+        border-radius: calc(8px * var(--zen-scale));
+        padding: calc(28px * var(--zen-scale)) calc(36px * var(--zen-scale)) calc(30px * var(--zen-scale));
+        max-width: calc(440px * var(--zen-scale));
+        width: 100%;
+        box-sizing: border-box;
+        box-shadow: var(--zen-shadow);
         display: flex;
         flex-direction: column;
         align-items: center;
+        position: relative;
+        transition: background 0.2s ease, border-color 0.2s ease;
       }
-      .libertad-zen-badge {
+      .libertad-zen-brand {
+        display: flex;
+        align-items: center;
+        gap: calc(10px * var(--zen-scale));
+        margin-bottom: calc(18px * var(--zen-scale));
+      }
+      .libertad-zen-brand-title {
         font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, monospace;
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 1.2px;
-        color: var(--yt-spec-call-to-action, #065fd4);
-        background: rgba(6, 95, 212, 0.08);
-        border: 1px solid rgba(6, 95, 212, 0.28);
-        border-radius: 3px;
-        padding: 2px 8px;
-        margin-bottom: 16px;
-        text-transform: uppercase;
+        font-size: calc(11px * var(--zen-scale));
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        color: var(--zen-text-primary);
       }
-      html[dark] .libertad-zen-badge {
-        color: #38bdf8;
-        background: rgba(56, 189, 248, 0.08);
-        border: 1px solid rgba(56, 189, 248, 0.28);
+      .libertad-zen-status {
+        display: inline-flex;
+        align-items: center;
+        gap: calc(5px * var(--zen-scale));
+        padding: calc(2px * var(--zen-scale)) calc(8px * var(--zen-scale));
+        border-radius: calc(12px * var(--zen-scale));
+        background: var(--zen-accent-soft);
+        border: 1px solid var(--zen-accent-border);
+        font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, monospace;
+        font-size: calc(9.5px * var(--zen-scale));
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        color: var(--zen-accent);
+      }
+      .libertad-zen-dot {
+        width: calc(4.5px * var(--zen-scale));
+        height: calc(4.5px * var(--zen-scale));
+        border-radius: 50%;
+        background: var(--zen-accent);
+        box-shadow: 0 0 calc(4px * var(--zen-scale)) var(--zen-accent-glow);
       }
       .libertad-zen-icon-wrapper {
-        color: var(--yt-spec-call-to-action, #065fd4);
-        margin-bottom: 14px;
+        color: var(--zen-accent);
+        margin-bottom: calc(15px * var(--zen-scale));
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 44px;
-        height: 44px;
-        background: rgba(6, 95, 212, 0.06);
-        border: 1px solid rgba(6, 95, 212, 0.2);
-        border-radius: 4px;
-        box-shadow: 0 0 16px rgba(6, 95, 212, 0.12);
-      }
-      html[dark] .libertad-zen-icon-wrapper {
-        color: #38bdf8;
-        background: rgba(56, 189, 248, 0.06);
-        border: 1px solid rgba(56, 189, 248, 0.2);
-        box-shadow: 0 0 16px rgba(56, 189, 248, 0.12);
+        width: calc(44px * var(--zen-scale));
+        height: calc(44px * var(--zen-scale));
+        background: var(--zen-accent-soft);
+        border: 1px solid var(--zen-accent-border);
+        border-radius: calc(6px * var(--zen-scale));
+        box-shadow: 0 0 calc(16px * var(--zen-scale)) var(--zen-accent-glow);
       }
       .libertad-zen-svg {
         display: block;
+        width: calc(24px * var(--zen-scale));
+        height: calc(24px * var(--zen-scale));
       }
       .libertad-zen-title {
-        font-size: 18px;
+        font-size: calc(17px * var(--zen-scale));
         font-weight: 600;
         letter-spacing: -0.2px;
-        margin: 0 0 8px 0;
-        color: var(--yt-spec-text-primary, #ffffff);
+        margin: 0 0 calc(8px * var(--zen-scale)) 0;
+        color: var(--zen-text-primary);
       }
       .libertad-zen-desc {
-        font-size: 13px;
+        font-size: calc(13px * var(--zen-scale));
         line-height: 1.5;
-        color: var(--yt-spec-text-secondary, #8b949e);
+        color: var(--zen-text-secondary);
         margin: 0;
+        max-width: calc(380px * var(--zen-scale));
       }
       .libertad-sponsor-toast {
         position: absolute;
@@ -771,6 +846,13 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   // Show a calm, intentional screen on YouTube home if home feed is disabled
   function updateZenBanner(settings) {
+    function applyZenAttributes(el, theme, scale, lang) {
+      if (!el) return;
+      el.dataset.theme = theme;
+      el.dataset.scale = scale;
+      el.dataset.lang = lang;
+    }
+
     const isHomePage =
       window.location.pathname === '/' || window.location.pathname === '';
     const existing = document.getElementById(ZEN_CONTAINER_ID);
@@ -782,6 +864,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
 
     if (settings.hideHomeFeed && isHomePage) {
+      // 1. Resolve Language
       const isSpanish =
         settings.lang === 'es' ||
         ((!settings.lang || settings.lang === 'auto') &&
@@ -796,27 +879,64 @@ globalThis.Libertad = globalThis.Libertad || {};
           (globalThis.Libertad.isPortugueseLocale
             ? globalThis.Libertad.isPortugueseLocale(navigator.language)
             : navigator.language?.toLowerCase().startsWith('pt')));
+      const langKey = isSpanish ? 'es' : isPortuguese ? 'pt' : 'en';
 
-      const badgeText = isSpanish
-        ? 'SISTEMA // ENFOQUE_ACTIVO'
+      // 2. Resolve Theme
+      let resolvedTheme = settings.theme || 'auto';
+      if (resolvedTheme === 'auto') {
+        const isDark =
+          document.documentElement.hasAttribute('dark') ||
+          (typeof window !== 'undefined' &&
+            window.matchMedia?.('(prefers-color-scheme: dark)')?.matches);
+        resolvedTheme = isDark ? 'dark' : 'light';
+      }
+
+      // 3. Resolve Scale
+      let resolvedScale = settings.scale || 'auto';
+      if (resolvedScale === 'auto') {
+        const screenW =
+          typeof window !== 'undefined' && window.screen
+            ? window.screen.width || 1920
+            : 1920;
+        const dpr =
+          typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+        const effectiveW = screenW * dpr;
+        if (screenW >= 3440 || (effectiveW >= 3840 && dpr < 1.5)) {
+          resolvedScale = '140';
+        } else if (screenW >= 2400 || (effectiveW >= 2560 && dpr <= 1.25)) {
+          resolvedScale = '120';
+        } else {
+          resolvedScale = '100';
+        }
+      }
+
+      const statusText = isSpanish
+        ? 'ENFOQUE ACTIVO'
         : isPortuguese
-          ? 'SISTEMA // FOCO_ATIVO'
-          : 'SYSTEM // FOCUS_ENGAGED';
-      const titleText =
-        isSpanish || isPortuguese
-          ? 'Modo Intencional Activo'
+          ? 'FOCO ATIVO'
+          : 'FOCUS ACTIVE';
+      const titleText = isSpanish
+        ? 'Modo Intencional Activo'
+        : isPortuguese
+          ? 'Modo Intencional Ativo'
           : 'Intentional Mode Active';
       const descText = isSpanish
         ? 'Recomendaciones de feed suprimidas. Realiza una búsqueda arriba para encontrar contenido específico.'
         : isPortuguese
           ? 'Recomendações de feed suprimidas. Faça uma pesquisa acima para encontrar conteúdo específico.'
-          : 'Feed recommendations suppressed. Execute a search query above to locate specific content.';
+          : 'Feed recommendations suppressed. Use the search bar above to find specific content.';
 
       const cardHtml = `
         <div class="libertad-zen-card">
-          <div class="libertad-zen-badge">${badgeText}</div>
+          <div class="libertad-zen-brand">
+            <span class="libertad-zen-brand-title">LIBERTAD</span>
+            <div class="libertad-zen-status">
+              <span class="libertad-zen-dot"></span>
+              <span>${statusText}</span>
+            </div>
+          </div>
           <div class="libertad-zen-icon-wrapper">
-            <svg class="libertad-zen-svg" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="libertad-zen-svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="9"/>
               <line x1="12" y1="2" x2="12" y2="6"/>
               <line x1="12" y1="18" x2="12" y2="22"/>
@@ -831,9 +951,8 @@ globalThis.Libertad = globalThis.Libertad || {};
       `;
 
       if (existing) {
-        const langKey = isSpanish ? 'es' : isPortuguese ? 'pt' : 'en';
+        applyZenAttributes(existing, resolvedTheme, resolvedScale, langKey);
         if (existing.dataset.lang !== langKey) {
-          existing.dataset.lang = langKey;
           existing.innerHTML = cardHtml;
         }
       } else {
@@ -844,7 +963,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         if (targetContainer) {
           const zen = document.createElement('div');
           zen.id = ZEN_CONTAINER_ID;
-          zen.dataset.lang = isSpanish ? 'es' : isPortuguese ? 'pt' : 'en';
+          applyZenAttributes(zen, resolvedTheme, resolvedScale, langKey);
           zen.innerHTML = cardHtml;
           targetContainer.prepend(zen);
         }

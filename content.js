@@ -198,7 +198,9 @@
           key === 'preset' ||
           key === 'customConfig' ||
           (typeof TOGGLE_KEYS !== 'undefined' && TOGGLE_KEYS.includes(key)) ||
-          key === 'lang'
+          key === 'lang' ||
+          key === 'theme' ||
+          key === 'scale'
         ) {
           stylesChanged = true;
         }
