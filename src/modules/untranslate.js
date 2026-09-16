@@ -29,10 +29,14 @@ globalThis.Libertad = globalThis.Libertad || {};
     };
 
   const titlesCache = new BoundedCache(300);
+  const inFlightTitles = new Map();
   let currentWatchVideoId = null;
   let currentOriginalTitle = null;
   let lastAppliedWatchTitleElement = null;
   let lastRestoredChaptersVideoId = null;
+  let lastRestoredSnippetVideoId = null;
+  let lastRestoredExpandedVideoId = null;
+  let metadataRequestPending = false;
   let latestOriginalMetadata = null;
   let activeUntranslateSettings = null;
 
@@ -57,6 +61,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   window.addEventListener('libertad-agent-metadata', (event) => {
     if (event?.detail) {
       latestOriginalMetadata = event.detail;
+      metadataRequestPending = false;
       if (
         event.detail.title &&
         window.location.pathname === '/watch' &&
@@ -88,7 +93,10 @@ globalThis.Libertad = globalThis.Libertad || {};
     currentWatchVideoId = null;
     lastAppliedWatchTitleElement = null;
     lastRestoredChaptersVideoId = null;
+    lastRestoredSnippetVideoId = null;
+    lastRestoredExpandedVideoId = null;
     latestOriginalMetadata = null;
+    metadataRequestPending = false;
     feedFetchQueue.length = 0;
     pendingFeedVideoIds.clear();
     observedTitleNodesByVideoId.clear();
@@ -104,46 +112,56 @@ globalThis.Libertad = globalThis.Libertad || {};
       const cached = titlesCache.get(videoId);
       return cached ? cached : null;
     }
+    if (inFlightTitles.has(videoId)) {
+      return inFlightTitles.get(videoId);
+    }
 
-    // 1. Direct same-origin oEmbed fetch (~25ms response)
-    try {
-      const oembedUrl = `/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`;
-      const res = await fetch(oembedUrl);
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.title) {
-          const t = data.title.trim();
-          titlesCache.set(videoId, t);
-          return t;
-        }
-      } else if (
-        res.status === 404 ||
-        res.status === 401 ||
-        res.status === 403
-      ) {
-        // Definitive client/video error: skip redundant background worker fetch
-        titlesCache.set(videoId, false);
-        return null;
-      }
-    } catch (_) {}
-
-    // 2. Fallback to background worker
-    if (!chrome.runtime?.id) return null;
-    return new Promise((resolve) => {
-      chrome.runtime.sendMessage(
-        { action: 'FETCH_ORIGINAL_TITLE', videoId },
-        (res) => {
-          if (!chrome.runtime.lastError && res && res.success && res.title) {
-            const t = res.title.trim();
+    const fetchPromise = (async () => {
+      // 1. Direct same-origin oEmbed fetch (~25ms response)
+      try {
+        const oembedUrl = `/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`;
+        const res = await fetch(oembedUrl);
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.title) {
+            const t = data.title.trim();
             titlesCache.set(videoId, t);
-            resolve(t);
-          } else {
-            titlesCache.set(videoId, false);
-            resolve(null);
+            return t;
           }
-        },
-      );
+        } else if (
+          res.status === 404 ||
+          res.status === 401 ||
+          res.status === 403
+        ) {
+          // Definitive client/video error: skip redundant background worker fetch
+          titlesCache.set(videoId, false);
+          return null;
+        }
+      } catch (_) {}
+
+      // 2. Fallback to background worker
+      if (!chrome.runtime?.id) return null;
+      return new Promise((resolve) => {
+        chrome.runtime.sendMessage(
+          { action: 'FETCH_ORIGINAL_TITLE', videoId },
+          (res) => {
+            if (!chrome.runtime.lastError && res && res.success && res.title) {
+              const t = res.title.trim();
+              titlesCache.set(videoId, t);
+              resolve(t);
+            } else {
+              titlesCache.set(videoId, false);
+              resolve(null);
+            }
+          },
+        );
+      });
+    })().finally(() => {
+      inFlightTitles.delete(videoId);
     });
+
+    inFlightTitles.set(videoId, fetchPromise);
+    return fetchPromise;
   }
 
   // Comprehensive watch title selectors
@@ -588,35 +606,81 @@ globalThis.Libertad = globalThis.Libertad || {};
     const videoId = parseId(window.location.href);
     if (!videoId) return;
 
+    if (
+      lastRestoredSnippetVideoId === videoId &&
+      lastRestoredExpandedVideoId === videoId
+    ) {
+      return;
+    }
+
     if (!latestOriginalMetadata || latestOriginalMetadata.videoId !== videoId) {
-      sendAgentCommand('REQUEST_METADATA');
+      if (!metadataRequestPending) {
+        metadataRequestPending = true;
+        sendAgentCommand('REQUEST_METADATA');
+        setTimeout(() => {
+          metadataRequestPending = false;
+        }, 1500);
+      }
       return;
     }
 
     const rawDescription = latestOriginalMetadata.description;
     if (!rawDescription || typeof rawDescription !== 'string') return;
 
-    const descContainer =
-      document.querySelector(
-        '#description-inline-expander yt-attributed-string',
-      ) ||
-      document.querySelector(
-        '#description-inline-expander yt-formatted-string',
-      ) ||
-      document.querySelector('#description-inline-expander') ||
-      document.querySelector('ytd-watch-metadata #description');
+    // 1. Update the expanded description body (revealed when clicking "...more")
+    if (lastRestoredExpandedVideoId !== videoId) {
+      const expandedSpan =
+        document.querySelector(
+          '#description-inline-expander ytd-expandable-video-description-body-renderer yt-attributed-string span.yt-core-attributed-string',
+        ) ||
+        document.querySelector(
+          '#description-inline-expander #expanded yt-attributed-string span.yt-core-attributed-string',
+        ) ||
+        document.querySelector(
+          '#description-inline-expander #expanded yt-attributed-string',
+        ) ||
+        document.querySelector(
+          'ytd-watch-metadata #description yt-formatted-string',
+        );
 
-    if (!descContainer) return;
-    if (
-      descContainer.dataset.libertadOrigApplied === videoId &&
-      descContainer.textContent === rawDescription
-    ) {
-      return;
+      if (expandedSpan) {
+        if (expandedSpan.textContent !== rawDescription) {
+          expandedSpan.textContent = rawDescription;
+        }
+        expandedSpan.dataset.libertadOrigApplied = videoId;
+        lastRestoredExpandedVideoId = videoId;
+      }
     }
 
-    descContainer.textContent = rawDescription;
-    descContainer.style.whiteSpace = 'pre-wrap';
-    descContainer.dataset.libertadOrigApplied = videoId;
+    // 2. Safely update the collapsed snippet preview WITHOUT bloating or destroying line-clamping
+    if (lastRestoredSnippetVideoId !== videoId) {
+      const snippetSpan =
+        document.querySelector(
+          '#description-inline-expander #snippet yt-attributed-string span.yt-core-attributed-string',
+        ) ||
+        document.querySelector(
+          '#description-inline-expander #snippet yt-attributed-string',
+        );
+
+      if (snippetSpan) {
+        const firstLines = rawDescription
+          .trim()
+          .split(/\r?\n/)
+          .filter(Boolean)
+          .slice(0, 2)
+          .join(' ');
+        const previewText =
+          firstLines.length > 140
+            ? firstLines.slice(0, 140) + '...'
+            : firstLines;
+
+        if (previewText && snippetSpan.textContent !== previewText) {
+          snippetSpan.textContent = previewText;
+        }
+        snippetSpan.dataset.libertadOrigApplied = videoId;
+        lastRestoredSnippetVideoId = videoId;
+      }
+    }
   }
 
   // Restore creator's raw timeline chapter titles
@@ -644,7 +708,13 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (lastRestoredChaptersVideoId === videoId) return;
 
     if (!latestOriginalMetadata || latestOriginalMetadata.videoId !== videoId) {
-      sendAgentCommand('REQUEST_METADATA');
+      if (!metadataRequestPending) {
+        metadataRequestPending = true;
+        sendAgentCommand('REQUEST_METADATA');
+        setTimeout(() => {
+          metadataRequestPending = false;
+        }, 1500);
+      }
       return;
     }
 

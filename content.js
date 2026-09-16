@@ -331,24 +331,10 @@
         }
         if (
           currentSettings.untranslateMaster !== false &&
-          currentSettings.untranslateAudio !== false &&
-          Libertad.enforceOriginalAudioTrack
-        ) {
-          Libertad.enforceOriginalAudioTrack(currentSettings);
-        }
-        if (
-          currentSettings.untranslateMaster !== false &&
           currentSettings.untranslateDescription !== false &&
           Libertad.restoreOriginalDescription
         ) {
           Libertad.restoreOriginalDescription(currentSettings);
-        }
-        if (
-          currentSettings.untranslateMaster !== false &&
-          currentSettings.untranslateCaptions !== false &&
-          Libertad.neutralizeAutoTranslatedCaptions
-        ) {
-          Libertad.neutralizeAutoTranslatedCaptions(currentSettings);
         }
         if (
           currentSettings.untranslateMaster !== false &&

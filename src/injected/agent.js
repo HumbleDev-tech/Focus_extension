@@ -177,8 +177,26 @@
     return false;
   }
 
+  let lastEnforcedVideoId = null;
+
+  function getCurrentVideoId() {
+    try {
+      const player = getPlayer();
+      if (player && typeof player.getVideoData === 'function') {
+        const id = player.getVideoData()?.video_id;
+        if (id && /^[a-zA-Z0-9_-]{11}$/.test(id)) return id;
+      }
+    } catch (_) {}
+    const match = window.location.href.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
+  }
+
   // Enforce the creator's true original audio track (Anti AI-Dubbing)
   function enforceOriginalAudio() {
+    const videoId = getCurrentVideoId();
+    if (!videoId) return false;
+    if (lastEnforcedVideoId === videoId) return true;
+
     const player = getPlayer();
     if (!player || typeof player.getAvailableAudioTracks !== 'function') {
       return false;
@@ -192,7 +210,18 @@
 
       // If only one track exists, nothing to switch
       if (tracks.length === 1) {
+        lastEnforcedVideoId = videoId;
         return true;
+      }
+
+      // Ensure current track is actually initialized before querying/switching
+      const currentTrack =
+        typeof player.getAudioTrack === 'function'
+          ? player.getAudioTrack()
+          : null;
+
+      if (!currentTrack) {
+        return false; // Wait until player confirms active track
       }
 
       const response = getPlayerResponse();
@@ -202,6 +231,12 @@
         response?.videoDetails?.defaultAudioLanguage ||
         ''
       ).toLowerCase();
+
+      // If current track is already original, no switch needed
+      if (isOriginalTrack(currentTrack, defaultLang)) {
+        lastEnforcedVideoId = videoId;
+        return true;
+      }
 
       // Find the true original audio track
       let targetTrack = tracks.find((t) => isOriginalTrack(t, defaultLang));
@@ -225,31 +260,23 @@
         targetTrack = tracks[0];
       }
 
-      const currentTrack =
-        typeof player.getAudioTrack === 'function'
-          ? player.getAudioTrack()
-          : null;
-
       const currentId = currentTrack?.audioTrackId || currentTrack?.id;
       const targetId = targetTrack?.audioTrackId || targetTrack?.id;
 
       if (
         targetTrack &&
-        (!currentTrack || !currentId || currentId !== targetId)
+        targetTrack !== currentTrack &&
+        (!currentId || !targetId || currentId !== targetId)
       ) {
         player.setAudioTrack(targetTrack);
         console.log(
           '[Libertad Untranslate] Switched to original audio track:',
           targetTrack.displayName || targetId,
         );
-        return true;
       }
 
-      if (currentId && targetId && currentId === targetId) {
-        return true; // Confirmed already on original track
-      }
-
-      return false;
+      lastEnforcedVideoId = videoId;
+      return true;
     } catch (_) {}
     return false;
   }
@@ -321,8 +348,8 @@
     ) {
       player.__libertadEventsBound = true;
       player.addEventListener('onStateChange', (state) => {
-        // State 1: PLAYING, State 3: BUFFERING
-        if (state === 1 || state === 3) {
+        // State 1: PLAYING. Only enforce once playback actively starts, NEVER on BUFFERING (state 3)
+        if (state === 1) {
           enforceOriginalAudio();
           neutralizeAutoCaptions();
           broadcastMetadata();
@@ -336,11 +363,6 @@
     const video = getVideoElement();
     if (video && !video.__libertadEventsBound) {
       video.__libertadEventsBound = true;
-      video.addEventListener('loadedmetadata', () => {
-        enforceOriginalAudio();
-        neutralizeAutoCaptions();
-        broadcastMetadata();
-      });
       video.addEventListener('playing', () => {
         enforceOriginalAudio();
         neutralizeAutoCaptions();
@@ -360,26 +382,34 @@
       retryTimer = null;
     }
 
+    const currentVid = getCurrentVideoId();
+    if (currentVid && lastEnforcedVideoId === currentVid) {
+      broadcastMetadata();
+      return;
+    }
+
     let attempts = 0;
-    const maxAttempts = 15;
+    const maxAttempts = 10;
 
     bindPlayerEvents();
-    enforceOriginalAudio();
+    const audioDone = enforceOriginalAudio();
     neutralizeAutoCaptions();
     broadcastMetadata();
+
+    if (audioDone) return;
 
     retryTimer = setInterval(() => {
       attempts++;
       bindPlayerEvents();
-      const audioDone = enforceOriginalAudio();
+      const done = enforceOriginalAudio();
       neutralizeAutoCaptions();
       broadcastMetadata();
 
-      if ((audioDone && attempts >= 3) || attempts >= maxAttempts) {
+      if (done || attempts >= maxAttempts) {
         clearInterval(retryTimer);
         retryTimer = null;
       }
-    }, 400);
+    }, 500);
   }
 
   // Listen for targeted execution commands from Libertad Content Script
@@ -394,18 +424,14 @@
     }
   });
 
-  // Automatically monitor navigation and video load events in page context
+  // Automatically monitor navigation in page context
   window.addEventListener('yt-navigate-finish', () => {
+    lastEnforcedVideoId = null;
     bindPlayerEvents();
-    setTimeout(startEnforcementRoutine, 300);
-  });
-
-  window.addEventListener('yt-player-updated', () => {
-    bindPlayerEvents();
-    startEnforcementRoutine();
+    setTimeout(startEnforcementRoutine, 400);
   });
 
   // Initial startup hook
   bindPlayerEvents();
-  startEnforcementRoutine();
+  setTimeout(startEnforcementRoutine, 500);
 })();
