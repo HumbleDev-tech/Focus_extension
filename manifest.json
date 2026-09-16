@@ -38,12 +38,7 @@
       "run_at": "document_start"
     }
   ],
-  "web_accessible_resources": [
-    {
-      "resources": ["src/injected/agent.js"],
-      "matches": ["*://*.youtube.com/*", "*://youtube.com/*"]
-    }
-  ],
+
   "action": {
     "default_popup": "popup.html",
     "default_title": "__MSG_actionTitle__",

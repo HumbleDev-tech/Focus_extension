@@ -2,7 +2,7 @@
   <img src="icons/icon128.png" width="80" height="80" alt="Libertad Logo" />
 </p>
 
-<h1 align="center">Libertad — YouTube Focus & Distraction-Free</h1>
+<h1 align="center">Libertad for YouTube — Focus & Distraction-Free</h1>
 
 <p align="center">
   <strong>Reclaim your attention. Watch what you actually chose to watch — without feeds, shorts, or clickbait pulling you in.</strong>
