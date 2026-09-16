@@ -164,40 +164,35 @@ globalThis.Libertad = globalThis.Libertad || {};
     return fetchPromise;
   }
 
-  // Comprehensive watch title selectors
-  function getWatchTitleElements() {
-    const elements = [];
-    const selectors = [
-      'watch-metadata-view-model #title yt-formatted-string',
-      'watch-metadata-view-model #title h1',
-      'watch-metadata-view-model h1',
-      'watch-metadata-view-model [role="heading"]',
-      'ytd-watch-metadata #title yt-formatted-string',
-      'ytd-watch-metadata #title h1',
-      'ytd-watch-metadata h1 yt-formatted-string',
-      'ytd-watch-metadata h1',
-      '#above-the-fold #title yt-formatted-string',
-      '#above-the-fold #title h1',
-      '#above-the-fold h1',
-      '#title:has(h1) h1',
-      'h1.style-scope.ytd-watch-metadata yt-formatted-string',
-      'h1.style-scope.ytd-watch-metadata',
-      '#title.style-scope.ytd-watch-metadata yt-formatted-string',
-      'ytd-watch-flexy:not([hidden]) #container > h1 > yt-formatted-string',
-      'ytd-video-primary-info-renderer h1.title yt-formatted-string',
-      'h1.title yt-formatted-string',
-      'h1.title > *',
-    ];
+  const WATCH_TITLE_SELECTOR = [
+    'watch-metadata-view-model #title yt-formatted-string',
+    'watch-metadata-view-model #title h1',
+    'watch-metadata-view-model h1',
+    'watch-metadata-view-model [role="heading"]',
+    'ytd-watch-metadata #title yt-formatted-string',
+    'ytd-watch-metadata #title h1',
+    'ytd-watch-metadata h1 yt-formatted-string',
+    'ytd-watch-metadata h1',
+    '#above-the-fold #title yt-formatted-string',
+    '#above-the-fold #title h1',
+    '#above-the-fold h1',
+    '#title:has(h1) h1',
+    'h1.style-scope.ytd-watch-metadata yt-formatted-string',
+    'h1.style-scope.ytd-watch-metadata',
+    '#title.style-scope.ytd-watch-metadata yt-formatted-string',
+    'ytd-watch-flexy:not([hidden]) #container > h1 > yt-formatted-string',
+    'ytd-video-primary-info-renderer h1.title yt-formatted-string',
+    'h1.title yt-formatted-string',
+    'h1.title > *',
+  ].join(', ');
 
-    for (const sel of selectors) {
-      const nodes = document.querySelectorAll(sel);
-      nodes.forEach((node) => {
-        if (!elements.includes(node)) {
-          elements.push(node);
-        }
-      });
-    }
-    return elements;
+  // Comprehensive watch title selectors (single unified query)
+  function getWatchTitleElements() {
+    if (window.location.pathname !== '/watch') return [];
+    const scope =
+      document.querySelector('ytd-watch-metadata, #above-the-fold') || document;
+    const nodes = scope.querySelectorAll(WATCH_TITLE_SELECTOR);
+    return Array.from(nodes);
   }
 
   // Apply original title to watch page
@@ -404,6 +399,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
 
     titleNode.dataset.libertadApplied = videoId;
+    delete titleNode.dataset.libertadPendingId;
     titleNode.setAttribute('title', cleanTitle);
     titleNode.removeAttribute('is-empty');
 
@@ -421,6 +417,20 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
   }
 
+  function pruneDisconnectedObservedNodes() {
+    if (observedTitleNodesByVideoId.size < 40) return;
+    for (const [vId, set] of observedTitleNodesByVideoId.entries()) {
+      for (const node of set) {
+        if (!node.isConnected) {
+          set.delete(node);
+        }
+      }
+      if (set.size === 0) {
+        observedTitleNodesByVideoId.delete(vId);
+      }
+    }
+  }
+
   function updateFeedElementsForVideoId(videoId, origTitle) {
     if (!videoId || !origTitle) return;
 
@@ -433,6 +443,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       });
       observedTitleNodesByVideoId.delete(videoId);
     }
+    pruneDisconnectedObservedNodes();
   }
 
   function processFeedFetchQueue() {
@@ -478,6 +489,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       observedTitleNodesByVideoId.set(videoId, nodeList);
     }
     nodeList.add(node);
+    pruneDisconnectedObservedNodes();
 
     if (!feedIntersectionObserver) {
       feedIntersectionObserver = new IntersectionObserver(

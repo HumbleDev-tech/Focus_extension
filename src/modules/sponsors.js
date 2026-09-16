@@ -46,6 +46,8 @@ globalThis.Libertad = globalThis.Libertad || {};
   let lastSkippedSegmentUuid = null;
   let lastRenderedSponsorKey = '';
   let activeSponsorSettings = null;
+  let activeProgressBar = null;
+  let activeSponsorContainer = null;
 
   function resetSponsorNavigation() {
     currentSponsorVideoId = null;
@@ -53,6 +55,8 @@ globalThis.Libertad = globalThis.Libertad || {};
     currentSponsorVideoDuration = 0;
     lastSkippedSegmentUuid = null;
     lastRenderedSponsorKey = '';
+    activeProgressBar = null;
+    activeSponsorContainer = null;
     ignoredSegmentUuids.clear();
     renderSponsorProgressBar();
   }
@@ -182,25 +186,30 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   function getMainPlayerProgressBar() {
+    if (activeProgressBar?.isConnected) {
+      return activeProgressBar;
+    }
     const player = getMainPlayerContainer();
     if (!player) return null;
-    return (
+    const bar =
       player.querySelector('.ytp-progress-bar-container') ||
       player.querySelector('.ytp-progress-bar') ||
       document.querySelector('.ytp-progress-bar-container') ||
-      document.querySelector('.ytp-progress-bar')
-    );
+      document.querySelector('.ytp-progress-bar');
+    activeProgressBar = bar || null;
+    return bar;
   }
 
   function renderSponsorProgressBar() {
     const progressBar = getMainPlayerProgressBar();
     if (!progressBar) return;
 
-    let container = progressBar.querySelector(
-      '.libertad-sponsor-bar-container',
-    );
+    let container =
+      (activeSponsorContainer?.isConnected ? activeSponsorContainer : null) ||
+      progressBar.querySelector('.libertad-sponsor-bar-container');
     if (!currentSponsorSegments.length) {
       if (container) container.remove();
+      activeSponsorContainer = null;
       lastRenderedSponsorKey = '';
       return;
     }
@@ -218,6 +227,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     const renderKey = `${currentSponsorVideoId}_${duration}_${currentSponsorSegments.length}`;
     if (renderKey === lastRenderedSponsorKey && container) {
+      activeSponsorContainer = container;
       return;
     }
 
@@ -226,6 +236,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       container.className = 'libertad-sponsor-bar-container';
       progressBar.appendChild(container);
     }
+    activeSponsorContainer = container;
 
     container.textContent = '';
     for (const seg of currentSponsorSegments) {
@@ -313,7 +324,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         checkVideoSponsors(video, activeSponsorSettings);
         if (
           currentSponsorSegments.length > 0 &&
-          !document.querySelector('.libertad-sponsor-bar-container')
+          !activeSponsorContainer?.isConnected
         ) {
           renderSponsorProgressBar();
         }
@@ -415,6 +426,8 @@ globalThis.Libertad = globalThis.Libertad || {};
   globalThis.Libertad.renderSponsorProgressBar = renderSponsorProgressBar;
   globalThis.Libertad.resetSponsorNavigation = resetSponsorNavigation;
   globalThis.Libertad.getMainPlayerProgressBar = getMainPlayerProgressBar;
+  globalThis.Libertad.hasActiveSponsorContainer = () =>
+    Boolean(activeSponsorContainer?.isConnected);
   globalThis.Libertad.getCurrentSponsorSegments = () => currentSponsorSegments;
   globalThis.Libertad.getCurrentSponsorVideoId = () => currentSponsorVideoId;
 })();

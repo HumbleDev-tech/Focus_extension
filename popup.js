@@ -533,7 +533,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Save current state to storage (excluding local popup UI keys)
-  function saveState() {
+  function saveState(partialPatch) {
+    if (partialPatch && typeof partialPatch === 'object') {
+      chrome.storage.sync.set(partialPatch, () => {
+        renderUI();
+      });
+      return;
+    }
     const syncPayload = { ...state };
     delete syncPayload.activeTab;
     chrome.storage.sync.set(syncPayload, () => {
@@ -879,14 +885,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         state.profiles[state.activeProfile].toggles[key] = e.target.checked;
       }
-      saveState();
+      saveState({
+        [key]: state[key],
+        preset: state.preset,
+        profiles: state.profiles,
+      });
     });
   });
 
   // Power Modules: Dislikes toggle
   toggles.showDislikes?.addEventListener('change', (e) => {
     state.showDislikes = e.target.checked;
-    saveState();
+    saveState({ showDislikes: state.showDislikes });
   });
 
   // Power Modules: Untranslate Suite
@@ -901,32 +911,32 @@ document.addEventListener('DOMContentLoaded', () => {
         !state.untranslateMaster,
       );
     }
-    saveState();
+    saveState({ untranslateMaster: state.untranslateMaster });
   });
 
   toggles.untranslateTitles?.addEventListener('change', (e) => {
     state.untranslateTitles = e.target.checked;
-    saveState();
+    saveState({ untranslateTitles: state.untranslateTitles });
   });
 
   toggles.untranslateAudio?.addEventListener('change', (e) => {
     state.untranslateAudio = e.target.checked;
-    saveState();
+    saveState({ untranslateAudio: state.untranslateAudio });
   });
 
   toggles.untranslateDescription?.addEventListener('change', (e) => {
     state.untranslateDescription = e.target.checked;
-    saveState();
+    saveState({ untranslateDescription: state.untranslateDescription });
   });
 
   toggles.untranslateCaptions?.addEventListener('change', (e) => {
     state.untranslateCaptions = e.target.checked;
-    saveState();
+    saveState({ untranslateCaptions: state.untranslateCaptions });
   });
 
   toggles.untranslateChapters?.addEventListener('change', (e) => {
     state.untranslateChapters = e.target.checked;
-    saveState();
+    saveState({ untranslateChapters: state.untranslateChapters });
   });
 
   // Power Modules: Skip sponsors toggle
@@ -936,33 +946,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sponsorSubContainer) {
       sponsorSubContainer.classList.toggle('is-collapsed', !state.skipSponsors);
     }
-    saveState();
+    saveState({ skipSponsors: state.skipSponsors });
   });
 
   // Power Modules: SponsorBlock sub-options
   toggles.sponsorSkipSponsors?.addEventListener('change', (e) => {
     state.sponsorSkipSponsors = e.target.checked;
-    saveState();
+    saveState({ sponsorSkipSponsors: state.sponsorSkipSponsors });
   });
   toggles.sponsorSkipSelfpromo?.addEventListener('change', (e) => {
     state.sponsorSkipSelfpromo = e.target.checked;
-    saveState();
+    saveState({ sponsorSkipSelfpromo: state.sponsorSkipSelfpromo });
   });
   toggles.sponsorSkipInteraction?.addEventListener('change', (e) => {
     state.sponsorSkipInteraction = e.target.checked;
-    saveState();
+    saveState({ sponsorSkipInteraction: state.sponsorSkipInteraction });
   });
   toggles.sponsorSkipIntro?.addEventListener('change', (e) => {
     state.sponsorSkipIntro = e.target.checked;
-    saveState();
+    saveState({ sponsorSkipIntro: state.sponsorSkipIntro });
   });
   toggles.sponsorSkipOutro?.addEventListener('change', (e) => {
     state.sponsorSkipOutro = e.target.checked;
-    saveState();
+    saveState({ sponsorSkipOutro: state.sponsorSkipOutro });
   });
   toggles.sponsorSkipMusicOfftopic?.addEventListener('change', (e) => {
     state.sponsorSkipMusicOfftopic = e.target.checked;
-    saveState();
+    saveState({ sponsorSkipMusicOfftopic: state.sponsorSkipMusicOfftopic });
   });
 
   // Reset configuration button (with 2-step confirmation)

@@ -257,8 +257,13 @@
     }
   });
 
+  let lastDislikeBtn = null;
+  let lastCheckedHref = '';
+
   // Handle YouTube SPA Navigation events
   window.addEventListener('yt-navigate-start', (event) => {
+    lastDislikeBtn = null;
+    lastCheckedHref = '';
     const targetUrl = event?.detail?.url;
     if (Libertad.redirectShortsIfActive) {
       Libertad.redirectShortsIfActive(currentSettings, targetUrl);
@@ -276,10 +281,13 @@
   });
 
   window.addEventListener('yt-navigate-finish', () => {
+    lastDislikeBtn = null;
     syncAllModules();
   });
 
   window.addEventListener('popstate', () => {
+    lastDislikeBtn = null;
+    lastCheckedHref = '';
     if (Libertad.redirectShortsIfActive) {
       Libertad.redirectShortsIfActive(currentSettings);
     }
@@ -288,7 +296,7 @@
     }
   });
 
-  // Throttled MutationObserver with node-addition filtering
+  // Throttled MutationObserver with node-addition filtering and memoized lookups
   let isCheckingMutation = false;
 
   const observer = new MutationObserver((mutations) => {
@@ -307,25 +315,41 @@
     window.requestAnimationFrame(() => {
       isCheckingMutation = false;
 
-      if (Libertad.redirectShortsIfActive) {
-        Libertad.redirectShortsIfActive(currentSettings);
+      const currentHref = window.location.href;
+      const currentPath = window.location.pathname;
+      const hrefChanged = currentHref !== lastCheckedHref;
+      lastCheckedHref = currentHref;
+
+      if (hrefChanged) {
+        if (Libertad.redirectShortsIfActive) {
+          Libertad.redirectShortsIfActive(currentSettings);
+        }
+        if (Libertad.redirectHomeToSubscriptions) {
+          Libertad.redirectHomeToSubscriptions(currentSettings);
+        }
       }
-      if (Libertad.redirectHomeToSubscriptions) {
-        Libertad.redirectHomeToSubscriptions(currentSettings);
-      }
-      if (Libertad.updateZenBanner) {
+
+      const isHome = currentPath === '/' || currentPath === '';
+      if (isHome && Libertad.updateZenBanner) {
         Libertad.updateZenBanner(currentSettings);
       }
 
-      if (window.location.pathname === '/watch') {
+      if (currentPath === '/watch') {
         if (currentSettings.showDislikes && Libertad.findDislikeButton) {
-          const dislikeBtn = Libertad.findDislikeButton();
-          if (
-            dislikeBtn &&
-            !dislikeBtn.querySelector('.libertad-dislike-badge') &&
-            Libertad.updateDislikeCount
-          ) {
-            Libertad.updateDislikeCount(currentSettings);
+          const hasBadge =
+            lastDislikeBtn?.isConnected &&
+            lastDislikeBtn.querySelector('.libertad-dislike-badge');
+          if (!hasBadge) {
+            const dislikeBtn = Libertad.findDislikeButton();
+            if (dislikeBtn) {
+              lastDislikeBtn = dislikeBtn;
+              if (
+                !dislikeBtn.querySelector('.libertad-dislike-badge') &&
+                Libertad.updateDislikeCount
+              ) {
+                Libertad.updateDislikeCount(currentSettings);
+              }
+            }
           }
         }
         if (
@@ -365,17 +389,16 @@
           if (Libertad.bindVideoSponsorListener) {
             Libertad.bindVideoSponsorListener(currentSettings);
           }
-          const progressBar = Libertad.getMainPlayerProgressBar
-            ? Libertad.getMainPlayerProgressBar()
-            : null;
           const segments =
             typeof Libertad.getCurrentSponsorSegments === 'function'
               ? Libertad.getCurrentSponsorSegments()
               : [];
+          const hasContainer = Libertad.hasActiveSponsorContainer
+            ? Libertad.hasActiveSponsorContainer()
+            : false;
           if (
-            progressBar &&
             segments.length > 0 &&
-            !progressBar.querySelector('.libertad-sponsor-bar-container') &&
+            !hasContainer &&
             Libertad.renderSponsorProgressBar
           ) {
             Libertad.renderSponsorProgressBar();
@@ -387,9 +410,7 @@
         currentSettings.untranslateMaster !== false &&
         currentSettings.untranslateTitles !== false
       ) {
-        const isHome =
-          window.location.pathname === '/' || window.location.pathname === '';
-        const isWatch = window.location.pathname === '/watch';
+        const isWatch = currentPath === '/watch';
         if (
           (!isHome || !currentSettings.hideHomeFeed) &&
           (!isWatch || !currentSettings.hideSidebar) &&

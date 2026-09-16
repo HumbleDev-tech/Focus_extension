@@ -21,6 +21,10 @@ const sponsorsCache = new Map();
 const MAX_SW_CACHE_SIZE = 200;
 const YOUTUBE_VIDEO_ID_REGEX = /^[a-zA-Z0-9_-]{11}$/;
 
+const inFlightDislikes = new Map();
+const inFlightTitles = new Map();
+const inFlightSponsors = new Map();
+
 function setBoundedCache(cache, key, value, prefix) {
   if (cache.size >= MAX_SW_CACHE_SIZE) {
     const oldestKey = cache.keys().next().value;
@@ -79,23 +83,37 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
         return;
       }
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000);
-
-      try {
-        const res = await fetch(
-          `https://returnyoutubedislikeapi.com/votes?videoId=${encodeURIComponent(videoId)}`,
-          { signal: controller.signal },
-        );
-        clearTimeout(timeoutId);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        await setToCache(dislikesCache, 'dislikes', videoId, data);
-        sendResponse({ success: true, data });
-      } catch (err) {
-        clearTimeout(timeoutId);
-        sendResponse({ success: false, error: err.message });
+      if (inFlightDislikes.has(videoId)) {
+        const sharedResult = await inFlightDislikes.get(videoId);
+        sendResponse(sharedResult);
+        return;
       }
+
+      const fetchPromise = (async () => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+        try {
+          const res = await fetch(
+            `https://returnyoutubedislikeapi.com/votes?videoId=${encodeURIComponent(videoId)}`,
+            { signal: controller.signal },
+          );
+          clearTimeout(timeoutId);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          await setToCache(dislikesCache, 'dislikes', videoId, data);
+          return { success: true, data };
+        } catch (err) {
+          clearTimeout(timeoutId);
+          return { success: false, error: err.message };
+        } finally {
+          inFlightDislikes.delete(videoId);
+        }
+      })();
+
+      inFlightDislikes.set(videoId, fetchPromise);
+      const payload = await fetchPromise;
+      sendResponse(payload);
     })();
 
     return true; // Keep channel open for async response
@@ -115,27 +133,41 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
         return;
       }
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000);
-
-      try {
-        // YouTube oEmbed endpoint returns untranslated original title
-        const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`;
-        const res = await fetch(oembedUrl, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        const payload = {
-          success: true,
-          title: data.title,
-          author: data.author_name,
-        };
-        await setToCache(titlesCache, 'titles', videoId, payload);
-        sendResponse(payload);
-      } catch (err) {
-        clearTimeout(timeoutId);
-        sendResponse({ success: false, error: err.message });
+      if (inFlightTitles.has(videoId)) {
+        const sharedResult = await inFlightTitles.get(videoId);
+        sendResponse(sharedResult);
+        return;
       }
+
+      const fetchPromise = (async () => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+        try {
+          // YouTube oEmbed endpoint returns untranslated original title
+          const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`;
+          const res = await fetch(oembedUrl, { signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          const payload = {
+            success: true,
+            title: data.title,
+            author: data.author_name,
+          };
+          await setToCache(titlesCache, 'titles', videoId, payload);
+          return payload;
+        } catch (err) {
+          clearTimeout(timeoutId);
+          return { success: false, error: err.message };
+        } finally {
+          inFlightTitles.delete(videoId);
+        }
+      })();
+
+      inFlightTitles.set(videoId, fetchPromise);
+      const payload = await fetchPromise;
+      sendResponse(payload);
     })();
 
     return true;
@@ -155,43 +187,59 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
         return;
       }
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-      const categories = JSON.stringify([
-        'sponsor',
-        'selfpromo',
-        'interaction',
-        'intro',
-        'outro',
-        'preview',
-        'music_offtopic',
-      ]);
-      const url = `https://sponsor.ajay.app/api/skipSegments?videoID=${encodeURIComponent(videoId)}&categories=${encodeURIComponent(categories)}`;
-
-      try {
-        const res = await fetch(url, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        if (res.status === 404) {
-          // 404 in SponsorBlock API means no sponsor segments exist for this video
-          const emptyPayload = { success: true, segments: [] };
-          await setToCache(sponsorsCache, 'sponsors', videoId, emptyPayload);
-          sendResponse(emptyPayload);
-          return;
-        }
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const segments = await res.json();
-        const payload = {
-          success: true,
-          segments: Array.isArray(segments) ? segments : [],
-        };
-        await setToCache(sponsorsCache, 'sponsors', videoId, payload);
-        sendResponse(payload);
-      } catch (err) {
-        clearTimeout(timeoutId);
-        console.warn('[Libertad ServiceWorker] SponsorBlock fetch error:', err);
-        sendResponse({ success: false, error: err.message });
+      if (inFlightSponsors.has(videoId)) {
+        const sharedResult = await inFlightSponsors.get(videoId);
+        sendResponse(sharedResult);
+        return;
       }
+
+      const fetchPromise = (async () => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+        const categories = JSON.stringify([
+          'sponsor',
+          'selfpromo',
+          'interaction',
+          'intro',
+          'outro',
+          'preview',
+          'music_offtopic',
+        ]);
+        const url = `https://sponsor.ajay.app/api/skipSegments?videoID=${encodeURIComponent(videoId)}&categories=${encodeURIComponent(categories)}`;
+
+        try {
+          const res = await fetch(url, { signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (res.status === 404) {
+            // 404 in SponsorBlock API means no sponsor segments exist for this video
+            const emptyPayload = { success: true, segments: [] };
+            await setToCache(sponsorsCache, 'sponsors', videoId, emptyPayload);
+            return emptyPayload;
+          }
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const segments = await res.json();
+          const payload = {
+            success: true,
+            segments: Array.isArray(segments) ? segments : [],
+          };
+          await setToCache(sponsorsCache, 'sponsors', videoId, payload);
+          return payload;
+        } catch (err) {
+          clearTimeout(timeoutId);
+          console.warn(
+            '[Libertad ServiceWorker] SponsorBlock fetch error:',
+            err,
+          );
+          return { success: false, error: err.message };
+        } finally {
+          inFlightSponsors.delete(videoId);
+        }
+      })();
+
+      inFlightSponsors.set(videoId, fetchPromise);
+      const payload = await fetchPromise;
+      sendResponse(payload);
     })();
 
     return true;

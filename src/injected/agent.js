@@ -324,10 +324,17 @@
     return null;
   }
 
+  let lastBroadcastMetadataKey = null;
+
   // Broadcast original metadata to content script
-  function broadcastMetadata() {
+  function broadcastMetadata(force = false) {
     const meta = getOriginalMetadata();
-    if (meta) {
+    if (meta?.videoId) {
+      const key = `${meta.videoId}_${meta.title || ''}_${meta.description?.length || 0}`;
+      if (!force && key === lastBroadcastMetadataKey) {
+        return;
+      }
+      lastBroadcastMetadataKey = key;
       window.dispatchEvent(
         new CustomEvent('libertad-agent-metadata', {
           detail: meta,
@@ -420,13 +427,14 @@
     } else if (cmd === 'NEUTRALIZE_CAPTIONS') {
       neutralizeAutoCaptions();
     } else if (cmd === 'REQUEST_METADATA') {
-      broadcastMetadata();
+      broadcastMetadata(true);
     }
   });
 
   // Automatically monitor navigation in page context
   window.addEventListener('yt-navigate-finish', () => {
     lastEnforcedVideoId = null;
+    lastBroadcastMetadataKey = null;
     bindPlayerEvents();
     setTimeout(startEnforcementRoutine, 400);
   });
