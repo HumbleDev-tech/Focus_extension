@@ -149,9 +149,11 @@
   // Initial load and DOMContentLoaded events
   document.addEventListener('DOMContentLoaded', () => {
     if (Libertad.untranslateFeed) Libertad.untranslateFeed(currentSettings);
+    if (Libertad.updateZenBanner) Libertad.updateZenBanner(currentSettings);
   });
   window.addEventListener('load', () => {
     if (Libertad.untranslateFeed) Libertad.untranslateFeed(currentSettings);
+    if (Libertad.updateZenBanner) Libertad.updateZenBanner(currentSettings);
   });
 
   // Load saved settings from storage
