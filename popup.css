@@ -4,15 +4,15 @@
   --ui-scale: 1;
 }
 
-[data-scale="100"] {
+:root[data-scale="100"] {
   --ui-scale: 1;
 }
 
-[data-scale="120"] {
+:root[data-scale="120"] {
   --ui-scale: 1.2;
 }
 
-[data-scale="140"] {
+:root[data-scale="140"] {
   --ui-scale: 1.4;
 }
 
@@ -21,7 +21,7 @@
    ========================================================================== */
 
 :root,
-[data-theme="dark"] {
+:root[data-theme="dark"] {
   --bg-canvas: #0d1117;
   --surface-subtle: #161b24;
   --surface-card: #131722;
@@ -63,7 +63,7 @@
   --scrollbar-thumb-hover: rgba(56, 189, 248, 0.5);
 }
 
-[data-theme="oled"] {
+:root[data-theme="oled"] {
   --bg-canvas: #000000;
   --surface-subtle: #08090d;
   --surface-card: #040508;
@@ -104,7 +104,7 @@
   --scrollbar-thumb-hover: rgba(56, 189, 248, 0.6);
 }
 
-[data-theme="light"] {
+:root[data-theme="light"] {
   --bg-canvas: #f8fafc;
   --surface-subtle: #f1f5f9;
   --surface-card: #ffffff;
@@ -349,17 +349,17 @@ button:focus-visible {
 }
 
 /* Light Theme Overrides */
-[data-theme="light"] .status-indicator[data-preset="balanced"] {
+:root[data-theme="light"] .status-indicator[data-preset="balanced"] {
   background: var(--accent-surface);
   color: var(--accent);
 }
 
-[data-theme="light"] .status-indicator[data-preset="extreme"] {
+:root[data-theme="light"] .status-indicator[data-preset="extreme"] {
   background: var(--accent);
   color: #ffffff;
 }
 
-[data-theme="light"] .status-indicator[data-preset="extreme"] .status-dot {
+:root[data-theme="light"] .status-indicator[data-preset="extreme"] .status-dot {
   background: #ffffff;
   box-shadow: none;
 }
@@ -486,7 +486,7 @@ button:focus-visible {
   letter-spacing: 0.5px;
 }
 
-[data-theme="light"] .theme-btn[data-theme="oled"] {
+:root[data-theme="light"] .theme-btn[data-theme="oled"] {
   background: rgba(15, 23, 42, 0.08);
   border: 1px solid rgba(15, 23, 42, 0.16);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
@@ -501,7 +501,7 @@ button:focus-visible {
     inset 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-[data-theme="light"] .theme-btn[data-theme="oled"]:hover {
+:root[data-theme="light"] .theme-btn[data-theme="oled"]:hover {
   background: rgba(15, 23, 42, 0.14);
   border-color: var(--accent);
 }
@@ -515,7 +515,7 @@ button:focus-visible {
     inset 0 0 4px rgba(0, 0, 0, 1);
 }
 
-[data-theme="light"] .theme-btn[data-theme="oled"].active {
+:root[data-theme="light"] .theme-btn[data-theme="oled"].active {
   background: #000000;
   color: #38bdf8;
   border-color: #000000;
@@ -692,7 +692,7 @@ button:focus-visible {
   box-shadow: 0 0 calc(6px * var(--ui-scale)) var(--accent-glow);
 }
 
-[data-theme="light"] .preset-btn[data-preset="balanced"].active {
+:root[data-theme="light"] .preset-btn[data-preset="balanced"].active {
   background: var(--accent-surface);
   color: var(--accent);
 }
@@ -706,7 +706,7 @@ button:focus-visible {
   box-shadow: 0 0 calc(8px * var(--ui-scale)) var(--accent-glow);
 }
 
-[data-theme="light"] .preset-btn[data-preset="extreme"].active {
+:root[data-theme="light"] .preset-btn[data-preset="extreme"].active {
   background: var(--accent);
   color: #ffffff;
 }
