@@ -373,7 +373,6 @@ Libertad is 100% free and open-source. If this extension saves you hours of dist
 
 ☕ **[Support on Ko-fi](https://ko-fi.com/humbledevtech)**
 
-Every contribution helps keep this project independent and actively maintained.
 
 ---
 
