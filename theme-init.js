@@ -14,7 +14,7 @@ try {
   }
 
   let savedScale = localStorage.getItem('libertad_scale');
-  if (!savedScale || savedScale === 'auto') {
+  if (!savedScale || !['100', '120', '140'].includes(savedScale)) {
     const screenW = window.screen ? window.screen.width || 1920 : 1920;
     const dpr = window.devicePixelRatio || 1;
     const effectiveW = screenW * dpr;

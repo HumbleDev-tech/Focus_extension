@@ -168,13 +168,14 @@ html {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  background-color: var(--bg-canvas);
 }
 
 body {
   width: calc(360px * var(--ui-scale, 1));
   max-width: 780px;
-  height: min(calc(540px * var(--ui-scale, 1)), 590px);
-  max-height: 590px;
+  height: min(calc(550px * var(--ui-scale, 1)), 600px);
+  max-height: 600px;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -204,7 +205,7 @@ button:focus-visible {
 .app-window {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   width: 100%;
   overflow: hidden;
 }
@@ -389,6 +390,11 @@ button:focus-visible {
   border-color: var(--accent);
 }
 
+.gear-icon {
+  width: calc(14px * var(--ui-scale));
+  height: calc(14px * var(--ui-scale));
+}
+
 /* Collapsible Preferences Drawer */
 .settings-drawer {
   flex-shrink: 0;
@@ -411,6 +417,7 @@ button:focus-visible {
 .settings-drawer.open {
   max-height: calc(170px * var(--ui-scale));
   opacity: 1;
+  overflow-y: auto;
   padding: calc(8px * var(--ui-scale)) calc(12px * var(--ui-scale))
     calc(10px * var(--ui-scale));
   border-bottom-color: var(--border-hairline);
@@ -561,6 +568,8 @@ button:focus-visible {
 .drawer-link-icon {
   display: inline-block;
   flex-shrink: 0;
+  width: calc(11px * var(--ui-scale));
+  height: calc(11px * var(--ui-scale));
   opacity: 0.75;
   transition: var(--transition-fast);
 }
@@ -1073,6 +1082,12 @@ button:focus-visible {
   transition: color var(--transition-fast);
 }
 
+.shield-icon svg,
+.module-icon svg {
+  width: calc(16px * var(--ui-scale));
+  height: calc(16px * var(--ui-scale));
+}
+
 .shield-card:hover .shield-icon,
 .module-row:hover .module-icon,
 .module-card-header:hover .module-icon {
@@ -1157,7 +1172,7 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(calc(11px * var(--ui-scale)));
+  transform: translateX(calc(13px * var(--ui-scale)));
   background-color: var(--switch-thumb-active);
   box-shadow: 0 0 calc(4px * var(--ui-scale)) var(--accent-glow);
 }
@@ -1220,6 +1235,11 @@ input:checked + .slider:before {
   color: var(--text-muted);
   flex-shrink: 0;
   transition: color var(--transition-fast);
+}
+
+.chip-icon svg {
+  width: calc(13px * var(--ui-scale));
+  height: calc(13px * var(--ui-scale));
 }
 
 .chip-label {

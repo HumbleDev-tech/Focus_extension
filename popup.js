@@ -259,11 +259,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!state.lang) state.lang = 'auto';
       if (!state.theme) state.theme = 'auto';
+      const VALID_SCALES = ['auto', '100', '120', '140'];
       if (state.scale === '115') {
         state.scale = '120';
       } else if (state.scale === '125') {
         state.scale = '140';
-      } else if (!state.scale) {
+      } else if (!VALID_SCALES.includes(state.scale)) {
         state.scale = 'auto';
       }
       let savedTab = 'focus';
@@ -591,6 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
   scaleButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
       const chosenScale = btn.getAttribute('data-scale');
+      if (state.scale === chosenScale) return;
       state.scale = chosenScale;
       applyThemeAndScale();
       saveState();
