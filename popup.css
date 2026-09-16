@@ -630,13 +630,13 @@ button:focus-visible {
 
 .global-preset-container {
   flex-shrink: 0;
-  padding: calc(6px * var(--ui-scale)) calc(12px * var(--ui-scale))
-    calc(6px * var(--ui-scale));
+  padding: calc(5px * var(--ui-scale)) calc(12px * var(--ui-scale))
+    calc(5px * var(--ui-scale));
   background: var(--bg-canvas);
   border-bottom: 1px solid var(--border-hairline);
   display: flex;
   flex-direction: column;
-  gap: calc(5px * var(--ui-scale));
+  gap: calc(4px * var(--ui-scale));
 }
 
 .profile-section-header {
@@ -824,12 +824,12 @@ button:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  margin-top: calc(2px * var(--ui-scale));
+  margin-top: calc(1px * var(--ui-scale));
 }
 
 .preset-tag {
   font-family: var(--font-mono);
-  font-size: calc(8.5px * var(--ui-scale));
+  font-size: calc(8px * var(--ui-scale));
   font-weight: 700;
   letter-spacing: 0.8px;
   color: var(--text-muted);
@@ -838,10 +838,10 @@ button:focus-visible {
 
 .preset-summary {
   font-family: var(--font-mono);
-  font-size: calc(8.5px * var(--ui-scale));
+  font-size: calc(8px * var(--ui-scale));
   color: var(--text-secondary);
-  line-height: 1.3;
-  min-height: calc(22px * var(--ui-scale));
+  line-height: 1.25;
+  min-height: calc(12px * var(--ui-scale));
 }
 
 .preset-track {
@@ -1173,7 +1173,7 @@ input:checked + .slider:before {
    ========================================================================== */
 
 .cleaner-group {
-  margin-bottom: calc(10px * var(--ui-scale));
+  margin-bottom: calc(8px * var(--ui-scale));
 }
 
 .cleaner-group:last-child {
@@ -1183,7 +1183,7 @@ input:checked + .slider:before {
 .cleaner-group-header {
   display: flex;
   align-items: center;
-  margin-bottom: calc(5px * var(--ui-scale));
+  margin-bottom: calc(4px * var(--ui-scale));
 }
 
 .chip-grid {

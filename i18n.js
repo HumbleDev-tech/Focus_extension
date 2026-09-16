@@ -64,7 +64,8 @@ const LIBERTAD_I18N = {
     // UI Cleaner Section Headers
     cleanerHeaderSubtitle: 'HEADER & SEARCH',
     cleanerPlayerSubtitle: 'PLAYER & OVERLAYS',
-    cleanerActionsSubtitle: 'ACTIONS & SOCIAL',
+    cleanerActionsSubtitle: 'ACTION BUTTONS',
+    cleanerMetricsSubtitle: 'METRICS & COUNTERS',
     cleanerNavSubtitle: 'FEEDS & NAVIGATION',
     // UI Cleaner Chips
     chipVoiceSearch: 'Voice Mic',
@@ -179,7 +180,8 @@ const LIBERTAD_I18N = {
     // UI Cleaner Section Headers
     cleanerHeaderSubtitle: 'CABECERA Y BUSQUEDA',
     cleanerPlayerSubtitle: 'REPRODUCTOR Y OVERLAYS',
-    cleanerActionsSubtitle: 'ACCIONES Y SOCIAL',
+    cleanerActionsSubtitle: 'BOTONES DE ACCIÓN',
+    cleanerMetricsSubtitle: 'MÉTRICAS Y CONTADORES',
     cleanerNavSubtitle: 'FEEDS Y NAVEGACION',
     // UI Cleaner Chips
     chipVoiceSearch: 'Micrófono',
@@ -294,7 +296,8 @@ const LIBERTAD_I18N = {
     // UI Cleaner Section Headers
     cleanerHeaderSubtitle: 'CABEÇALHO E PESQUISA',
     cleanerPlayerSubtitle: 'REPRODUTOR E OVERLAYS',
-    cleanerActionsSubtitle: 'AÇÕES E SOCIAL',
+    cleanerActionsSubtitle: 'BOTÕES DE AÇÃO',
+    cleanerMetricsSubtitle: 'MÉTRICAS E CONTADORES',
     cleanerNavSubtitle: 'FEEDS E NAVEGAÇÃO',
     // UI Cleaner Chips
     chipVoiceSearch: 'Microfone',

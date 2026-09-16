@@ -182,9 +182,9 @@
         <label class="shield-card" for="toggleRedirectHomeSubscriptions">
           <div class="shield-icon">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 6h16"></path>
-              <path d="M7 12h10"></path>
-              <path d="M10 18h4"></path>
+              <path d="M4 6h16M7 3h10"></path>
+              <rect x="2" y="9" width="20" height="12" rx="2"></rect>
+              <polygon points="10 12 15 15 10 18 10 12"></polygon>
             </svg>
           </div>
           <div class="shield-meta">
@@ -408,10 +408,10 @@
         </div>
       </section>
 
-      <!-- Section C: Action Bar & Social Clutter -->
+      <!-- Section C1: Action Bar Buttons -->
       <section class="cleaner-group">
         <div class="cleaner-group-header">
-          <span class="pane-title" data-i18n="cleanerActionsSubtitle">ACTIONS &amp; SOCIAL</span>
+          <span class="pane-title" data-i18n="cleanerActionsSubtitle">ACTION BUTTONS</span>
         </div>
         <div class="chip-grid">
           <!-- Ask AI Assistant -->
@@ -458,7 +458,8 @@
             <input type="checkbox" id="toggleJoinButton" class="visually-hidden" />
             <span class="chip-icon">
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                <circle cx="12" cy="8" r="6"></circle>
+                <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
               </svg>
             </span>
             <span class="chip-label" data-i18n="chipJoin">Join Button</span>
@@ -490,6 +491,27 @@
             <span class="chip-label" data-i18n="chipSave">Save Video</span>
           </label>
 
+          <!-- 3-Dots Overflow Menu -->
+          <label class="chip-toggle" for="toggleMoreActions">
+            <input type="checkbox" id="toggleMoreActions" class="visually-hidden" />
+            <span class="chip-icon">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                <circle cx="5" cy="12" r="2"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+                <circle cx="19" cy="12" r="2"></circle>
+              </svg>
+            </span>
+            <span class="chip-label" data-i18n="chipMoreActions">3-Dots Menu</span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Section C2: Metrics & Social Counters -->
+      <section class="cleaner-group">
+        <div class="cleaner-group-header">
+          <span class="pane-title" data-i18n="cleanerMetricsSubtitle">METRICS &amp; COUNTERS</span>
+        </div>
+        <div class="chip-grid">
           <!-- Like / Dislike Bar -->
           <label class="chip-toggle" for="toggleLikeDislike">
             <input type="checkbox" id="toggleLikeDislike" class="visually-hidden" />
@@ -521,10 +543,9 @@
             <input type="checkbox" id="toggleSubscriberCount" class="visually-hidden" />
             <span class="chip-icon">
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
               </svg>
             </span>
             <span class="chip-label" data-i18n="chipSubscriberCount">Sub Count</span>
@@ -540,19 +561,6 @@
               </svg>
             </span>
             <span class="chip-label" data-i18n="chipViewsDate">Views &amp; Date</span>
-          </label>
-
-          <!-- 3-Dots Overflow Menu -->
-          <label class="chip-toggle" for="toggleMoreActions">
-            <input type="checkbox" id="toggleMoreActions" class="visually-hidden" />
-            <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
-                <circle cx="5" cy="12" r="2"></circle>
-                <circle cx="12" cy="12" r="2"></circle>
-                <circle cx="19" cy="12" r="2"></circle>
-              </svg>
-            </span>
-            <span class="chip-label" data-i18n="chipMoreActions">3-Dots Menu</span>
           </label>
         </div>
       </section>
