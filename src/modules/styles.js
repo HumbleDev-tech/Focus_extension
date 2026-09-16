@@ -18,6 +18,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     // Home feed
     if (settings.hideHomeFeed) {
       rules.push(`
+        /* Suppress home feed recommendation items and skeletons */
         ytd-browse[page-subtype="home"] #contents,
         ytd-browse[page-subtype="home"] #chips-wrapper,
         ytd-browse[page-subtype="home"] ytd-rich-grid-renderer,
@@ -26,13 +27,23 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-browse[page-subtype="home"] .ytd-ghost-grid {
           display: none !important;
         }
-        ytd-browse[page-subtype="home"] {
+
+        /* Strictly ensure inactive or hidden browse pages never force display or disrupt watch view */
+        ytd-browse[hidden],
+        ytd-browse[page-subtype="home"][hidden],
+        ytd-page-manager:has(ytd-watch-flexy:not([hidden])) ytd-browse,
+        ytd-page-manager:has(ytd-watch-flexy) ytd-browse[hidden] {
+          display: none !important;
+        }
+
+        /* Center Zen card ONLY on active, visible home feed */
+        ytd-browse[page-subtype="home"]:not([hidden]) {
           display: flex !important;
           flex-direction: column !important;
           align-items: center !important;
           width: 100% !important;
         }
-        ytd-browse[page-subtype="home"] ytd-two-column-browse-results-renderer {
+        ytd-browse[page-subtype="home"]:not([hidden]) ytd-two-column-browse-results-renderer {
           width: 100% !important;
           max-width: 100% !important;
           display: flex !important;
@@ -42,7 +53,7 @@ globalThis.Libertad = globalThis.Libertad || {};
           margin: 0 auto !important;
           padding: 0 !important;
         }
-        ytd-browse[page-subtype="home"] #primary {
+        ytd-browse[page-subtype="home"]:not([hidden]) #primary {
           width: 100% !important;
           max-width: 100% !important;
           margin: 0 auto !important;
@@ -53,7 +64,7 @@ globalThis.Libertad = globalThis.Libertad || {};
           float: none !important;
           padding: 0 !important;
         }
-        ytd-browse[page-subtype="home"] #secondary {
+        ytd-browse[page-subtype="home"]:not([hidden]) #secondary {
           display: none !important;
         }
       `);
@@ -993,6 +1004,13 @@ globalThis.Libertad = globalThis.Libertad || {};
       `;
 
       const targetContainer =
+        document.querySelector(
+          'ytd-browse[page-subtype="home"]:not([hidden]) #primary',
+        ) ||
+        document.querySelector(
+          'ytd-browse[page-subtype="home"]:not([hidden])',
+        ) ||
+        document.querySelector('ytd-browse:not([hidden]) #primary') ||
         document.querySelector('ytd-browse[page-subtype="home"] #primary') ||
         document.querySelector('ytd-browse #primary') ||
         document.querySelector('ytd-browse[page-subtype="home"]') ||

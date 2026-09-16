@@ -266,6 +266,9 @@
     if (Libertad.redirectHomeToSubscriptions) {
       Libertad.redirectHomeToSubscriptions(currentSettings, targetUrl);
     }
+    if (Libertad.updateZenBanner) {
+      Libertad.updateZenBanner(currentSettings);
+    }
     if (Libertad.resetSponsorNavigation) Libertad.resetSponsorNavigation();
     if (Libertad.resetUntranslateNavigation) {
       Libertad.resetUntranslateNavigation();
