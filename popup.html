@@ -93,10 +93,50 @@
       </div>
     </div>
 
-    <!-- Master Focus Preset Bar (Global Controller) -->
+    <!-- Master Profile & Base Preset Section -->
     <section class="global-preset-container">
+      <div class="profile-section-header">
+        <span class="preset-tag" data-i18n="profileHeader">PROFILE</span>
+        <span class="profile-hint" data-i18n="profileHint">Click to switch • Click ✎ to rename</span>
+      </div>
+      <div class="profile-track" id="profileTrack">
+        <div class="profile-btn active" role="button" tabindex="0" data-profile="profile1">
+          <span class="profile-slot-tag">P1</span>
+          <span class="profile-name">Work</span>
+          <span class="profile-actions">
+            <span class="profile-edit-btn" role="button" tabindex="0" title="Rename">
+              <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+              </svg>
+            </span>
+          </span>
+        </div>
+        <div class="profile-btn" role="button" tabindex="0" data-profile="profile2">
+          <span class="profile-slot-tag">P2</span>
+          <span class="profile-name">Relax</span>
+          <span class="profile-actions">
+            <span class="profile-edit-btn" role="button" tabindex="0" title="Rename">
+              <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+              </svg>
+            </span>
+          </span>
+        </div>
+        <div class="profile-btn" role="button" tabindex="0" data-profile="profile3">
+          <span class="profile-slot-tag">P3</span>
+          <span class="profile-name">Personal</span>
+          <span class="profile-actions">
+            <span class="profile-edit-btn" role="button" tabindex="0" title="Rename">
+              <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+              </svg>
+            </span>
+          </span>
+        </div>
+      </div>
+
       <div class="preset-meta-header">
-        <span class="preset-tag" data-i18n="focusPresetLabel">FOCUS PRESET</span>
+        <span class="preset-tag" data-i18n="basePresetLabel">BASE PRESET</span>
         <span class="preset-summary" id="presetDesc">Suppresses sidebar recommendations, shorts, autoplay, and clutter. Comments preserved.</span>
       </div>
       <div class="preset-track">
@@ -104,7 +144,6 @@
         <button type="button" class="preset-btn" data-preset="basic" data-i18n="presetBasic">BASIC</button>
         <button type="button" class="preset-btn" data-preset="balanced" data-i18n="presetBalanced">BALANCED</button>
         <button type="button" class="preset-btn" data-preset="extreme" data-i18n="presetExtreme">EXTREME</button>
-        <button type="button" class="preset-btn" data-preset="custom" data-i18n="presetCustom">CUSTOM</button>
       </div>
     </section>
 

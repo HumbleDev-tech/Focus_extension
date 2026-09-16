@@ -605,23 +605,226 @@ button:focus-visible {
   background: var(--accent-soft-bg);
 }
 
+.reset-action-btn.is-confirm-stage,
+.reset-action-btn.is-confirm-stage:hover {
+  color: #f87171;
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.14);
+  animation: libertadConfirmPulse 1s infinite alternate ease-in-out;
+}
+
+@keyframes libertadConfirmPulse {
+  from {
+    border-color: rgba(239, 68, 68, 0.4);
+    box-shadow: 0 0 4px rgba(239, 68, 68, 0.2);
+  }
+  to {
+    border-color: rgba(239, 68, 68, 0.95);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.45);
+  }
+}
+
 /* ==========================================================================
    2. Master Global Preset Bar (Sky Blue Monochromatic Progression)
    ========================================================================== */
 
 .global-preset-container {
   flex-shrink: 0;
-  padding: calc(7px * var(--ui-scale)) calc(12px * var(--ui-scale))
+  padding: calc(6px * var(--ui-scale)) calc(12px * var(--ui-scale))
     calc(6px * var(--ui-scale));
   background: var(--bg-canvas);
   border-bottom: 1px solid var(--border-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: calc(5px * var(--ui-scale));
+}
+
+.profile-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-hint {
+  font-family: var(--font-mono);
+  font-size: calc(7.5px * var(--ui-scale));
+  color: var(--text-muted);
+  opacity: 0.8;
+  letter-spacing: 0.2px;
+}
+
+.profile-track {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(4px * var(--ui-scale));
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-hairline);
+  border-radius: 4px;
+  padding: 2px;
+}
+
+.profile-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(3px * var(--ui-scale));
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: calc(3.5px * var(--ui-scale)) calc(6px * var(--ui-scale));
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: calc(9.5px * var(--ui-scale));
+  font-weight: 600;
+  transition: var(--transition-fast);
+  min-width: 0;
+  user-select: none;
+}
+
+.profile-btn:hover {
+  color: var(--text-primary);
+  background: var(--surface-card-hover);
+}
+
+.profile-btn.active {
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.profile-btn.is-editing {
+  border-color: var(--accent);
+  background: var(--surface-card);
+}
+
+:root[data-theme="dark"] .profile-btn.active {
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #f0f3f6;
+  background: rgba(56, 189, 248, 0.08);
+}
+
+:root[data-theme="oled"] .profile-btn.active {
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #ffffff;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+:root[data-theme="light"] .profile-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--surface-card);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.profile-slot-tag {
+  font-family: var(--font-mono);
+  font-size: calc(7.5px * var(--ui-scale));
+  font-weight: 700;
+  color: var(--accent);
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
+.profile-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  text-align: left;
+}
+
+.profile-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.profile-edit-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 2px;
+  color: var(--text-muted);
+  opacity: 0.7;
+  flex-shrink: 0;
+  transition: var(--transition-fast);
+  cursor: pointer;
+}
+
+.profile-edit-btn svg,
+.profile-action-btn svg {
+  pointer-events: none;
+}
+
+.profile-btn.active .profile-edit-btn {
+  display: inline-flex;
+}
+
+.profile-btn.is-editing .profile-edit-btn {
+  display: none;
+}
+
+.profile-edit-btn:hover {
+  opacity: 1;
+  color: var(--accent);
+  background: var(--surface-subtle);
+}
+
+.profile-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 2px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.profile-action-confirm {
+  color: #10b981;
+}
+
+.profile-action-confirm:hover {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.2);
+}
+
+.profile-action-cancel {
+  color: #f87171;
+}
+
+.profile-action-cancel:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.profile-name-input {
+  background: var(--surface-card);
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: calc(9.5px * var(--ui-scale));
+  font-weight: 600;
+  padding: 0 3px;
+  width: 100%;
+  height: calc(16px * var(--ui-scale));
+  box-sizing: border-box;
+  outline: none;
+  line-height: 1;
 }
 
 .preset-meta-header {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-bottom: calc(5px * var(--ui-scale));
+  gap: 1px;
+  margin-top: calc(2px * var(--ui-scale));
 }
 
 .preset-tag {
@@ -635,15 +838,15 @@ button:focus-visible {
 
 .preset-summary {
   font-family: var(--font-mono);
-  font-size: calc(9px * var(--ui-scale));
+  font-size: calc(8.5px * var(--ui-scale));
   color: var(--text-secondary);
-  line-height: 1.35;
-  min-height: calc(34px * var(--ui-scale));
+  line-height: 1.3;
+  min-height: calc(22px * var(--ui-scale));
 }
 
 .preset-track {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 2px;
   background: var(--surface-subtle);
   border: 1px solid var(--border-hairline);
@@ -709,13 +912,6 @@ button:focus-visible {
 :root[data-theme="light"] .preset-btn[data-preset="extreme"].active {
   background: var(--accent);
   color: #ffffff;
-}
-
-/* CUSTOM: Dashed technical sky-blue outline */
-.preset-btn[data-preset="custom"].active {
-  background: var(--accent-soft-bg);
-  color: var(--accent);
-  border: 1px dashed var(--accent);
 }
 
 /* ==========================================================================

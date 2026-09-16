@@ -1,6 +1,6 @@
 /**
  * Libertad - Core Constants & Single Source of Truth
- * Shared configuration schema, presets, and toggle keys across Service Worker, Content Scripts, and Popup.
+ * Shared configuration schema, presets, profiles, and toggle keys across Service Worker, Content Scripts, and Popup.
  */
 
 const TOGGLE_KEYS = [
@@ -41,97 +41,6 @@ const TOGGLE_KEYS = [
   'hideTrending',
   'hideMoreFromYoutube',
 ];
-
-const DEFAULT_SETTINGS = {
-  preset: 'balanced', // 'off', 'basic', 'balanced', 'extreme', 'custom'
-  theme: 'auto', // 'auto', 'dark', 'light', 'oled'
-  lang: 'auto', // 'auto', 'en', 'es', 'pt'
-  scale: 'auto', // 'auto', '100', '120', '140'
-  activeTab: 'focus', // 'focus', 'cleaner', 'extras'
-  hideHomeFeed: false,
-  redirectHomeToSubscriptions: false,
-  hideSidebar: true,
-  hideComments: false,
-  hideShorts: true,
-  hideEndScreens: true,
-  // Cleaner: Header & Search
-  hideVoiceSearch: true,
-  hideCreateButton: true,
-  hideNotifications: true,
-  hideSearchSuggestions: false,
-  hideFilterChips: false,
-  // Cleaner: Player & Overlays
-  hideAutoplay: true,
-  hideUpNext: true,
-  hideWatermark: true,
-  hidePaidPromo: true,
-  hideMiniplayer: true,
-  // Cleaner: Action Bar & Social
-  hideAskAi: true,
-  hideDownload: true,
-  hideThanksClips: true,
-  hideJoinButton: true,
-  hideShare: false,
-  hideSave: false,
-  hideLikeDislike: false,
-  hideSubscribeButton: false,
-  hideSubscriberCount: false,
-  hideViewsDate: false,
-  hideMoreActions: false,
-  // Cleaner: Feeds & Navigation
-  hideMerchShelf: true,
-  hideLiveChat: true,
-  hideTrending: true,
-  hideMoreFromYoutube: true,
-  // Power Modules
-  showDislikes: true,
-  untranslateMaster: true,
-  untranslateTitles: true,
-  untranslateAudio: true,
-  untranslateDescription: true,
-  untranslateCaptions: true,
-  untranslateChapters: true,
-  skipSponsors: true,
-  sponsorSkipSponsors: true,
-  sponsorSkipSelfpromo: false,
-  sponsorSkipInteraction: true,
-  sponsorSkipIntro: false,
-  sponsorSkipOutro: false,
-  sponsorSkipMusicOfftopic: false,
-  customConfig: {
-    hideHomeFeed: false,
-    redirectHomeToSubscriptions: false,
-    hideSidebar: true,
-    hideComments: false,
-    hideShorts: true,
-    hideEndScreens: true,
-    hideVoiceSearch: true,
-    hideCreateButton: true,
-    hideNotifications: true,
-    hideSearchSuggestions: false,
-    hideFilterChips: false,
-    hideAutoplay: true,
-    hideUpNext: true,
-    hideWatermark: true,
-    hidePaidPromo: true,
-    hideMiniplayer: true,
-    hideAskAi: true,
-    hideDownload: true,
-    hideThanksClips: true,
-    hideJoinButton: true,
-    hideShare: false,
-    hideSave: false,
-    hideLikeDislike: false,
-    hideSubscribeButton: false,
-    hideSubscriberCount: false,
-    hideViewsDate: false,
-    hideMoreActions: false,
-    hideMerchShelf: true,
-    hideLiveChat: true,
-    hideTrending: true,
-    hideMoreFromYoutube: true,
-  },
-};
 
 const PRESET_MAP = {
   off: {
@@ -275,12 +184,84 @@ const PRESET_MAP = {
   },
 };
 
+function extractToggles(config) {
+  const result = {};
+  for (let i = 0; i < TOGGLE_KEYS.length; i++) {
+    const key = TOGGLE_KEYS[i];
+    result[key] = !!config[key];
+  }
+  return result;
+}
+
+const DEFAULT_PROFILES = {
+  profile1: {
+    id: 'profile1',
+    name: 'Trabajo',
+    nameKey: 'profile1Default',
+    preset: 'extreme',
+    toggles: extractToggles(PRESET_MAP.extreme),
+  },
+  profile2: {
+    id: 'profile2',
+    name: 'Relax',
+    nameKey: 'profile2Default',
+    preset: 'balanced',
+    toggles: {
+      ...extractToggles(PRESET_MAP.balanced),
+      hideSidebar: false,
+      hideComments: false,
+    },
+  },
+  profile3: {
+    id: 'profile3',
+    name: 'Personal',
+    nameKey: 'profile3Default',
+    preset: 'basic',
+    toggles: extractToggles(PRESET_MAP.basic),
+  },
+};
+
+const DEFAULT_SETTINGS = {
+  activeProfile: 'profile1',
+  profiles: DEFAULT_PROFILES,
+  preset: 'extreme',
+  theme: 'auto',
+  lang: 'auto',
+  scale: 'auto',
+  activeTab: 'focus',
+  // Active toggle values matching profile1 default
+  ...DEFAULT_PROFILES.profile1.toggles,
+  // Power Modules
+  showDislikes: true,
+  untranslateMaster: true,
+  untranslateTitles: true,
+  untranslateAudio: true,
+  untranslateDescription: true,
+  untranslateCaptions: true,
+  untranslateChapters: true,
+  skipSponsors: true,
+  sponsorSkipSponsors: true,
+  sponsorSkipSelfpromo: false,
+  sponsorSkipInteraction: true,
+  sponsorSkipIntro: false,
+  sponsorSkipOutro: false,
+  sponsorSkipMusicOfftopic: false,
+};
+
 if (typeof globalThis !== 'undefined') {
   globalThis.TOGGLE_KEYS = TOGGLE_KEYS;
   globalThis.DEFAULT_SETTINGS = DEFAULT_SETTINGS;
   globalThis.PRESET_MAP = PRESET_MAP;
+  globalThis.DEFAULT_PROFILES = DEFAULT_PROFILES;
+  globalThis.extractToggles = extractToggles;
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { TOGGLE_KEYS, DEFAULT_SETTINGS, PRESET_MAP };
+  module.exports = {
+    TOGGLE_KEYS,
+    DEFAULT_SETTINGS,
+    PRESET_MAP,
+    DEFAULT_PROFILES,
+    extractToggles,
+  };
 }

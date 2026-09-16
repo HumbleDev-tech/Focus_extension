@@ -4,9 +4,9 @@ importScripts('constants.js');
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.get(null, (saved) => {
     const merged = { ...DEFAULT_SETTINGS, ...(saved || {}) };
-    merged.customConfig = {
-      ...DEFAULT_SETTINGS.customConfig,
-      ...(saved?.customConfig || {}),
+    merged.profiles = {
+      ...DEFAULT_SETTINGS.profiles,
+      ...(saved?.profiles || {}),
     };
     chrome.storage.sync.set(merged);
   });

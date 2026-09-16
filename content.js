@@ -198,7 +198,6 @@
           subscriptionsChanged = true;
         } else if (
           key === 'preset' ||
-          key === 'customConfig' ||
           (typeof TOGGLE_KEYS !== 'undefined' && TOGGLE_KEYS.includes(key)) ||
           key === 'lang' ||
           key === 'theme' ||

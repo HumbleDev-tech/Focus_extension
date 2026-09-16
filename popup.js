@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusText = document.getElementById('statusText');
   const presetButtons = document.querySelectorAll('.preset-btn');
   const presetDesc = document.getElementById('presetDesc');
+  const profileButtons = document.querySelectorAll('.profile-btn');
   const settingsToggleBtn = document.getElementById('settingsToggleBtn');
   const settingsDrawer = document.getElementById('settingsDrawer');
   const themeButtons = document.querySelectorAll('.theme-btn');
@@ -169,7 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
     theme: 'auto',
     lang: 'auto',
     scale: 'auto',
-    customConfig: { ...DEFAULT_SETTINGS.customConfig },
+    activeProfile: 'profile1',
+    profiles: JSON.parse(JSON.stringify(DEFAULT_PROFILES)),
   };
 
   function getEffectiveLang() {
@@ -189,14 +191,72 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load state from chrome.storage.sync
   chrome.storage.sync.get(null, (saved) => {
     if (saved && Object.keys(saved).length > 0) {
+      let migratedProfiles = JSON.parse(JSON.stringify(DEFAULT_PROFILES));
+      if (saved.profiles && typeof saved.profiles === 'object') {
+        migratedProfiles = {
+          profile1: {
+            ...DEFAULT_PROFILES.profile1,
+            ...saved.profiles.profile1,
+            toggles: {
+              ...DEFAULT_PROFILES.profile1.toggles,
+              ...(saved.profiles.profile1?.toggles || {}),
+            },
+          },
+          profile2: {
+            ...DEFAULT_PROFILES.profile2,
+            ...saved.profiles.profile2,
+            toggles: {
+              ...DEFAULT_PROFILES.profile2.toggles,
+              ...(saved.profiles.profile2?.toggles || {}),
+            },
+          },
+          profile3: {
+            ...DEFAULT_PROFILES.profile3,
+            ...saved.profiles.profile3,
+            toggles: {
+              ...DEFAULT_PROFILES.profile3.toggles,
+              ...(saved.profiles.profile3?.toggles || {}),
+            },
+          },
+        };
+      } else {
+        const existingToggles = {};
+        TOGGLE_KEYS.forEach((k) => {
+          if (saved[k] !== undefined) existingToggles[k] = !!saved[k];
+        });
+        if (Object.keys(existingToggles).length > 0) {
+          migratedProfiles.profile1.toggles = {
+            ...migratedProfiles.profile1.toggles,
+            ...existingToggles,
+          };
+          migratedProfiles.profile1.preset = saved.preset || 'custom';
+        }
+      }
+
+      const activeProf =
+        saved.activeProfile && migratedProfiles[saved.activeProfile]
+          ? saved.activeProfile
+          : 'profile1';
+
       state = {
         ...DEFAULT_SETTINGS,
         ...saved,
-        customConfig: {
-          ...DEFAULT_SETTINGS.customConfig,
-          ...(saved.customConfig || {}),
-        },
+        activeProfile: activeProf,
+        profiles: migratedProfiles,
       };
+
+      // Hydrate state toggle keys from active profile
+      const activeToggles = state.profiles[state.activeProfile]?.toggles || {};
+      TOGGLE_KEYS.forEach((k) => {
+        if (activeToggles[k] !== undefined) {
+          state[k] = !!activeToggles[k];
+        }
+      });
+      state.preset =
+        state.profiles[state.activeProfile]?.preset ||
+        state.preset ||
+        'extreme';
+
       if (!state.lang) state.lang = 'auto';
       if (!state.theme) state.theme = 'auto';
       if (state.scale === '115') {
@@ -408,6 +468,25 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Profile buttons active state, labels, and accessible tooltips
+    profileButtons.forEach((btn) => {
+      const profId = btn.getAttribute('data-profile');
+      const isActive = profId === state.activeProfile;
+      btn.classList.toggle('active', isActive);
+
+      const nameEl = btn.querySelector('.profile-name');
+      if (nameEl && profId !== activeRenamingProfile) {
+        const displayName = getProfileDisplayName(profId);
+        nameEl.textContent = displayName;
+
+        const slotTag = profId.replace('profile', 'P');
+        const tooltipText = isActive
+          ? `${slotTag}: ${displayName} (${t('statusEngineActive') || 'ACTIVE'}) • ${t('renameTooltip')}`
+          : `${slotTag}: ${displayName} • ${t('clickToActivate')}`;
+        btn.setAttribute('title', tooltipText);
+      }
+    });
+
     // Preset buttons active state
     presetButtons.forEach((btn) => {
       const p = btn.getAttribute('data-preset');
@@ -512,26 +591,258 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Preset button clicks
+  // Profile switching and inline rename
+  let activeRenamingProfile = null;
+
+  function getProfileDisplayName(profileId) {
+    const profileData = state.profiles?.[profileId];
+    if (!profileData) {
+      return t(`profile${profileId.slice(-1)}Default`) || 'Profile';
+    }
+    return (
+      (profileData.nameKey && !profileData.isCustomName
+        ? t(profileData.nameKey)
+        : profileData.name) ||
+      t(`profile${profileId.slice(-1)}Default`) ||
+      'Profile'
+    );
+  }
+
+  function restoreProfileActions(btn) {
+    const actions = btn.querySelector('.profile-actions');
+    if (!actions) return;
+    actions.innerHTML = `
+      <span class="profile-edit-btn" role="button" tabindex="0" title="${t('renameTooltip') || 'Rename'}">
+        <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+        </svg>
+      </span>
+    `;
+  }
+
+  function cancelProfileRename() {
+    if (!activeRenamingProfile) return;
+    const profId = activeRenamingProfile;
+    activeRenamingProfile = null;
+    const btn = document.querySelector(
+      `.profile-btn[data-profile="${profId}"]`,
+    );
+    if (btn) {
+      btn.classList.remove('is-editing');
+      const nameEl = btn.querySelector('.profile-name');
+      if (nameEl) {
+        nameEl.textContent = getProfileDisplayName(profId);
+      }
+      restoreProfileActions(btn);
+    }
+    renderUI();
+  }
+
+  function startProfileRename(profileId) {
+    if (activeRenamingProfile === profileId) {
+      cancelProfileRename();
+      return;
+    }
+    cancelProfileRename();
+
+    const btn = document.querySelector(
+      `.profile-btn[data-profile="${profileId}"]`,
+    );
+    if (!btn) return;
+    const nameEl = btn.querySelector('.profile-name');
+    if (!nameEl) return;
+
+    activeRenamingProfile = profileId;
+    btn.classList.add('is-editing');
+
+    const currentName = getProfileDisplayName(profileId);
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'profile-name-input';
+    input.value = currentName;
+    input.maxLength = 14;
+    input.setAttribute('autocomplete', 'off');
+    input.setAttribute('spellcheck', 'false');
+
+    nameEl.textContent = '';
+    nameEl.appendChild(input);
+
+    let actionsContainer = btn.querySelector('.profile-actions');
+    if (!actionsContainer) {
+      actionsContainer = document.createElement('span');
+      actionsContainer.className = 'profile-actions';
+      btn.appendChild(actionsContainer);
+    }
+    actionsContainer.innerHTML = `
+      <span class="profile-action-btn profile-action-confirm" role="button" tabindex="0" title="${t('renameSaveTooltip') || 'Save'}">
+        <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </span>
+      <span class="profile-action-btn profile-action-cancel" role="button" tabindex="0" title="${t('renameCancelTooltip') || 'Cancel'}">
+        <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </span>
+    `;
+
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+
+    let committed = false;
+    function finishRename(save) {
+      if (committed) return;
+      committed = true;
+      activeRenamingProfile = null;
+      btn.classList.remove('is-editing');
+
+      if (save) {
+        const val = input.value
+          .replace(/[\r\n\t]/g, ' ')
+          .trim()
+          .replace(/\s+/g, ' ');
+        if (val.length > 0 && val !== currentName) {
+          if (!state.profiles[profileId]) {
+            state.profiles[profileId] = { ...DEFAULT_PROFILES[profileId] };
+          }
+          state.profiles[profileId].name = val;
+          state.profiles[profileId].isCustomName = true;
+          delete state.profiles[profileId].nameKey;
+          saveState();
+        }
+      }
+
+      nameEl.textContent = getProfileDisplayName(profileId);
+      restoreProfileActions(btn);
+      renderUI();
+    }
+
+    const confirmBtn = actionsContainer.querySelector(
+      '.profile-action-confirm',
+    );
+    const cancelBtn = actionsContainer.querySelector('.profile-action-cancel');
+
+    confirmBtn?.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+    confirmBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      finishRename(true);
+    });
+
+    cancelBtn?.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+    cancelBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      finishRename(false);
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        finishRename(true);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        finishRename(false);
+      }
+    });
+
+    input.addEventListener('blur', () => {
+      setTimeout(() => {
+        if (!committed) {
+          finishRename(false);
+        }
+      }, 120);
+    });
+  }
+
+  function switchProfile(profileId) {
+    if (!state.profiles?.[profileId]) return;
+    state.activeProfile = profileId;
+    const profile = state.profiles[profileId];
+
+    if (profile.toggles) {
+      TOGGLE_KEYS.forEach((key) => {
+        if (profile.toggles[key] !== undefined) {
+          state[key] = !!profile.toggles[key];
+        }
+      });
+    }
+    state.preset = profile.preset || 'custom';
+    saveState();
+  }
+
+  profileButtons.forEach((btn) => {
+    const profId = btn.getAttribute('data-profile');
+
+    btn.addEventListener('click', (e) => {
+      if (
+        e.target.closest('.profile-name-input') ||
+        e.target.closest('.profile-action-btn')
+      ) {
+        return;
+      }
+
+      if (e.target.closest('.profile-edit-btn')) {
+        e.stopPropagation();
+        if (activeRenamingProfile === profId) {
+          cancelProfileRename();
+        } else {
+          startProfileRename(profId);
+        }
+        return;
+      }
+
+      if (activeRenamingProfile) {
+        cancelProfileRename();
+        if (profId !== state.activeProfile) {
+          switchProfile(profId);
+        }
+        return;
+      }
+
+      if (state.activeProfile === profId) return;
+      switchProfile(profId);
+    });
+
+    btn.addEventListener('dblclick', (e) => {
+      if (
+        e.target.closest('.profile-name-input') ||
+        e.target.closest('.profile-action-btn') ||
+        e.target.closest('.profile-edit-btn')
+      ) {
+        return;
+      }
+      e.preventDefault();
+      startProfileRename(profId);
+    });
+
+    btn.addEventListener('keydown', (e) => {
+      if (e.target.closest('.profile-name-input')) return;
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (activeRenamingProfile) {
+          cancelProfileRename();
+        }
+        if (state.activeProfile !== profId) {
+          switchProfile(profId);
+        }
+      }
+    });
+  });
+
+  // Preset button clicks (applies baseline to the active profile)
   presetButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
       const chosenPreset = btn.getAttribute('data-preset');
-      if (chosenPreset === 'custom') {
-        state.preset = 'custom';
-        if (!state.customConfig) {
-          state.customConfig = {};
-          TOGGLE_KEYS.forEach((key) => {
-            state.customConfig[key] = state[key];
-          });
-        }
-        // Restore custom preferences
-        TOGGLE_KEYS.forEach((key) => {
-          if (state.customConfig[key] !== undefined) {
-            state[key] = !!state.customConfig[key];
-          }
-        });
-        saveState();
-      } else if (PRESET_MAP[chosenPreset]) {
+      if (PRESET_MAP[chosenPreset]) {
         state.preset = chosenPreset;
         const config = PRESET_MAP[chosenPreset];
         TOGGLE_KEYS.forEach((key) => {
@@ -539,21 +850,35 @@ document.addEventListener('DOMContentLoaded', () => {
             state[key] = config[key];
           }
         });
+        if (state.profiles?.[state.activeProfile]) {
+          state.profiles[state.activeProfile].preset = chosenPreset;
+          if (!state.profiles[state.activeProfile].toggles) {
+            state.profiles[state.activeProfile].toggles = {};
+          }
+          TOGGLE_KEYS.forEach((key) => {
+            if (config[key] !== undefined) {
+              state.profiles[state.activeProfile].toggles[key] = config[key];
+            }
+          });
+        }
         saveState();
       }
     });
   });
 
-  // Individual toggle changes (Focus switches and Cleaner chips)
+  // Individual toggle changes (saves strictly to the active profile)
   TOGGLE_KEYS.forEach((key) => {
     if (!toggles[key]) return;
     toggles[key].addEventListener('change', (e) => {
       state[key] = e.target.checked;
-      if (!state.customConfig) {
-        state.customConfig = {};
-      }
-      state.customConfig[key] = e.target.checked;
       state.preset = 'custom';
+      if (state.profiles?.[state.activeProfile]) {
+        state.profiles[state.activeProfile].preset = 'custom';
+        if (!state.profiles[state.activeProfile].toggles) {
+          state.profiles[state.activeProfile].toggles = {};
+        }
+        state.profiles[state.activeProfile].toggles[key] = e.target.checked;
+      }
       saveState();
     });
   });
@@ -640,32 +965,48 @@ document.addEventListener('DOMContentLoaded', () => {
     saveState();
   });
 
-  // Reset configuration button
+  // Reset configuration button (with 2-step confirmation)
+  let resetConfirmTimer = null;
   resetBtn?.addEventListener('click', () => {
+    if (!resetBtn.classList.contains('is-confirm-stage')) {
+      resetBtn.classList.add('is-confirm-stage');
+      resetBtn.textContent = t('resetConfirm');
+      if (resetConfirmTimer) clearTimeout(resetConfirmTimer);
+      resetConfirmTimer = setTimeout(() => {
+        resetBtn.classList.remove('is-confirm-stage');
+        resetBtn.textContent = t('resetBtn');
+        resetConfirmTimer = null;
+      }, 3500);
+      return;
+    }
+
+    if (resetConfirmTimer) clearTimeout(resetConfirmTimer);
+    resetConfirmTimer = null;
+    resetBtn.classList.remove('is-confirm-stage');
+
     state = {
       ...DEFAULT_SETTINGS,
       theme: 'auto',
       lang: 'auto',
       scale: 'auto',
-      customConfig: { ...DEFAULT_SETTINGS.customConfig },
+      activeProfile: 'profile1',
+      profiles: JSON.parse(JSON.stringify(DEFAULT_PROFILES)),
     };
     applyThemeAndScale();
     saveState();
 
-    if (resetBtn) {
-      resetBtn.classList.add('is-success');
-      const currentLang = getEffectiveLang();
-      resetBtn.textContent =
-        currentLang === 'es'
-          ? 'REINICIADO'
-          : currentLang === 'pt'
-            ? 'REDEFINIDO'
-            : 'CONFIG RESTORED';
-      setTimeout(() => {
-        resetBtn.classList.remove('is-success');
-        resetBtn.textContent = t('resetBtn');
-      }, 1200);
-    }
+    resetBtn.classList.add('is-success');
+    const currentLang = getEffectiveLang();
+    resetBtn.textContent =
+      currentLang === 'es'
+        ? 'REINICIADO'
+        : currentLang === 'pt'
+          ? 'REDEFINIDO'
+          : 'CONFIG RESTORED';
+    setTimeout(() => {
+      resetBtn.classList.remove('is-success');
+      resetBtn.textContent = t('resetBtn');
+    }, 1200);
   });
 
   // Safe external navigation via chrome.tabs.create

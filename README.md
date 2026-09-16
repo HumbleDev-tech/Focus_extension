@@ -48,7 +48,8 @@ YouTube is a great place to learn, research, and listen to music, but the modern
 I built **Libertad** to get that focus back. It lets you watch what you searched for without having algorithms dictate what you see next.
 
 * **Fast and zero bloat:** 100% pure Vanilla JavaScript. No React, no heavy frameworks, no npm runtime dependencies. It loads instantly and consumes almost no memory.
-* **Easy presets:** One click switches between clean passthrough, basic clutter cleanup, balanced daily focus, or a minimalist Zen mode (replaces the homepage with a simple search prompt).
+* **3 Dedicated Focus Profiles:** Switch seamlessly between customizable contexts (e.g., Work/Deep Focus, Relax/Podcasts, Personal). Each profile keeps its own isolated memory and can be renamed inline with a single click.
+* **Easy base presets:** One-click baseline templates (`OFF`, `BASIC`, `BALANCED`, `EXTREME`) let you configure any active profile instantly.
 * **Power utilities included:** Restores public dislikes, auto-skips sponsored segments (with an interactive Undo/Unskip button), and neutralizes forced auto-translated titles and synthetic AI audio dubs.
 * **Private by design:** Zero telemetry, zero trackers, and minimal permissions. Everything stays in your browser.
 
@@ -56,7 +57,7 @@ I built **Libertad** to get that focus back. It lets you watch what you searched
 
 ## Focus Presets
 
-Choose a curated mode directly from the top preset bar, or customize any of the 31 switches to fit your workflow:
+Apply a curated baseline preset directly to your active profile, or fine-tune any of the 31 switches to fit your workflow:
 
 | Feature / Element | OFF | BASIC | BALANCED *(Default)* | EXTREME *(Zen)* |
 | :--- | :---: | :---: | :---: | :---: |
@@ -76,7 +77,7 @@ Choose a curated mode directly from the top preset bar, or customize any of the 
 | **Video Metrics (Likes, Views, Subs)** | Shown | Shown | Shown | **Hidden** |
 | **Feeds (Live Chat, Trending, More from YT)** | Shown | Shown | **Hidden** | **Hidden** |
 
-> **Note:** Toggling any individual switch automatically preserves your custom setup under the **CUSTOM** preset.
+> **3 Isolated Profiles:** Modifying any switch saves strictly to the currently active profile. Your other profiles remain untouched and protected. Click the pencil icon (✎) on the active profile to rename it at any time.
 
 <!-- ================================================================= -->
 <!-- SCREENSHOT PLACEHOLDER: Preset Bar & Navigation Tabs             -->
