@@ -48,6 +48,9 @@ globalThis.Libertad = globalThis.Libertad || {};
   let activeSponsorSettings = null;
   let activeProgressBar = null;
   let activeSponsorContainer = null;
+  let lastKnownPlaybackTime = 0;
+  let isProgrammaticSkip = false;
+  let programmaticSkipTimer = null;
 
   function resetSponsorNavigation() {
     currentSponsorVideoId = null;
@@ -57,7 +60,22 @@ globalThis.Libertad = globalThis.Libertad || {};
     lastRenderedSponsorKey = '';
     activeProgressBar = null;
     activeSponsorContainer = null;
+    lastKnownPlaybackTime = 0;
+    isProgrammaticSkip = false;
+    if (programmaticSkipTimer) {
+      clearTimeout(programmaticSkipTimer);
+      programmaticSkipTimer = null;
+    }
     ignoredSegmentUuids.clear();
+    const playerContainer =
+      document.querySelector('#movie_player') ||
+      document.querySelector('.html5-video-player');
+    const toast = playerContainer?.querySelector('.libertad-sponsor-toast');
+    if (toast) {
+      if (toast.fadeTimeout) clearTimeout(toast.fadeTimeout);
+      if (toast.removeTimeout) clearTimeout(toast.removeTimeout);
+      toast.remove();
+    }
     renderSponsorProgressBar();
   }
 
@@ -87,7 +105,39 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   function seekVideoPlayer(video, targetTime) {
     if (video && Number.isFinite(targetTime)) {
-      video.currentTime = targetTime;
+      isProgrammaticSkip = true;
+      const safeTarget =
+        Number.isFinite(video.duration) && video.duration > 0
+          ? Math.min(targetTime, video.duration)
+          : targetTime;
+      video.currentTime = safeTarget;
+      if (programmaticSkipTimer) clearTimeout(programmaticSkipTimer);
+      programmaticSkipTimer = setTimeout(() => {
+        isProgrammaticSkip = false;
+        programmaticSkipTimer = null;
+      }, 500);
+    }
+  }
+
+  function dismissSponsorToast() {
+    const playerContainer = getMainPlayerContainer();
+    if (!playerContainer) return;
+    const toast = playerContainer.querySelector('.libertad-sponsor-toast');
+    if (toast) {
+      if (toast.fadeTimeout) {
+        clearTimeout(toast.fadeTimeout);
+        toast.fadeTimeout = null;
+      }
+      if (toast.removeTimeout) {
+        clearTimeout(toast.removeTimeout);
+        toast.removeTimeout = null;
+      }
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(6px)';
+      toast.removeTimeout = setTimeout(() => {
+        toast.remove();
+        toast.removeTimeout = null;
+      }, 250);
     }
   }
 
@@ -104,6 +154,44 @@ globalThis.Libertad = globalThis.Libertad || {};
       playerContainer.appendChild(toast);
     }
 
+    if (toast.fadeTimeout) {
+      clearTimeout(toast.fadeTimeout);
+      toast.fadeTimeout = null;
+    }
+    if (toast.removeTimeout) {
+      clearTimeout(toast.removeTimeout);
+      toast.removeTimeout = null;
+    }
+
+    // Resolve Theme (dark, light, oled)
+    let resolvedTheme = settings?.theme || 'auto';
+    if (resolvedTheme === 'auto') {
+      const isSystemDark = window.matchMedia?.(
+        '(prefers-color-scheme: dark)',
+      )?.matches;
+      const isYtDark =
+        document.documentElement.hasAttribute('dark') ||
+        document.body?.classList?.contains('dark-theme');
+      resolvedTheme = isYtDark || isSystemDark ? 'dark' : 'light';
+    }
+    toast.dataset.theme = resolvedTheme;
+
+    // Resolve Scale (100, 120, 140)
+    let resolvedScale = settings?.scale || 'auto';
+    if (resolvedScale === 'auto') {
+      const screenW = window.screen ? window.screen.width || 1920 : 1920;
+      const dpr = window.devicePixelRatio || 1;
+      const effectiveW = screenW * dpr;
+      if (screenW >= 3440 || (effectiveW >= 3840 && dpr < 1.5)) {
+        resolvedScale = '140';
+      } else if (screenW >= 2400 || (effectiveW >= 2560 && dpr <= 1.25)) {
+        resolvedScale = '120';
+      } else {
+        resolvedScale = '100';
+      }
+    }
+    toast.dataset.scale = resolvedScale;
+
     const category = typeof seg === 'object' && seg ? seg.category : seg;
     const isEs =
       settings?.lang === 'es' ||
@@ -119,60 +207,140 @@ globalThis.Libertad = globalThis.Libertad || {};
         (globalThis.Libertad.isPortugueseLocale
           ? globalThis.Libertad.isPortugueseLocale(navigator.language)
           : navigator.language?.toLowerCase().startsWith('pt')));
-    let label = '';
-    if (category === 'selfpromo') {
-      label = isEs
-        ? 'AUTO-PROMOCION SALTADA'
-        : isPt
-          ? 'AUTO-PROMOÇÃO PULADA'
-          : 'SELF-PROMO SKIPPED';
-    } else if (category === 'interaction') {
-      label = isEs
-        ? 'RECORDATORIO SALTADO'
-        : isPt
-          ? 'LEMBRETE PULADO'
-          : 'REMINDER SKIPPED';
-    } else if (category === 'intro') {
-      label = isEs ? 'INTRO SALTADA' : isPt ? 'INTRO PULADA' : 'INTRO SKIPPED';
-    } else if (category === 'outro') {
-      label = isEs ? 'OUTRO SALTADA' : isPt ? 'FINAL PULADO' : 'OUTRO SKIPPED';
-    } else {
-      label = isEs
-        ? 'PATROCINIO SALTADO'
-        : isPt
-          ? 'PATROCÍNIO PULADO'
-          : 'SPONSOR SKIPPED';
-    }
 
+    const CATEGORY_LABELS = {
+      sponsor: {
+        en: 'SPONSOR SKIPPED',
+        es: 'PATROCINIO SALTADO',
+        pt: 'PATROCÍNIO PULADO',
+      },
+      selfpromo: {
+        en: 'SELF-PROMO SKIPPED',
+        es: 'AUTO-PROMOCIÓN SALTADA',
+        pt: 'AUTO-PROMOÇÃO PULADA',
+      },
+      interaction: {
+        en: 'REMINDER SKIPPED',
+        es: 'RECORDATORIO SALTADO',
+        pt: 'LEMBRETE PULADO',
+      },
+      intro: {
+        en: 'INTRO SKIPPED',
+        es: 'INTRO SALTADA',
+        pt: 'INTRO PULADA',
+      },
+      outro: {
+        en: 'OUTRO SKIPPED',
+        es: 'OUTRO SALTADA',
+        pt: 'FINAL PULADO',
+      },
+      preview: {
+        en: 'PREVIEW SKIPPED',
+        es: 'ANTICIPO SALTADO',
+        pt: 'PRÉVIA PULADA',
+      },
+      music_offtopic: {
+        en: 'NON-MUSIC SKIPPED',
+        es: 'NO-MÚSICA SALTADA',
+        pt: 'OFF-TOPIC PULADO',
+      },
+    };
+
+    const categoryKey = CATEGORY_LABELS[category] ? category : 'sponsor';
+    const langKey = isEs ? 'es' : isPt ? 'pt' : 'en';
+    const label = CATEGORY_LABELS[categoryKey][langKey];
     const unskipText = isEs ? 'DESHACER' : isPt ? 'DESFAZER' : 'UNSKIP';
 
     toast.textContent = '';
+
+    // Category Dot
+    const catColor =
+      SPONSOR_CATEGORY_COLORS[category] || SPONSOR_CATEGORY_COLORS.sponsor;
+    const dot = document.createElement('span');
+    dot.className = 'libertad-sponsor-toast-dot';
+    dot.style.backgroundColor = catColor;
+    dot.style.color = catColor;
+    toast.appendChild(dot);
+
+    // Skip Icon (Fast-forward)
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'libertad-sponsor-toast-icon';
+    iconSpan.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="5 4 15 12 5 20 5 4" fill="currentColor"></polygon>
+        <line x1="19" y1="5" x2="19" y2="19"></line>
+      </svg>
+    `;
+    toast.appendChild(iconSpan);
+
+    // Main Category Label
     const textSpan = document.createElement('span');
+    textSpan.className = 'libertad-sponsor-toast-label';
     textSpan.textContent = label;
     toast.appendChild(textSpan);
 
+    // Duration Badge
+    if (
+      seg &&
+      typeof seg.start === 'number' &&
+      typeof seg.end === 'number' &&
+      seg.end > seg.start
+    ) {
+      const durationSec = Math.round(seg.end - seg.start);
+      if (durationSec > 0) {
+        const durationSpan = document.createElement('span');
+        durationSpan.className = 'libertad-sponsor-toast-duration';
+        durationSpan.textContent = `· ${durationSec}s`;
+        toast.appendChild(durationSpan);
+      }
+    }
+
+    // Unskip Button
     if (seg && typeof seg.start === 'number' && video) {
       const unskipBtn = document.createElement('button');
       unskipBtn.type = 'button';
       unskipBtn.className = 'libertad-sponsor-toast-unskip';
-      unskipBtn.textContent = unskipText;
+      unskipBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7v6h6"></path>
+          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+        </svg>
+        <span>${unskipText}</span>
+      `;
       unskipBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
+        unskipBtn.blur();
+        if (toast.fadeTimeout) {
+          clearTimeout(toast.fadeTimeout);
+          toast.fadeTimeout = null;
+        }
+        if (toast.removeTimeout) {
+          clearTimeout(toast.removeTimeout);
+          toast.removeTimeout = null;
+        }
         if (seg.uuid) ignoredSegmentUuids.add(seg.uuid);
         seekVideoPlayer(video, Math.max(0, seg.start - 0.2));
         toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 250);
+        toast.style.transform = 'translateY(6px)';
+        toast.removeTimeout = setTimeout(() => {
+          toast.remove();
+          toast.removeTimeout = null;
+        }, 250);
       });
       toast.appendChild(unskipBtn);
     }
 
     toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
 
-    if (toast.fadeTimeout) clearTimeout(toast.fadeTimeout);
     toast.fadeTimeout = setTimeout(() => {
       toast.style.opacity = '0';
-      setTimeout(() => toast.remove(), 350);
+      toast.style.transform = 'translateY(6px)';
+      toast.removeTimeout = setTimeout(() => {
+        toast.remove();
+        toast.removeTimeout = null;
+      }, 300);
     }, 4000);
   }
 
@@ -311,6 +479,48 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
   }
 
+  function handleVideoSeek(video) {
+    if (!video || isProgrammaticSkip) return;
+    const fromTime = lastKnownPlaybackTime;
+    const toTime = video.currentTime;
+    if (!Number.isFinite(fromTime) || !Number.isFinite(toTime)) return;
+
+    if (toTime < fromTime) {
+      for (const seg of currentSponsorSegments) {
+        if (!seg.uuid) continue;
+        // If the user rewound from at/after segment start into or right before the segment
+        if (
+          fromTime >= seg.start - 0.5 &&
+          toTime >= seg.start - 1.0 &&
+          toTime < seg.end
+        ) {
+          ignoredSegmentUuids.add(seg.uuid);
+          dismissSponsorToast();
+          console.log(
+            `[Libertad SponsorBlock] User manually rewound into ${seg.category} (${seg.start.toFixed(1)}s -> ${seg.end.toFixed(1)}s); unskipping`,
+          );
+        } else if (toTime < seg.start - 2.0) {
+          // If the user rewound well before the segment, re-arm it
+          ignoredSegmentUuids.delete(seg.uuid);
+          if (lastSkippedSegmentUuid === seg.uuid) {
+            lastSkippedSegmentUuid = null;
+          }
+        }
+      }
+    } else {
+      // Forward seek: if seeked well before a segment, ensure it is re-armed
+      for (const seg of currentSponsorSegments) {
+        if (!seg.uuid) continue;
+        if (toTime < seg.start - 2.0) {
+          ignoredSegmentUuids.delete(seg.uuid);
+          if (lastSkippedSegmentUuid === seg.uuid) {
+            lastSkippedSegmentUuid = null;
+          }
+        }
+      }
+    }
+  }
+
   function bindVideoSponsorListener(settings) {
     if (settings) activeSponsorSettings = settings;
     if (window.location.pathname !== '/watch') return;
@@ -319,8 +529,10 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     if (!video.dataset.libertadSponsorBound) {
       video.dataset.libertadSponsorBound = 'true';
+      lastKnownPlaybackTime = video.currentTime || 0;
 
       const onTimeUpdate = () => {
+        lastKnownPlaybackTime = video.currentTime;
         checkVideoSponsors(video, activeSponsorSettings);
         if (
           currentSponsorSegments.length > 0 &&
@@ -330,8 +542,28 @@ globalThis.Libertad = globalThis.Libertad || {};
         }
       };
 
+      const onSeeking = () => {
+        handleVideoSeek(video);
+      };
+
+      const onSeeked = () => {
+        if (isProgrammaticSkip) {
+          isProgrammaticSkip = false;
+          if (programmaticSkipTimer) {
+            clearTimeout(programmaticSkipTimer);
+            programmaticSkipTimer = null;
+          }
+          lastKnownPlaybackTime = video.currentTime;
+          return;
+        }
+        handleVideoSeek(video);
+        lastKnownPlaybackTime = video.currentTime;
+        onTimeUpdate();
+      };
+
       video.addEventListener('timeupdate', onTimeUpdate, { passive: true });
-      video.addEventListener('seeked', onTimeUpdate, { passive: true });
+      video.addEventListener('seeking', onSeeking, { passive: true });
+      video.addEventListener('seeked', onSeeked, { passive: true });
 
       video.addEventListener('durationchange', () => {
         renderSponsorProgressBar();
@@ -399,12 +631,17 @@ globalThis.Libertad = globalThis.Libertad || {};
 
       const rawSegments = Array.isArray(res.segments) ? res.segments : [];
       const parsed = rawSegments
-        .map((s) => ({
-          uuid: s.UUID || s.uuid || '',
-          category: s.category,
-          start: Array.isArray(s.segment) ? s.segment[0] : 0,
-          end: Array.isArray(s.segment) ? s.segment[1] : 0,
-        }))
+        .map((s, index) => {
+          const start = Array.isArray(s.segment) ? s.segment[0] : 0;
+          const end = Array.isArray(s.segment) ? s.segment[1] : 0;
+          const fallbackUuid = `seg_${videoId}_${index}_${start.toFixed(2)}_${end.toFixed(2)}`;
+          return {
+            uuid: s.UUID || s.uuid || fallbackUuid,
+            category: s.category,
+            start,
+            end,
+          };
+        })
         .filter((s) => s.end > s.start);
 
       sponsorCache.set(videoId, parsed);

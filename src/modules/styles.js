@@ -812,43 +812,131 @@ globalThis.Libertad = globalThis.Libertad || {};
         max-width: calc(380px * var(--zen-scale));
       }
       .libertad-sponsor-toast {
+        --toast-scale: 1;
         position: absolute;
-        bottom: 64px;
-        right: 24px;
-        background: rgba(13, 17, 23, 0.94);
-        border: 1px solid #38bdf8;
-        color: #38bdf8;
-        font-family: var(--font-mono, ui-monospace, monospace);
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.6px;
-        padding: 6px 12px;
-        border-radius: 4px;
+        bottom: calc(64px * var(--toast-scale));
+        right: calc(24px * var(--toast-scale));
+        background: rgba(13, 17, 23, 0.92);
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        color: #f0f3f6;
+        font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+        font-size: calc(10.5px * var(--toast-scale));
+        line-height: 1.2;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        padding: calc(6px * var(--toast-scale)) calc(10px * var(--toast-scale));
+        border-radius: calc(6px * var(--toast-scale));
         z-index: 9999;
         pointer-events: auto;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
-        transition: opacity 0.3s ease;
+        box-shadow: 0 calc(6px * var(--toast-scale)) calc(20px * var(--toast-scale)) rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: calc(8px * var(--toast-scale));
+        user-select: none;
+        animation: libertadToastIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        transition: opacity 0.25s ease, transform 0.25s ease;
+      }
+      .libertad-sponsor-toast[data-scale="100"] {
+        --toast-scale: 1;
+      }
+      .libertad-sponsor-toast[data-scale="120"] {
+        --toast-scale: 1.2;
+      }
+      .libertad-sponsor-toast[data-scale="140"] {
+        --toast-scale: 1.4;
+      }
+      .libertad-sponsor-toast[data-theme="light"] {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(15, 23, 42, 0.15);
+        color: #0f172a;
+        box-shadow: 0 calc(6px * var(--toast-scale)) calc(20px * var(--toast-scale)) rgba(0, 0, 0, 0.12);
+      }
+      .libertad-sponsor-toast[data-theme="oled"] {
+        background: #000000;
+        border: 1px solid rgba(56, 189, 248, 0.4);
+        color: #ffffff;
+        box-shadow: 0 calc(6px * var(--toast-scale)) calc(20px * var(--toast-scale)) rgba(0, 0, 0, 0.65);
+      }
+      .libertad-sponsor-toast-dot {
+        width: calc(6.5px * var(--toast-scale));
+        height: calc(6.5px * var(--toast-scale));
+        border-radius: 50%;
+        flex-shrink: 0;
+        box-shadow: 0 0 calc(5px * var(--toast-scale)) currentColor;
+      }
+      .libertad-sponsor-toast-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #38bdf8;
+        flex-shrink: 0;
+      }
+      .libertad-sponsor-toast[data-theme="light"] .libertad-sponsor-toast-icon {
+        color: #0284c7;
+      }
+      .libertad-sponsor-toast-icon svg {
+        width: calc(12px * var(--toast-scale));
+        height: calc(12px * var(--toast-scale));
+      }
+      .libertad-sponsor-toast-label {
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .libertad-sponsor-toast-duration {
+        font-size: calc(9.5px * var(--toast-scale));
+        font-weight: 500;
+        opacity: 0.65;
+        font-family: inherit;
       }
       .libertad-sponsor-toast-unskip {
-        background: rgba(56, 189, 248, 0.15);
-        border: 1px solid #38bdf8;
+        background: rgba(56, 189, 248, 0.14);
+        border: 1px solid rgba(56, 189, 248, 0.35);
         color: #38bdf8;
-        border-radius: 3px;
-        padding: 2px 7px;
+        border-radius: calc(4px * var(--toast-scale));
+        padding: calc(3px * var(--toast-scale)) calc(7px * var(--toast-scale));
         font-family: inherit;
-        font-size: 10px;
+        font-size: calc(9.5px * var(--toast-scale));
+        line-height: 1;
         font-weight: 700;
         letter-spacing: 0.5px;
         cursor: pointer;
         outline: none;
-        transition: background 0.15s ease, color 0.15s ease;
+        display: flex;
+        align-items: center;
+        gap: calc(4px * var(--toast-scale));
+        transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+      }
+      .libertad-sponsor-toast-unskip svg {
+        width: calc(10px * var(--toast-scale));
+        height: calc(10px * var(--toast-scale));
       }
       .libertad-sponsor-toast-unskip:hover {
         background: #38bdf8;
-        color: #0d1117;
+        color: #0b0f17;
+        border-color: #38bdf8;
+        transform: translateY(-0.5px);
+      }
+      .libertad-sponsor-toast[data-theme="light"] .libertad-sponsor-toast-unskip {
+        background: rgba(2, 132, 199, 0.1);
+        border-color: rgba(2, 132, 199, 0.3);
+        color: #0284c7;
+      }
+      .libertad-sponsor-toast[data-theme="light"] .libertad-sponsor-toast-unskip:hover {
+        background: #0284c7;
+        color: #ffffff;
+        border-color: #0284c7;
+      }
+      @keyframes libertadToastIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
       .libertad-sponsor-bar-container {
         position: absolute !important;
