@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1.1]
+## [1.2.0]
 - **Profiles & Presets:** Profiles now save your extra tools (Dislikes and Sponsors), and the OFF mode turns everything off.
 - **UI Cleaner:** Added a cleaner for sidebar Explore, unified Live Chat to also remove Chat Replays, and corrected the Like/Dislike icon shape.
 - **Interface & Languages:** Improved text fitting and button scaling across all languages (ES, EN, PT) so labels never clip.
