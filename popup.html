@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,6 +8,7 @@
   <script src="theme-init.js"></script>
   <link rel="stylesheet" href="popup.css" />
 </head>
+
 <body>
   <div class="app-window">
     <!-- Top Bar -->
@@ -19,10 +21,14 @@
           <span class="status-label" id="statusText">ACTIVE</span>
         </div>
       </div>
-      <button type="button" class="settings-toggle-btn" id="settingsToggleBtn" title="Preferences" aria-label="Preferences">
-        <svg class="gear-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button type="button" class="settings-toggle-btn" id="settingsToggleBtn" title="Preferences"
+        aria-label="Preferences">
+        <svg class="gear-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+          </path>
         </svg>
       </button>
     </header>
@@ -35,7 +41,8 @@
           <button type="button" class="mini-btn theme-btn" data-theme="auto">AUTO</button>
           <button type="button" class="mini-btn theme-btn" data-theme="dark">DRK</button>
           <button type="button" class="mini-btn theme-btn" data-theme="light">LGT</button>
-          <button type="button" class="mini-btn theme-btn" data-theme="oled" title="OLED Pure Black (#000000)">OLED</button>
+          <button type="button" class="mini-btn theme-btn" data-theme="oled"
+            title="OLED Pure Black (#000000)">OLED</button>
         </div>
       </div>
       <div class="drawer-row">
@@ -58,15 +65,20 @@
       </div>
       <div class="drawer-actions">
         <div class="drawer-links">
-          <a href="https://github.com/HumbleDev-tech/Focus_extension" target="_blank" rel="noopener noreferrer" class="drawer-link" title="GitHub Repository">
+          <a href="https://github.com/HumbleDev-tech/Focus_extension" target="_blank" rel="noopener noreferrer"
+            class="drawer-link" title="GitHub Repository">
             <svg class="drawer-link-icon" viewBox="0 0 24 24" width="11" height="11" fill="currentColor">
-              <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"></path>
+              <path
+                d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2z">
+              </path>
             </svg>
             <span data-i18n="linkGithub">GitHub</span>
           </a>
           <span class="drawer-link-sep">•</span>
-          <a href="https://github.com/HumbleDev-tech/Focus_extension/issues" target="_blank" rel="noopener noreferrer" class="drawer-link" title="Report Issue">
-            <svg class="drawer-link-icon" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <a href="https://github.com/HumbleDev-tech/Focus_extension/issues" target="_blank" rel="noopener noreferrer"
+            class="drawer-link" title="Report Issue">
+            <svg class="drawer-link-icon" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -74,12 +86,15 @@
             <span data-i18n="linkIssues">Issues</span>
           </a>
           <span class="drawer-link-sep">•</span>
-          <a href="https://github.com/HumbleDev-tech/Focus_extension/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer" class="drawer-link" title="Privacy Policy">
+          <a href="https://github.com/HumbleDev-tech/Focus_extension/blob/main/PRIVACY.md" target="_blank"
+            rel="noopener noreferrer" class="drawer-link" title="Privacy Policy">
             <span data-i18n="linkPrivacy">Privacy</span>
           </a>
           <span class="drawer-link-sep">•</span>
-          <a href="https://ko-fi.com/humbledevtech" target="_blank" rel="noopener noreferrer" class="drawer-link" title="Support on Ko-fi">
-            <svg class="drawer-link-icon" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <a href="https://ko-fi.com/humbledevtech" target="_blank" rel="noopener noreferrer" class="drawer-link"
+            title="Support on Ko-fi">
+            <svg class="drawer-link-icon" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
               <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
               <line x1="6" y1="1" x2="6" y2="4"></line>
@@ -112,14 +127,19 @@
       <!-- Inline Profile Creation Panel -->
       <div class="profile-create-panel" id="profileCreatePanel" style="display: none;">
         <div class="profile-create-row">
-          <input type="text" class="profile-create-input" id="profileCreateInput" maxlength="20" placeholder="Profile name..." />
-          <button type="button" class="profile-action-btn profile-action-confirm" id="confirmCreateProfileBtn" title="Save profile (Enter)">
-            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <input type="text" class="profile-create-input" id="profileCreateInput" maxlength="20"
+            placeholder="Profile name..." />
+          <button type="button" class="profile-action-btn profile-action-confirm" id="confirmCreateProfileBtn"
+            title="Save profile (Enter)">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </button>
-          <button type="button" class="profile-action-btn profile-action-cancel" id="cancelCreateProfileBtn" title="Cancel (Esc)">
-            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <button type="button" class="profile-action-btn profile-action-cancel" id="cancelCreateProfileBtn"
+            title="Cancel (Esc)">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
@@ -131,11 +151,13 @@
       <div class="preset-meta-header">
         <div class="preset-title-row">
           <span class="preset-tag" id="presetTagLabel" data-i18n="quickModeLabel">FOCUS LEVEL</span>
-          <button type="button" class="save-profile-trigger-btn" id="saveProfileBtn" title="Save current settings as a profile" data-i18n="saveAsProfileBtn">
+          <button type="button" class="save-profile-trigger-btn" id="saveProfileBtn"
+            title="Save current settings as a profile" data-i18n="saveAsProfileBtn">
             + Save as Profile
           </button>
         </div>
-        <span class="preset-summary" id="presetDesc">Suppresses sidebar recommendations, shorts, autoplay, and clutter. Comments preserved.</span>
+        <span class="preset-summary" id="presetDesc">Suppresses sidebar recommendations, shorts, autoplay, and clutter.
+          Comments preserved.</span>
       </div>
       <div class="preset-track" id="presetTrack">
         <button type="button" class="preset-btn" data-preset="off" data-i18n="presetOff">OFF</button>
@@ -161,14 +183,16 @@
         <!-- Setting: Home Feed -->
         <label class="shield-card" for="toggleHomeFeed">
           <div class="shield-icon">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
           </div>
           <div class="shield-meta">
             <span class="shield-title" data-i18n="toggleHomeFeedTitle">Home Feed</span>
-            <span class="shield-desc" data-i18n="toggleHomeFeedDesc">Suppress infinite recommendations grid and engage Zen Mode</span>
+            <span class="shield-desc" data-i18n="toggleHomeFeedDesc">Suppress infinite recommendations grid and engage
+              Zen Mode</span>
           </div>
           <div class="switch">
             <input type="checkbox" id="toggleHomeFeed" aria-label="Suppress Home Feed" />
@@ -179,7 +203,8 @@
         <!-- Setting: Redirect Home to Subscriptions -->
         <label class="shield-card" for="toggleRedirectHomeSubscriptions">
           <div class="shield-icon">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <path d="M4 6h16M7 3h10"></path>
               <rect x="2" y="9" width="20" height="12" rx="2"></rect>
               <polygon points="10 12 15 15 10 18 10 12"></polygon>
@@ -187,7 +212,8 @@
           </div>
           <div class="shield-meta">
             <span class="shield-title" data-i18n="toggleRedirectHomeSubscriptionsTitle">Direct to Subscriptions</span>
-            <span class="shield-desc" data-i18n="toggleRedirectHomeSubscriptionsDesc">Redirect YouTube home page directly to your subscribed creators feed</span>
+            <span class="shield-desc" data-i18n="toggleRedirectHomeSubscriptionsDesc">Redirect YouTube home page
+              directly to your subscribed creators feed</span>
           </div>
           <div class="switch">
             <input type="checkbox" id="toggleRedirectHomeSubscriptions" aria-label="Redirect Home to Subscriptions" />
@@ -198,14 +224,16 @@
         <!-- Setting: Related Sidebar -->
         <label class="shield-card" for="toggleSidebar">
           <div class="shield-icon">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <rect width="18" height="18" x="3" y="3" rx="2"></rect>
               <line x1="15" x2="15" y1="3" y2="21"></line>
             </svg>
           </div>
           <div class="shield-meta">
             <span class="shield-title" data-i18n="toggleSidebarTitle">Related Sidebar</span>
-            <span class="shield-desc" data-i18n="toggleSidebarDesc">Suppress watch-next suggested videos and center player</span>
+            <span class="shield-desc" data-i18n="toggleSidebarDesc">Suppress watch-next suggested videos and center
+              player</span>
           </div>
           <div class="switch">
             <input type="checkbox" id="toggleSidebar" aria-label="Suppress Related Sidebar" />
@@ -216,13 +244,15 @@
         <!-- Setting: Comments -->
         <label class="shield-card" for="toggleComments">
           <div class="shield-icon">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
           </div>
           <div class="shield-meta">
             <span class="shield-title" data-i18n="toggleCommentsTitle">Comments</span>
-            <span class="shield-desc" data-i18n="toggleCommentsDesc">Suppress video comments section across watch pages</span>
+            <span class="shield-desc" data-i18n="toggleCommentsDesc">Suppress video comments section across watch
+              pages</span>
           </div>
           <div class="switch">
             <input type="checkbox" id="toggleComments" aria-label="Suppress Comments" />
@@ -233,13 +263,15 @@
         <!-- Setting: Shorts -->
         <label class="shield-card" for="toggleShorts">
           <div class="shield-icon">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
           </div>
           <div class="shield-meta">
             <span class="shield-title" data-i18n="toggleShortsTitle">Shorts</span>
-            <span class="shield-desc" data-i18n="toggleShortsDesc">Suppress shorts tab, shelves, and navigation drawer links</span>
+            <span class="shield-desc" data-i18n="toggleShortsDesc">Suppress shorts tab, shelves, and navigation drawer
+              links</span>
           </div>
           <div class="switch">
             <input type="checkbox" id="toggleShorts" aria-label="Suppress Shorts" />
@@ -250,14 +282,16 @@
         <!-- Setting: End Screens -->
         <label class="shield-card" for="toggleEndScreens">
           <div class="shield-icon">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <rect width="18" height="14" x="3" y="5" rx="2"></rect>
               <polyline points="7 15 12 10 17 15"></polyline>
             </svg>
           </div>
           <div class="shield-meta">
             <span class="shield-title" data-i18n="toggleEndScreensTitle">End Screens</span>
-            <span class="shield-desc" data-i18n="toggleEndScreensDesc">Suppress popup cards and teasers at video conclusion</span>
+            <span class="shield-desc" data-i18n="toggleEndScreensDesc">Suppress popup cards and teasers at video
+              conclusion</span>
           </div>
           <div class="switch">
             <input type="checkbox" id="toggleEndScreens" aria-label="Suppress End Screens" />
@@ -279,7 +313,8 @@
           <label class="chip-toggle" for="toggleVoiceSearch">
             <input type="checkbox" id="toggleVoiceSearch" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
                 <line x1="12" x2="12" y1="19" y2="22"></line>
@@ -292,7 +327,8 @@
           <label class="chip-toggle" for="toggleCreateButton">
             <input type="checkbox" id="toggleCreateButton" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" x2="12" y1="8" y2="16"></line>
                 <line x1="8" x2="16" y1="12" y2="12"></line>
@@ -305,7 +341,8 @@
           <label class="chip-toggle" for="toggleNotifications">
             <input type="checkbox" id="toggleNotifications" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
                 <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
               </svg>
@@ -317,7 +354,8 @@
           <label class="chip-toggle" for="toggleSearchSuggestions">
             <input type="checkbox" id="toggleSearchSuggestions" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" x2="16.65" y1="21" y2="16.65"></line>
                 <line x1="8" x2="14" y1="11" y2="11"></line>
@@ -330,7 +368,8 @@
           <label class="chip-toggle" for="toggleFilterChips">
             <input type="checkbox" id="toggleFilterChips" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
               </svg>
             </span>
@@ -349,7 +388,8 @@
           <label class="chip-toggle" for="toggleAutoplay">
             <input type="checkbox" id="toggleAutoplay" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
             </span>
@@ -360,7 +400,8 @@
           <label class="chip-toggle" for="toggleUpNext">
             <input type="checkbox" id="toggleUpNext" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="5 4 15 12 5 20 5 4"></polygon>
                 <line x1="19" x2="19" y1="5" y2="19"></line>
               </svg>
@@ -372,7 +413,8 @@
           <label class="chip-toggle" for="toggleWatermark">
             <input type="checkbox" id="toggleWatermark" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <rect width="18" height="18" x="3" y="3" rx="2"></rect>
                 <circle cx="15" cy="15" r="2"></circle>
               </svg>
@@ -384,7 +426,8 @@
           <label class="chip-toggle" for="togglePaidPromo">
             <input type="checkbox" id="togglePaidPromo" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <rect width="20" height="12" x="2" y="6" rx="2"></rect>
                 <circle cx="12" cy="12" r="2"></circle>
               </svg>
@@ -396,7 +439,8 @@
           <label class="chip-toggle" for="toggleMiniplayer">
             <input type="checkbox" id="toggleMiniplayer" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <rect width="20" height="16" x="2" y="4" rx="2"></rect>
                 <rect width="8" height="6" x="12" y="12" rx="1"></rect>
               </svg>
@@ -416,8 +460,11 @@
           <label class="chip-toggle" for="toggleAskAi">
             <input type="checkbox" id="toggleAskAi" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path>
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z">
+                </path>
               </svg>
             </span>
             <span class="chip-label" data-i18n="chipAskAi">Ask AI</span>
@@ -427,7 +474,8 @@
           <label class="chip-toggle" for="toggleDownload">
             <input type="checkbox" id="toggleDownload" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" x2="12" y1="15" y2="3"></line>
@@ -440,7 +488,8 @@
           <label class="chip-toggle" for="toggleThanksClips">
             <input type="checkbox" id="toggleThanksClips" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="6" cy="6" r="3"></circle>
                 <circle cx="6" cy="18" r="3"></circle>
                 <line x1="20" x2="8.12" y1="4" y2="15.88"></line>
@@ -455,7 +504,8 @@
           <label class="chip-toggle" for="toggleJoinButton">
             <input type="checkbox" id="toggleJoinButton" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="8" r="6"></circle>
                 <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
               </svg>
@@ -467,7 +517,8 @@
           <label class="chip-toggle" for="toggleShare">
             <input type="checkbox" id="toggleShare" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="18" cy="5" r="3"></circle>
                 <circle cx="6" cy="12" r="3"></circle>
                 <circle cx="18" cy="19" r="3"></circle>
@@ -482,7 +533,8 @@
           <label class="chip-toggle" for="toggleSave">
             <input type="checkbox" id="toggleSave" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
               </svg>
             </span>
@@ -514,9 +566,12 @@
           <label class="chip-toggle" for="toggleLikeDislike">
             <input type="checkbox" id="toggleLikeDislike" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M7 10v12"></path>
-                <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path>
+                <path
+                  d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z">
+                </path>
               </svg>
             </span>
             <span class="chip-label" data-i18n="chipLikeDislike">Like/Dislike</span>
@@ -526,7 +581,8 @@
           <label class="chip-toggle" for="toggleSubscribeButton">
             <input type="checkbox" id="toggleSubscribeButton" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
                 <line x1="19" x2="19" y1="8" y2="14"></line>
@@ -540,7 +596,8 @@
           <label class="chip-toggle" for="toggleSubscriberCount">
             <input type="checkbox" id="toggleSubscriberCount" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="20" x2="18" y2="10"></line>
                 <line x1="12" y1="20" x2="12" y2="4"></line>
                 <line x1="6" y1="20" x2="6" y2="14"></line>
@@ -553,7 +610,8 @@
           <label class="chip-toggle" for="toggleViewsDate">
             <input type="checkbox" id="toggleViewsDate" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
@@ -573,7 +631,8 @@
           <label class="chip-toggle" for="toggleMerchShelf">
             <input type="checkbox" id="toggleMerchShelf" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
                 <line x1="3" x2="21" y1="6" y2="6"></line>
                 <path d="M16 10a4 4 0 0 1-8 0"></path>
@@ -586,7 +645,8 @@
           <label class="chip-toggle" for="toggleLiveChat">
             <input type="checkbox" id="toggleLiveChat" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
               </svg>
             </span>
@@ -598,7 +658,8 @@
           <label class="chip-toggle" for="toggleExplore">
             <input type="checkbox" id="toggleExplore" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
               </svg>
@@ -610,7 +671,8 @@
           <label class="chip-toggle" for="toggleTrending">
             <input type="checkbox" id="toggleTrending" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
                 <polyline points="16 7 22 7 22 13"></polyline>
               </svg>
@@ -622,7 +684,8 @@
           <label class="chip-toggle" for="toggleMoreFromYoutube">
             <input type="checkbox" id="toggleMoreFromYoutube" class="visually-hidden" />
             <span class="chip-icon">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <rect width="7" height="7" x="3" y="3" rx="1"></rect>
                 <rect width="7" height="7" x="14" y="3" rx="1"></rect>
                 <rect width="7" height="7" x="14" y="14" rx="1"></rect>
@@ -644,8 +707,11 @@
         <!-- Module: Restore Dislikes -->
         <label class="module-row" for="toggleDislikes">
           <div class="module-icon">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17">
+              </path>
             </svg>
           </div>
           <div class="module-meta">
@@ -653,7 +719,8 @@
               <span class="module-title" data-i18n="toggleDislikesTitle">Restore Dislikes</span>
               <span class="module-tag" data-i18n="statusApiOnline">API ONLINE</span>
             </div>
-            <span class="module-desc" data-i18n="toggleDislikesDesc">Incorporate public community dislikes metric via Return YouTube Dislike API</span>
+            <span class="module-desc" data-i18n="toggleDislikesDesc">Incorporate public community dislikes metric via
+              Return YouTube Dislike API</span>
           </div>
           <div class="switch">
             <input type="checkbox" id="toggleDislikes" aria-label="Restore Dislikes" />
@@ -665,10 +732,12 @@
         <div class="module-card" id="moduleUntranslate">
           <label class="module-card-header" for="toggleUntranslateMaster">
             <div class="module-icon">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="2" x2="22" y1="12" y2="12"></line>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                </path>
               </svg>
             </div>
             <div class="module-meta">
@@ -676,7 +745,8 @@
                 <span class="module-title" data-i18n="toggleUntranslateTitle">Untranslate Suite</span>
                 <span class="module-tag" data-i18n="statusOriginalMedia">ORIGINAL MEDIA</span>
               </div>
-              <span class="module-desc" data-i18n="toggleUntranslateDesc">Preserve creators original audio, titles, descriptions, and native subtitles</span>
+              <span class="module-desc" data-i18n="toggleUntranslateDesc">Preserve creators original audio, titles,
+                descriptions, and native subtitles</span>
             </div>
             <div class="switch">
               <input type="checkbox" id="toggleUntranslateMaster" aria-label="Untranslate Suite" />
@@ -694,9 +764,11 @@
             <div class="chip-grid sponsor-chip-grid">
               <!-- 1. Titles -->
               <label class="chip-toggle" for="toggleUntranslateTitles" title="Untranslate video and feed titles">
-                <input type="checkbox" id="toggleUntranslateTitles" class="visually-hidden" aria-label="Untranslate Titles" />
+                <input type="checkbox" id="toggleUntranslateTitles" class="visually-hidden"
+                  aria-label="Untranslate Titles" />
                 <span class="chip-icon">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="4 7 4 4 20 4 20 7"></polyline>
                     <line x1="9" x2="15" y1="20" y2="20"></line>
                     <line x1="12" x2="12" y1="4" y2="20"></line>
@@ -706,10 +778,13 @@
               </label>
 
               <!-- 2. Original Audio -->
-              <label class="chip-toggle" for="toggleUntranslateAudio" title="Force original creator audio track (Anti AI-Dubbing)">
-                <input type="checkbox" id="toggleUntranslateAudio" class="visually-hidden" aria-label="Force Original Audio" />
+              <label class="chip-toggle" for="toggleUntranslateAudio"
+                title="Force original creator audio track (Anti AI-Dubbing)">
+                <input type="checkbox" id="toggleUntranslateAudio" class="visually-hidden"
+                  aria-label="Force Original Audio" />
                 <span class="chip-icon">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
                     <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
                     <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
@@ -720,9 +795,11 @@
 
               <!-- 3. Description -->
               <label class="chip-toggle" for="toggleUntranslateDesc" title="Restore original video description">
-                <input type="checkbox" id="toggleUntranslateDesc" class="visually-hidden" aria-label="Restore Description" />
+                <input type="checkbox" id="toggleUntranslateDesc" class="visually-hidden"
+                  aria-label="Restore Description" />
                 <span class="chip-icon">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <polyline points="14 2 14 8 20 8"></polyline>
                     <line x1="16" x2="8" y1="13" y2="13"></line>
@@ -734,10 +811,13 @@
               </label>
 
               <!-- 4. Captions -->
-              <label class="chip-toggle" for="toggleUntranslateCaptions" title="Block auto-translated subtitles and force original language">
-                <input type="checkbox" id="toggleUntranslateCaptions" class="visually-hidden" aria-label="Native Captions Only" />
+              <label class="chip-toggle" for="toggleUntranslateCaptions"
+                title="Block auto-translated subtitles and force original language">
+                <input type="checkbox" id="toggleUntranslateCaptions" class="visually-hidden"
+                  aria-label="Native Captions Only" />
                 <span class="chip-icon">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <rect width="18" height="14" x="3" y="5" rx="2"></rect>
                     <line x1="7" x2="9" y1="15" y2="15"></line>
                     <line x1="15" x2="17" y1="15" y2="15"></line>
@@ -749,10 +829,13 @@
               </label>
 
               <!-- 5. Chapters -->
-              <label class="chip-toggle" for="toggleUntranslateChapters" title="Restore original creator chapter titles in timeline">
-                <input type="checkbox" id="toggleUntranslateChapters" class="visually-hidden" aria-label="Original Chapters" />
+              <label class="chip-toggle" for="toggleUntranslateChapters"
+                title="Restore original creator chapter titles in timeline">
+                <input type="checkbox" id="toggleUntranslateChapters" class="visually-hidden"
+                  aria-label="Original Chapters" />
                 <span class="chip-icon">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <line x1="4" x2="20" y1="6" y2="6"></line>
                     <line x1="4" x2="20" y1="12" y2="12"></line>
                     <line x1="4" x2="20" y1="18" y2="18"></line>
@@ -768,7 +851,8 @@
         <div class="module-card" id="moduleSponsors">
           <label class="module-card-header" for="toggleSponsors">
             <div class="module-icon">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="5 4 15 12 5 20 5 4"></polygon>
                 <line x1="19" y1="5" x2="19" y2="19"></line>
               </svg>
@@ -778,7 +862,8 @@
                 <span class="module-title" data-i18n="toggleSponsorsTitle">Skip In-Video Sponsors</span>
                 <span class="module-tag" data-i18n="statusSponsorBlock">SPONSORBLOCK</span>
               </div>
-              <span class="module-desc" data-i18n="toggleSponsorsDesc">Auto-skip paid promotions, intros, and subscribe reminders via SponsorBlock</span>
+              <span class="module-desc" data-i18n="toggleSponsorsDesc">Auto-skip paid promotions, intros, and subscribe
+                reminders via SponsorBlock</span>
             </div>
             <div class="switch">
               <input type="checkbox" id="toggleSponsors" aria-label="Skip In-Video Sponsors" />
@@ -798,7 +883,8 @@
               <label class="chip-toggle" for="toggleSubSponsors" title="Auto-skip paid promotions">
                 <input type="checkbox" id="toggleSubSponsors" class="visually-hidden" aria-label="Skip Paid Sponsors" />
                 <span class="chip-icon">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                   </svg>
                 </span>
@@ -807,9 +893,11 @@
 
               <!-- 2. Self-Promo -->
               <label class="chip-toggle" for="toggleSubSelfpromo" title="Auto-skip creator self-promo and merch">
-                <input type="checkbox" id="toggleSubSelfpromo" class="visually-hidden" aria-label="Skip Self Promotion" />
+                <input type="checkbox" id="toggleSubSelfpromo" class="visually-hidden"
+                  aria-label="Skip Self Promotion" />
                 <span class="chip-icon">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <path d="m3 11 18-5v12L3 13v-2z"></path>
                     <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
                   </svg>
@@ -819,9 +907,11 @@
 
               <!-- 3. Reminders -->
               <label class="chip-toggle" for="toggleSubInteraction" title="Auto-skip subscribe and like reminders">
-                <input type="checkbox" id="toggleSubInteraction" class="visually-hidden" aria-label="Skip Subscribe and Like Reminders" />
+                <input type="checkbox" id="toggleSubInteraction" class="visually-hidden"
+                  aria-label="Skip Subscribe and Like Reminders" />
                 <span class="chip-icon">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                     <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                   </svg>
@@ -831,9 +921,11 @@
 
               <!-- 4. Intros -->
               <label class="chip-toggle" for="toggleSubIntro" title="Auto-skip intros and opening recaps">
-                <input type="checkbox" id="toggleSubIntro" class="visually-hidden" aria-label="Skip Intros and Recaps" />
+                <input type="checkbox" id="toggleSubIntro" class="visually-hidden"
+                  aria-label="Skip Intros and Recaps" />
                 <span class="chip-icon">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="5 4 15 12 5 20 5 4"></polygon>
                     <line x1="19" y1="5" x2="19" y2="19"></line>
                   </svg>
@@ -843,9 +935,11 @@
 
               <!-- 5. Outros -->
               <label class="chip-toggle" for="toggleSubOutro" title="Auto-skip outro cards and closing music">
-                <input type="checkbox" id="toggleSubOutro" class="visually-hidden" aria-label="Skip Outros and Endcards" />
+                <input type="checkbox" id="toggleSubOutro" class="visually-hidden"
+                  aria-label="Skip Outros and Endcards" />
                 <span class="chip-icon">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <rect width="18" height="18" x="3" y="3" rx="2"></rect>
                     <rect width="8" height="8" x="8" y="8" rx="1"></rect>
                   </svg>
@@ -854,10 +948,13 @@
               </label>
 
               <!-- 6. Music Off-Topic -->
-              <label class="chip-toggle" for="toggleSubMusicOfftopic" title="Auto-skip non-music dialogues in music videos">
-                <input type="checkbox" id="toggleSubMusicOfftopic" class="visually-hidden" aria-label="Skip Music Off-Topic" />
+              <label class="chip-toggle" for="toggleSubMusicOfftopic"
+                title="Auto-skip non-music dialogues in music videos">
+                <input type="checkbox" id="toggleSubMusicOfftopic" class="visually-hidden"
+                  aria-label="Skip Music Off-Topic" />
                 <span class="chip-icon">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <path d="M9 18V5l12-2v13"></path>
                     <circle cx="6" cy="18" r="3"></circle>
                     <circle cx="18" cy="16" r="3"></circle>
@@ -874,7 +971,8 @@
     <!-- Clean Footer -->
     <footer class="app-footer">
       <span class="footer-meta" data-i18n="footerMeta">DISTRACTION-FREE SYSTEM</span>
-      <a href="https://github.com/HumbleDev-tech/Focus_extension/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" class="footer-version-link" id="footerVersionLink" title="View Changelog">
+      <a href="https://github.com/HumbleDev-tech/Focus_extension/blob/main/CHANGELOG.md" target="_blank"
+        rel="noopener noreferrer" class="footer-version-link" id="footerVersionLink" title="View Changelog">
         <span class="footer-version" id="footerVersion">v1.1.1</span>
         <span class="version-badge-new" id="versionBadgeNew" style="display: none;">NEW</span>
       </a>
@@ -885,4 +983,5 @@
   <script src="i18n.js"></script>
   <script src="popup.js"></script>
 </body>
+
 </html>
