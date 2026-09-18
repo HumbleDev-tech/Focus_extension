@@ -276,6 +276,15 @@ button:focus-visible {
   transition: var(--transition-fast);
 }
 
+.status-label {
+  max-width: calc(90px * var(--ui-scale));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 .status-dot {
   width: calc(4px * var(--ui-scale));
   height: calc(4px * var(--ui-scale));
@@ -684,6 +693,10 @@ button:focus-visible {
   color: var(--text-muted);
   opacity: 0.8;
   letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .profile-track {
@@ -997,11 +1010,14 @@ button:focus-visible {
   font-size: calc(8.5px * var(--ui-scale));
   font-weight: 700;
   letter-spacing: 0.3px;
-  padding: calc(4px * var(--ui-scale)) 0;
+  padding: calc(4px * var(--ui-scale)) calc(2px * var(--ui-scale));
   border-radius: 2px;
   cursor: pointer;
   transition: var(--transition-fast);
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .preset-btn:hover {
@@ -1071,11 +1087,14 @@ button:focus-visible {
   font-size: calc(9px * var(--ui-scale));
   font-weight: 700;
   letter-spacing: 0.5px;
-  padding: calc(5px * var(--ui-scale)) 0;
+  padding: calc(5px * var(--ui-scale)) calc(2px * var(--ui-scale));
   border-radius: 3px;
   cursor: pointer;
   transition: var(--transition-fast);
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tab-nav-btn:hover {
@@ -1338,6 +1357,7 @@ input:checked + .slider:before {
   align-items: center;
   gap: calc(4px * var(--ui-scale));
   padding: calc(5px * var(--ui-scale)) calc(5px * var(--ui-scale));
+  min-height: calc(26px * var(--ui-scale));
   background: var(--surface-card);
   border: 1px solid var(--border-subtle);
   border-radius: 3px;
@@ -1355,17 +1375,21 @@ input:checked + .slider:before {
 }
 
 .chip-icon {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: calc(13px * var(--ui-scale));
+  height: calc(13px * var(--ui-scale));
   color: var(--text-muted);
   flex-shrink: 0;
   transition: color var(--transition-fast);
+  line-height: 1;
 }
 
 .chip-icon svg {
-  width: calc(13px * var(--ui-scale));
-  height: calc(13px * var(--ui-scale));
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .chip-label {
