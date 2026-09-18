@@ -48,7 +48,6 @@
           hideMoreActions: false,
           hideMerchShelf: true,
           hideLiveChat: true,
-          hideChatReplay: true,
           hideExplore: true,
           hideTrending: true,
           hideMoreFromYoutube: true,
@@ -94,7 +93,7 @@
   // Synchronize all modules with current settings
   function syncAllModules() {
     if (Libertad.applyStyles) Libertad.applyStyles(currentSettings);
-    if (Libertad.cleanChatReplay) Libertad.cleanChatReplay(currentSettings);
+    if (Libertad.cleanLiveChat) Libertad.cleanLiveChat(currentSettings);
     if (Libertad.redirectShortsIfActive) {
       Libertad.redirectShortsIfActive(currentSettings);
     }
@@ -220,7 +219,7 @@
 
       if (stylesChanged && Libertad.applyStyles) {
         Libertad.applyStyles(currentSettings);
-        if (Libertad.cleanChatReplay) Libertad.cleanChatReplay(currentSettings);
+        if (Libertad.cleanLiveChat) Libertad.cleanLiveChat(currentSettings);
       }
       if (shortsChanged && Libertad.redirectShortsIfActive) {
         Libertad.redirectShortsIfActive(currentSettings);
@@ -340,11 +339,8 @@
       }
 
       if (currentPath === '/watch') {
-        if (
-          (currentSettings.hideChatReplay || currentSettings.hideLiveChat) &&
-          Libertad.cleanChatReplay
-        ) {
-          Libertad.cleanChatReplay(currentSettings);
+        if (currentSettings.hideLiveChat && Libertad.cleanLiveChat) {
+          Libertad.cleanLiveChat(currentSettings);
         }
         if (currentSettings.showDislikes && Libertad.findDislikeButton) {
           const hasBadge =

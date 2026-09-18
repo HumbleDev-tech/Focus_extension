@@ -698,104 +698,101 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
 
     // Live Chat & Chat Replay (Full Stream & Replay Suppression)
-    if (settings.hideLiveChat || settings.hideChatReplay) {
-      // Elements hidden when EITHER Live Chat or Chat Replay is active
+    if (settings.hideLiveChat) {
       rules.push(`
+        #chat,
+        #chat-container,
+        ytd-live-chat-frame,
+        iframe#chatframe,
+        iframe[src*="live_chat"],
+        ytd-live-chat-renderer,
+        yt-live-chat-renderer,
+        ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-live-chat"],
         ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-live-chat-replay"],
+        ytd-engagement-panel-section-list-renderer[target-id*="live-chat"],
         ytd-engagement-panel-section-list-renderer[target-id*="chat-replay"],
-        ytd-engagement-panel-section-list-renderer:has(iframe[src*="live_chat_replay"]),
+        ytd-engagement-panel-section-list-renderer:has(iframe[src*="live_chat"]),
+        ytd-engagement-panel-section-list-renderer:has(ytd-live-chat-frame),
+        ytd-engagement-panel-section-list-renderer:has(#chat),
+        #panels:has(ytd-live-chat-frame),
+        #panels:has([target-id*="live-chat"]),
         #panels:has([target-id*="chat-replay"]),
-        #panels:has(iframe[src*="live_chat_replay"]),
+        #panels:has(iframe[src*="live_chat"]),
+        #panels:has(#chat),
+        #panels-full-bleed-container:has(#chat),
+        #panels-full-bleed-container:has(ytd-live-chat-frame),
         #show-hide-button,
         ytd-live-chat-frame #show-hide-button,
         ytd-button-renderer#show-hide-button,
         ytd-toggle-button-renderer#show-hide-button,
         ytd-item-section-renderer:has(#show-hide-button),
+        ytd-item-section-renderer:has(ytd-live-chat-frame),
+        ytd-item-section-renderer:has(#chat),
         .ytp-live-chat-button,
         [target-id="engagement-panel-live-chat-replay"],
+        [target-id="engagement-panel-live-chat"],
         [target-id*="chat-replay"],
-        ytd-button-renderer[target-id*="chat-replay"],
-        ytd-button-renderer:has([target-id*="chat-replay"]),
-        yt-button-shape:has([target-id*="chat-replay"]),
-        yt-button-view-model:has([target-id*="chat-replay"]),
-        ytd-button-renderer:has(button[aria-label*="chat replay" i]),
+        [target-id*="live-chat"],
+        ytd-button-renderer[target-id*="chat"],
+        ytd-button-renderer:has([target-id*="chat"]),
+        yt-button-shape:has([target-id*="chat"]),
+        yt-button-view-model:has([target-id*="chat"]),
+        ytd-button-renderer:has(button[aria-label*="chat" i]),
         ytd-button-renderer:has(button[aria-label*="repetición" i]),
         ytd-button-renderer:has(button[aria-label*="reprise" i]),
-        yt-button-shape:has(button[aria-label*="chat replay" i]),
+        yt-button-shape:has(button[aria-label*="chat" i]),
         yt-button-shape:has(button[aria-label*="repetición" i]),
         yt-button-shape:has(button[aria-label*="reprise" i]),
-        yt-button-view-model:has(button[aria-label*="chat replay" i]),
+        yt-button-view-model:has(button[aria-label*="chat" i]),
         yt-button-view-model:has(button[aria-label*="repetición" i]),
         yt-button-view-model:has(button[aria-label*="reprise" i]),
-        yt-chip-cloud-chip-renderer:has([aria-label*="chat replay" i]),
+        yt-chip-cloud-chip-renderer:has([aria-label*="chat" i]),
         yt-chip-cloud-chip-renderer:has([aria-label*="repetición" i]),
-        yt-chip-cloud-chip-renderer:has([title*="chat replay" i]),
+        yt-chip-cloud-chip-renderer:has([title*="chat" i]),
         yt-chip-cloud-chip-renderer:has([title*="repetición" i]),
-        tp-yt-paper-tab:has([aria-label*="chat replay" i]),
+        tp-yt-paper-tab:has([aria-label*="chat" i]),
         tp-yt-paper-tab:has([aria-label*="repetición" i]),
-        yt-tab-shape:has([aria-label*="chat replay" i]),
+        yt-tab-shape:has([aria-label*="chat" i]),
         yt-tab-shape:has([aria-label*="repetición" i]),
+        button[aria-label*="live chat" i],
         button[aria-label*="chat replay" i],
         button[aria-label*="repetición del chat" i],
         button[aria-label*="repetición de chat" i],
         button[aria-label*="reprise do chat" i],
+        button[aria-label*="chat en vivo" i],
+        button[aria-label*="chat ao vivo" i],
+        [aria-label*="live chat" i],
         [aria-label*="chat replay" i],
         [aria-label*="repetición del chat" i],
         [aria-label*="reprise do chat" i] {
           display: none !important;
         }
+
+        /* Auto-expand theater player when live chat is suppressed to eliminate black bars/crop */
+        ytd-watch-flexy[theater] #player-theater-container,
+        ytd-watch-flexy[theater] #full-bleed-container,
+        ytd-watch-flexy[theater] #player-container,
+        ytd-watch-flexy[theater] #player-full-bleed-container,
+        ytd-watch-flexy[theater] #movie_player,
+        ytd-watch-flexy[theater] .html5-video-player {
+          width: 100% !important;
+          max-width: 100% !important;
+          min-width: 100% !important;
+        }
+
+        ytd-watch-flexy[theater] {
+          --ytd-watch-flexy-chat-width: 0px !important;
+          --ytd-watch-flexy-chat-max-height: 0px !important;
+        }
+
+        /* Collapse empty secondary column when chat is hidden so default mode primary fills available space */
+        ytd-watch-flexy[is-two-columns_]:has(#chat[data-libertad-hidden-chat="true"]) #secondary:empty,
+        ytd-watch-flexy:has(#chat[data-libertad-hidden-chat="true"]) #secondary:empty {
+          display: none !important;
+          width: 0px !important;
+          min-width: 0px !important;
+        }
       `);
-
-      // When hideChatReplay is active, also suppress replay chat containers
-      if (settings.hideChatReplay) {
-        rules.push(`
-          #chat:has(iframe[src*="live_chat_replay"]),
-          ytd-live-chat-frame:has(iframe[src*="live_chat_replay"]),
-          iframe[src*="live_chat_replay"],
-          #chat:has(#show-hide-button),
-          #chat-container:has(#show-hide-button),
-          ytd-live-chat-frame:has(#show-hide-button),
-          #chat[collapsed],
-          ytd-live-chat-frame[collapsed] {
-            display: none !important;
-          }
-        `);
-      }
-
-      // When hideLiveChat is active, unconditionally suppress all chat containers & live elements
-      if (settings.hideLiveChat) {
-        rules.push(`
-          #chat,
-          #chat-container,
-          ytd-live-chat-frame,
-          iframe#chatframe,
-          iframe[src*="live_chat"],
-          ytd-live-chat-renderer,
-          yt-live-chat-renderer,
-          ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-live-chat"],
-          ytd-engagement-panel-section-list-renderer[target-id*="live-chat"],
-          ytd-engagement-panel-section-list-renderer:has(ytd-live-chat-frame),
-          ytd-engagement-panel-section-list-renderer:has(#chat),
-          #panels:has(ytd-live-chat-frame),
-          #panels:has([target-id*="live-chat"]),
-          #panels:has(#chat),
-          #panels-full-bleed-container:has(#chat),
-          #panels-full-bleed-container:has(ytd-live-chat-frame),
-          ytd-item-section-renderer:has(ytd-live-chat-frame),
-          ytd-item-section-renderer:has(#chat),
-          button[aria-label*="live chat" i],
-          button[aria-label*="chat en vivo" i],
-          button[aria-label*="chat ao vivo" i],
-          ytd-button-renderer:has(button[aria-label*="chat" i]),
-          yt-button-shape:has(button[aria-label*="chat" i]),
-          yt-button-view-model:has(button[aria-label*="chat" i]),
-          yt-chip-cloud-chip-renderer:has([aria-label*="chat" i]),
-          tp-yt-paper-tab:has([aria-label*="chat" i]),
-          yt-tab-shape:has([aria-label*="chat" i]) {
-            display: none !important;
-          }
-        `);
-      }
     }
 
     // Dislike Button Fix & Expansion (Only injected when dislikes are active and not suppressed)
@@ -1163,7 +1160,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       styleEl.textContent = newCss;
     }
     updateZenBanner(settings);
-    cleanChatReplay(settings);
+    cleanLiveChat(settings);
   }
 
   // Show a calm, intentional screen on YouTube home if home feed is disabled
@@ -1315,12 +1312,11 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
   }
 
-  // Dynamic DOM cleaner for Chat Replay & Live Chat elements (handles Shadow DOM, dynamic Lit/Polymer elements, and localized button text)
-  function cleanChatReplay(settings) {
-    const shouldHideReplay = Boolean(settings?.hideChatReplay);
-    const shouldHideLive = Boolean(settings?.hideLiveChat);
+  // Dynamic DOM cleaner for Live Chat & Replay elements (handles Shadow DOM, dynamic Lit/Polymer elements, and localized button text)
+  function cleanLiveChat(settings) {
+    const flexy = document.querySelector('ytd-watch-flexy');
 
-    if (!shouldHideReplay && !shouldHideLive) {
+    if (!settings?.hideLiveChat) {
       // Revert any previously hidden elements
       const hiddenElements = document.querySelectorAll(
         '[data-libertad-hidden-chat="true"]',
@@ -1329,31 +1325,56 @@ globalThis.Libertad = globalThis.Libertad || {};
         hiddenElements[i].removeAttribute('data-libertad-hidden-chat');
         hiddenElements[i].style.removeProperty('display');
       }
+      if (flexy) {
+        window.dispatchEvent(new Event('resize'));
+      }
       return;
     }
 
-    // 1. Direct container cleanup
+    // 1. If chat is currently open and not collapsed, trigger native collapse so YouTube updates its layout
+    const chatFrame = document.querySelector(
+      'ytd-live-chat-frame:not([collapsed]), #chat:not([collapsed])',
+    );
+    if (chatFrame) {
+      const nativeHideBtn = chatFrame.querySelector(
+        '#show-hide-button button, ytd-toggle-button-renderer#show-hide-button button, #show-hide-button',
+      );
+      if (nativeHideBtn) {
+        try {
+          nativeHideBtn.click();
+        } catch (_) {}
+      }
+    }
+
+    // Mark flexy as chat-collapsed so YouTube's layout engine expands player
+    if (flexy) {
+      flexy.setAttribute('flexy-chat-collapsed_', '');
+      try {
+        if (typeof flexy.handleResize_ === 'function') flexy.handleResize_();
+        if (typeof flexy.notifyResize === 'function') flexy.notifyResize();
+      } catch (_) {}
+    }
+
+    // 2. Direct container cleanup
     const directSelectors = [
+      '#chat',
+      '#chat-container',
+      'ytd-live-chat-frame',
+      'iframe#chatframe',
       '#show-hide-button',
       'ytd-live-chat-frame #show-hide-button',
+      'ytd-button-renderer#show-hide-button',
+      'ytd-toggle-button-renderer#show-hide-button',
       '.ytp-live-chat-button',
+      'ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-live-chat"]',
       'ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-live-chat-replay"]',
+      'ytd-engagement-panel-section-list-renderer[target-id*="live-chat"]',
       'ytd-engagement-panel-section-list-renderer[target-id*="chat-replay"]',
+      '[target-id="engagement-panel-live-chat"]',
       '[target-id="engagement-panel-live-chat-replay"]',
       '[target-id*="chat-replay"]',
+      '[target-id*="live-chat"]',
     ];
-
-    if (shouldHideLive) {
-      directSelectors.push(
-        '#chat',
-        '#chat-container',
-        'ytd-live-chat-frame',
-        'iframe#chatframe',
-        'ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-live-chat"]',
-        'ytd-engagement-panel-section-list-renderer[target-id*="live-chat"]',
-        '[target-id="engagement-panel-live-chat"]',
-      );
-    }
 
     const directNodes = document.querySelectorAll(directSelectors.join(','));
     for (let i = 0; i < directNodes.length; i++) {
@@ -1362,39 +1383,12 @@ globalThis.Libertad = globalThis.Libertad || {};
       node.style.setProperty('display', 'none', 'important');
     }
 
-    // 2. If hideChatReplay is active, check if #chat or ytd-live-chat-frame is a replay container
-    if (shouldHideReplay && !shouldHideLive) {
-      const chatFrames = document.querySelectorAll(
-        'ytd-live-chat-frame, #chat, #chat-container',
-      );
-      for (let i = 0; i < chatFrames.length; i++) {
-        const frame = chatFrames[i];
-        const iframe = frame.querySelector('iframe');
-        const iframeSrc = iframe?.getAttribute('src') || '';
-        const hasReplayButton = Boolean(
-          frame.querySelector('#show-hide-button'),
-        );
-        const hasReplayAttr = Boolean(
-          frame.getAttribute('target-id')?.includes('replay') ||
-            frame.closest('[target-id*="replay"]'),
-        );
-        if (
-          iframeSrc.includes('live_chat_replay') ||
-          hasReplayButton ||
-          hasReplayAttr
-        ) {
-          frame.setAttribute('data-libertad-hidden-chat', 'true');
-          frame.style.setProperty('display', 'none', 'important');
-        }
-      }
-    }
-
-    // 3. Scan candidate buttons, chips, tabs, and action items across action bar & sidebars
+    // 2. Scan candidate buttons, chips, tabs, and action items across action bar & sidebars
     const candidates = document.querySelectorAll(
       'ytd-button-renderer, yt-button-shape, yt-button-view-model, yt-chip-cloud-chip-renderer, tp-yt-paper-tab, yt-tab-shape',
     );
 
-    const replayKeywords = [
+    const chatKeywords = [
       'chat replay',
       'repetición del chat',
       'repetición de chat',
@@ -1408,9 +1402,6 @@ globalThis.Libertad = globalThis.Libertad || {};
       'show chat replay',
       'hide chat replay',
       'ocultar repetición',
-    ];
-
-    const liveKeywords = [
       'live chat',
       'chat vivo',
       'chat en vivo',
@@ -1426,12 +1417,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       if (node.getAttribute('data-libertad-hidden-chat') === 'true') continue;
 
       const targetId = (node.getAttribute('target-id') || '').toLowerCase();
-      if (targetId.includes('chat-replay')) {
-        node.setAttribute('data-libertad-hidden-chat', 'true');
-        node.style.setProperty('display', 'none', 'important');
-        continue;
-      }
-      if (shouldHideLive && targetId.includes('live-chat')) {
+      if (targetId.includes('chat')) {
         node.setAttribute('data-libertad-hidden-chat', 'true');
         node.style.setProperty('display', 'none', 'important');
         continue;
@@ -1459,34 +1445,16 @@ globalThis.Libertad = globalThis.Libertad || {};
         .toLowerCase();
 
       let match = false;
-
-      if (shouldHideReplay) {
-        for (let k = 0; k < replayKeywords.length; k++) {
-          const kw = replayKeywords[k];
-          if (
-            aria.includes(kw) ||
-            title.includes(kw) ||
-            text === kw ||
-            text.includes(kw)
-          ) {
-            match = true;
-            break;
-          }
-        }
-      }
-
-      if (!match && shouldHideLive) {
-        for (let k = 0; k < liveKeywords.length; k++) {
-          const kw = liveKeywords[k];
-          if (
-            aria.includes(kw) ||
-            title.includes(kw) ||
-            text === kw ||
-            text.includes(kw)
-          ) {
-            match = true;
-            break;
-          }
+      for (let k = 0; k < chatKeywords.length; k++) {
+        const kw = chatKeywords[k];
+        if (
+          aria.includes(kw) ||
+          title.includes(kw) ||
+          text === kw ||
+          text.includes(kw)
+        ) {
+          match = true;
+          break;
         }
       }
 
@@ -1495,10 +1463,20 @@ globalThis.Libertad = globalThis.Libertad || {};
         node.style.setProperty('display', 'none', 'important');
       }
     }
+
+    // 3. Dispatch resize events so the HTML5 video element recalculates inline dimensions and expands to 100%
+    window.dispatchEvent(new Event('resize'));
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 60);
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 250);
   }
 
   globalThis.Libertad.buildStylesheet = buildStylesheet;
   globalThis.Libertad.applyStyles = applyStyles;
   globalThis.Libertad.updateZenBanner = updateZenBanner;
-  globalThis.Libertad.cleanChatReplay = cleanChatReplay;
+  globalThis.Libertad.cleanLiveChat = cleanLiveChat;
+  globalThis.Libertad.cleanChatReplay = cleanLiveChat;
 })();
