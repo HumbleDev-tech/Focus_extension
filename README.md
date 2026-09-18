@@ -10,7 +10,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Manifest-V3-blue.svg?style=flat-square" alt="Manifest V3" />
-  <img src="https://img.shields.io/badge/Version-1.0.0-blue.svg?style=flat-square" alt="Version 1.0.0" />
+  <img src="https://img.shields.io/badge/Version-1.1.0-blue.svg?style=flat-square" alt="Version 1.1.0" />
   <img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="MIT License" />
   <img src="https://img.shields.io/badge/Telemetry-Zero-brightgreen.svg?style=flat-square" alt="Zero Telemetry" />
   <img src="https://img.shields.io/badge/Dependencies-Vanilla%20JS-orange.svg?style=flat-square" alt="Vanilla JS" />
@@ -28,7 +28,7 @@ Modern YouTube is engineered around keeping you clicking. Between infinite feeds
 I built **Libertad** to change that. It is a lightweight, distraction-free layer designed to give you peace of mind and complete control over your viewing experience:
 
 * **Pure Performance (Zero Bloat):** 100% Vanilla JavaScript. No heavy frameworks, no React overhead, and zero runtime dependencies. It boots synchronously at page load with zero flicker and negligible memory usage.
-* **3 Dedicated Profiles:** Switch effortlessly between distinct contexts (**Work / Study**, **Relax / Podcasts**, **Personal**). Each profile has its own memory and can be renamed inline with a single click.
+* **Up to 3 Custom Focus Profiles:** Create personalized profiles on demand (e.g. *Study*, *Work*, *Podcasts*). Each profile maintains its own independent memory and can be renamed inline with a single click.
 * **Zen Mode Home:** Replaces the addictive infinite homepage with a calm, intentional screen that keeps your attention on the search bar.
 * **Shorts Eradication & Smart Redirection:** Completely clears out Shorts carousels and tabs, and automatically turns any `/shorts/` link back into a standard desktop video with full playback controls.
 * **Original Audio & Anti-AI Dubbing:** Bypasses YouTube's forced synthetic AI voiceovers, locking playback to the creator's genuine voice while restoring original titles, descriptions, and chapters.
@@ -254,7 +254,6 @@ npm run pack
 ```text
 Focus_extension/
 ├── _locales/              # Translations for Web Store manifest (en, es, pt_BR, pt_PT)
-├── assets/                # Visual assets and media
 ├── icons/                 # Extension iconography (16, 48, 128px)
 ├── src/
 │   ├── core/              # Utility helpers
