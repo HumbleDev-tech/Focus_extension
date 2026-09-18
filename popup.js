@@ -12,7 +12,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusText = document.getElementById('statusText');
   const presetButtons = document.querySelectorAll('.preset-btn');
   const presetDesc = document.getElementById('presetDesc');
-  const profileButtons = document.querySelectorAll('.profile-btn');
+  const profileSectionWrapper = document.getElementById(
+    'profileSectionWrapper',
+  );
+  const profileTrack = document.getElementById('profileTrack');
+  const profileCountTag = document.getElementById('profileCountTag');
+  const saveProfileBtn = document.getElementById('saveProfileBtn');
+  const presetTagLabel = document.getElementById('presetTagLabel');
+  const profileCreatePanel = document.getElementById('profileCreatePanel');
+  const profileCreateInput = document.getElementById('profileCreateInput');
+  const confirmCreateProfileBtn = document.getElementById(
+    'confirmCreateProfileBtn',
+  );
+  const cancelCreateProfileBtn = document.getElementById(
+    'cancelCreateProfileBtn',
+  );
   const settingsToggleBtn = document.getElementById('settingsToggleBtn');
   const settingsDrawer = document.getElementById('settingsDrawer');
   const themeButtons = document.querySelectorAll('.theme-btn');
@@ -170,8 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
     theme: 'auto',
     lang: 'auto',
     scale: 'auto',
-    activeProfile: 'profile1',
-    profiles: JSON.parse(JSON.stringify(DEFAULT_PROFILES)),
+    activeProfile: null,
+    profiles: {},
   };
 
   function getEffectiveLang() {
@@ -191,71 +205,58 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load state from chrome.storage.sync
   chrome.storage.sync.get(null, (saved) => {
     if (saved && Object.keys(saved).length > 0) {
-      let migratedProfiles = JSON.parse(JSON.stringify(DEFAULT_PROFILES));
+      const loadedProfiles = {};
       if (saved.profiles && typeof saved.profiles === 'object') {
-        migratedProfiles = {
-          profile1: {
-            ...DEFAULT_PROFILES.profile1,
-            ...saved.profiles.profile1,
-            toggles: {
-              ...DEFAULT_PROFILES.profile1.toggles,
-              ...(saved.profiles.profile1?.toggles || {}),
-            },
-          },
-          profile2: {
-            ...DEFAULT_PROFILES.profile2,
-            ...saved.profiles.profile2,
-            toggles: {
-              ...DEFAULT_PROFILES.profile2.toggles,
-              ...(saved.profiles.profile2?.toggles || {}),
-            },
-          },
-          profile3: {
-            ...DEFAULT_PROFILES.profile3,
-            ...saved.profiles.profile3,
-            toggles: {
-              ...DEFAULT_PROFILES.profile3.toggles,
-              ...(saved.profiles.profile3?.toggles || {}),
-            },
-          },
-        };
-      } else {
-        const existingToggles = {};
-        TOGGLE_KEYS.forEach((k) => {
-          if (saved[k] !== undefined) existingToggles[k] = !!saved[k];
+        Object.keys(saved.profiles).forEach((pId) => {
+          const pData = saved.profiles[pId];
+          if (pData && typeof pData === 'object' && pData.name) {
+            loadedProfiles[pId] = {
+              id: pId,
+              name: pData.name,
+              nameKey: pData.nameKey,
+              isCustomName: pData.isCustomName !== false,
+              preset: pData.preset || 'custom',
+              toggles: { ...(pData.toggles || {}) },
+            };
+          }
         });
-        if (Object.keys(existingToggles).length > 0) {
-          migratedProfiles.profile1.toggles = {
-            ...migratedProfiles.profile1.toggles,
-            ...existingToggles,
-          };
-          migratedProfiles.profile1.preset = saved.preset || 'custom';
-        }
       }
 
+      const profKeys = Object.keys(loadedProfiles);
       const activeProf =
-        saved.activeProfile && migratedProfiles[saved.activeProfile]
+        saved.activeProfile && loadedProfiles[saved.activeProfile]
           ? saved.activeProfile
-          : 'profile1';
+          : profKeys.length > 0
+            ? profKeys[0]
+            : null;
 
       state = {
         ...DEFAULT_SETTINGS,
         ...saved,
         activeProfile: activeProf,
-        profiles: migratedProfiles,
+        profiles: loadedProfiles,
       };
 
-      // Hydrate state toggle keys from active profile
-      const activeToggles = state.profiles[state.activeProfile]?.toggles || {};
-      TOGGLE_KEYS.forEach((k) => {
-        if (activeToggles[k] !== undefined) {
-          state[k] = !!activeToggles[k];
-        }
-      });
-      state.preset =
-        state.profiles[state.activeProfile]?.preset ||
-        state.preset ||
-        'extreme';
+      if (state.activeProfile && state.profiles[state.activeProfile]) {
+        const activeToggles =
+          state.profiles[state.activeProfile]?.toggles || {};
+        TOGGLE_KEYS.forEach((k) => {
+          if (activeToggles[k] !== undefined) {
+            state[k] = !!activeToggles[k];
+          }
+        });
+        state.preset =
+          state.profiles[state.activeProfile]?.preset || 'balanced';
+      } else {
+        state.preset = saved.preset || 'balanced';
+        TOGGLE_KEYS.forEach((k) => {
+          if (saved[k] !== undefined) {
+            state[k] = !!saved[k];
+          } else if (PRESET_MAP[state.preset]?.[k] !== undefined) {
+            state[k] = !!PRESET_MAP[state.preset][k];
+          }
+        });
+      }
 
       if (!state.lang) state.lang = 'auto';
       if (!state.theme) state.theme = 'auto';
@@ -321,6 +322,25 @@ document.addEventListener('DOMContentLoaded', () => {
         el.textContent = t(key);
       }
     });
+
+    if (saveProfileBtn) {
+      saveProfileBtn.setAttribute(
+        'title',
+        t('saveProfileBtnTooltip') || 'Save current settings as a profile',
+      );
+    }
+    if (confirmCreateProfileBtn) {
+      confirmCreateProfileBtn.setAttribute(
+        'title',
+        t('createConfirmTooltip') || 'Save profile (Enter)',
+      );
+    }
+    if (cancelCreateProfileBtn) {
+      cancelCreateProfileBtn.setAttribute(
+        'title',
+        t('createCancelTooltip') || 'Cancel (Esc)',
+      );
+    }
 
     // Theme buttons active state
     themeButtons.forEach((btn) => {
@@ -469,37 +489,24 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Profile buttons active state, labels, and accessible tooltips
-    profileButtons.forEach((btn) => {
-      const profId = btn.getAttribute('data-profile');
-      const isActive = profId === state.activeProfile;
-      btn.classList.toggle('active', isActive);
+    // Render dynamic profiles bar
+    renderProfiles();
 
-      const nameEl = btn.querySelector('.profile-name');
-      if (nameEl && profId !== activeRenamingProfile) {
-        const displayName = getProfileDisplayName(profId);
-        nameEl.textContent = displayName;
-
-        const slotTag = profId.replace('profile', 'P');
-        const tooltipText = isActive
-          ? `${slotTag}: ${displayName} (${t('statusEngineActive') || 'ACTIVE'}) • ${t('renameTooltip')}`
-          : `${slotTag}: ${displayName} • ${t('clickToActivate')}`;
-        btn.setAttribute('title', tooltipText);
-      }
-    });
-
-    // Preset buttons active state
+    // Preset buttons active state (only illuminated when in Base Preset mode)
     presetButtons.forEach((btn) => {
       const p = btn.getAttribute('data-preset');
-      if (p === state.preset) {
+      if (!state.activeProfile && p === state.preset) {
         btn.classList.add('active');
       } else {
         btn.classList.remove('active');
       }
     });
 
-    // Preset description
-    if (PRESET_MAP[state.preset]) {
+    // Preset / Profile description
+    if (state.activeProfile && state.profiles[state.activeProfile]) {
+      const profName = getProfileDisplayName(state.activeProfile);
+      presetDesc.textContent = `${profName}: ${t('profileActiveDesc')}`;
+    } else if (PRESET_MAP[state.preset]) {
       presetDesc.textContent = t(PRESET_MAP[state.preset].descKey);
     } else {
       presetDesc.textContent = t('descCustom');
@@ -521,15 +528,20 @@ document.addEventListener('DOMContentLoaded', () => {
       statusText.textContent = t('statusOff');
     } else {
       statusPill.classList.remove('is-off');
-      const presetKeyMap = {
-        off: 'presetOff',
-        basic: 'presetBasic',
-        balanced: 'presetBalanced',
-        extreme: 'presetExtreme',
-        custom: 'presetCustom',
-      };
-      const pKey = presetKeyMap[state.preset];
-      statusText.textContent = pKey ? t(pKey) : state.preset.toUpperCase();
+      if (state.activeProfile && state.profiles[state.activeProfile]) {
+        const profName = getProfileDisplayName(state.activeProfile);
+        statusText.textContent = profName.toUpperCase();
+      } else {
+        const presetKeyMap = {
+          off: 'presetOff',
+          basic: 'presetBasic',
+          balanced: 'presetBalanced',
+          extreme: 'presetExtreme',
+          custom: 'presetCustom',
+        };
+        const pKey = presetKeyMap[state.preset];
+        statusText.textContent = pKey ? t(pKey) : state.preset.toUpperCase();
+      }
     }
   }
 
@@ -561,6 +573,9 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
       const chosenTab = btn.getAttribute('data-tab');
       if (!chosenTab) return;
+      hideCreateProfilePanel();
+      resetDeleteConfirm();
+      cancelProfileRename();
       state.activeTab = chosenTab;
       try {
         localStorage.setItem('libertad_active_tab', chosenTab);
@@ -612,19 +627,285 @@ document.addEventListener('DOMContentLoaded', () => {
         ? t(profileData.nameKey)
         : profileData.name) ||
       t(`profile${profileId.slice(-1)}Default`) ||
+      profileData.name ||
       'Profile'
     );
   }
+
+  function renderProfiles() {
+    const profileIds = Object.keys(state.profiles || {});
+    const count = profileIds.length;
+
+    if (profileCountTag) {
+      profileCountTag.textContent = `${count}/3`;
+    }
+
+    if (count === 0) {
+      if (profileSectionWrapper) profileSectionWrapper.style.display = 'none';
+      if (presetTagLabel) {
+        presetTagLabel.setAttribute('data-i18n', 'quickModeLabel');
+        presetTagLabel.textContent = t('quickModeLabel');
+      }
+      if (saveProfileBtn) saveProfileBtn.style.display = 'inline-flex';
+      state.activeProfile = null;
+      return;
+    }
+
+    if (profileSectionWrapper) profileSectionWrapper.style.display = 'flex';
+    if (presetTagLabel) {
+      presetTagLabel.setAttribute('data-i18n', 'basePresetsLabel');
+      presetTagLabel.textContent = t('basePresetsLabel');
+    }
+    if (saveProfileBtn) {
+      saveProfileBtn.style.display = 'none';
+    }
+
+    if (state.activeProfile && !state.profiles[state.activeProfile]) {
+      state.activeProfile = profileIds.length > 0 ? profileIds[0] : null;
+    }
+
+    if (!profileTrack) return;
+    profileTrack.innerHTML = '';
+
+    profileIds.forEach((profId) => {
+      const isActive = profId === state.activeProfile;
+      const displayName = getProfileDisplayName(profId);
+
+      const btn = document.createElement('div');
+      btn.className = `profile-btn${isActive ? ' active' : ''}`;
+      btn.setAttribute('role', 'button');
+      btn.setAttribute('tabindex', '0');
+      btn.setAttribute('data-profile', profId);
+
+      const tooltipText = isActive
+        ? `${displayName} (${t('statusEngineActive') || 'ACTIVE'}) • ${t('renameTooltip')}`
+        : `${displayName} • ${t('clickToActivate')}`;
+      btn.setAttribute('title', tooltipText);
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'profile-name';
+      nameSpan.textContent = displayName;
+      btn.appendChild(nameSpan);
+
+      const actionsSpan = document.createElement('span');
+      actionsSpan.className = 'profile-actions';
+
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'profile-edit-btn';
+      editBtn.setAttribute('title', t('renameTooltip') || 'Rename');
+      editBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+        </svg>
+      `;
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'profile-delete-btn';
+      deleteBtn.setAttribute('title', t('deleteProfileTooltip') || 'Delete');
+      deleteBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      `;
+
+      actionsSpan.appendChild(editBtn);
+      actionsSpan.appendChild(deleteBtn);
+      btn.appendChild(actionsSpan);
+
+      attachProfileChipEvents(btn, profId);
+      profileTrack.appendChild(btn);
+    });
+
+    if (count < 3) {
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'add-profile-btn';
+      addBtn.setAttribute('title', t('newProfileBtn'));
+      addBtn.textContent = t('newProfileBtn');
+      addBtn.addEventListener('click', () => {
+        toggleCreateProfilePanel();
+      });
+      profileTrack.appendChild(addBtn);
+    }
+  }
+
+  let activeDeletingProfile = null;
+  let deleteConfirmTimer = null;
+
+  function resetDeleteConfirm() {
+    if (deleteConfirmTimer) {
+      clearTimeout(deleteConfirmTimer);
+      deleteConfirmTimer = null;
+    }
+    if (activeDeletingProfile && profileTrack) {
+      const prevBtn = profileTrack.querySelector(
+        `.profile-btn[data-profile="${activeDeletingProfile}"] .profile-delete-btn`,
+      );
+      if (prevBtn) {
+        prevBtn.classList.remove('is-confirm');
+        prevBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        `;
+      }
+      activeDeletingProfile = null;
+    }
+  }
+
+  function handleProfileDelete(profId, deleteBtn) {
+    if (!deleteBtn) return;
+    cancelProfileRename();
+    if (
+      activeDeletingProfile !== profId ||
+      !deleteBtn.classList.contains('is-confirm')
+    ) {
+      resetDeleteConfirm();
+      activeDeletingProfile = profId;
+      deleteBtn.classList.add('is-confirm');
+      deleteBtn.textContent = t('deleteConfirm') || 'Delete?';
+      deleteConfirmTimer = setTimeout(() => {
+        resetDeleteConfirm();
+      }, 3000);
+      return;
+    }
+
+    resetDeleteConfirm();
+
+    if (state.profiles?.[profId]) {
+      delete state.profiles[profId];
+    }
+    const remainingKeys = Object.keys(state.profiles || {});
+    if (state.activeProfile === profId) {
+      state.activeProfile = remainingKeys.length > 0 ? remainingKeys[0] : null;
+    }
+
+    if (state.activeProfile && state.profiles[state.activeProfile]) {
+      switchProfile(state.activeProfile);
+    } else {
+      state.activeProfile = null;
+      saveState();
+    }
+  }
+
+  function toggleCreateProfilePanel() {
+    const existingCount = Object.keys(state.profiles || {}).length;
+    if (existingCount >= 3) return;
+    if (!profileCreatePanel || !profileCreateInput) return;
+    if (profileCreatePanel.style.display !== 'none') {
+      hideCreateProfilePanel();
+      return;
+    }
+    resetDeleteConfirm();
+    cancelProfileRename();
+    profileCreatePanel.style.display = 'block';
+    profileCreateInput.value = '';
+    profileCreateInput.placeholder =
+      t('profileCreatePlaceholder') || 'Profile name...';
+    if (confirmCreateProfileBtn) {
+      confirmCreateProfileBtn.setAttribute(
+        'title',
+        t('createConfirmTooltip') || 'Save profile (Enter)',
+      );
+    }
+    if (cancelCreateProfileBtn) {
+      cancelCreateProfileBtn.setAttribute(
+        'title',
+        t('createCancelTooltip') || 'Cancel (Esc)',
+      );
+    }
+    profileCreateInput.focus();
+  }
+
+  function hideCreateProfilePanel() {
+    if (!profileCreatePanel) return;
+    profileCreatePanel.style.display = 'none';
+  }
+
+  function submitCreateProfile() {
+    if (!profileCreateInput) return;
+    const val = profileCreateInput.value
+      .replace(/[\r\n\t]/g, ' ')
+      .trim()
+      .replace(/\s+/g, ' ');
+
+    const existingCount = Object.keys(state.profiles || {}).length;
+    if (existingCount >= 3) {
+      hideCreateProfilePanel();
+      return;
+    }
+
+    const finalName =
+      val.length > 0
+        ? val.slice(0, 20)
+        : `${t('profileHeader') || 'Profile'} ${existingCount + 1}`;
+
+    let newSlotId = 'profile1';
+    if (state.profiles?.profile1) {
+      if (!state.profiles.profile2) newSlotId = 'profile2';
+      else if (!state.profiles.profile3) newSlotId = 'profile3';
+      else newSlotId = `profile_${Date.now()}`;
+    }
+
+    const currentToggles = {};
+    TOGGLE_KEYS.forEach((k) => {
+      currentToggles[k] = !!state[k];
+    });
+
+    if (!state.profiles) state.profiles = {};
+    state.profiles[newSlotId] = {
+      id: newSlotId,
+      name: finalName,
+      preset: state.preset || 'balanced',
+      toggles: currentToggles,
+      isCustomName: true,
+    };
+
+    state.activeProfile = newSlotId;
+    hideCreateProfilePanel();
+    saveState();
+  }
+
+  saveProfileBtn?.addEventListener('click', () => {
+    toggleCreateProfilePanel();
+  });
+  confirmCreateProfileBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    submitCreateProfile();
+  });
+  cancelCreateProfileBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    hideCreateProfilePanel();
+  });
+  profileCreateInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submitCreateProfile();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      hideCreateProfilePanel();
+    }
+  });
 
   function restoreProfileActions(btn) {
     const actions = btn.querySelector('.profile-actions');
     if (!actions) return;
     actions.innerHTML = `
-      <span class="profile-edit-btn" role="button" tabindex="0" title="${t('renameTooltip') || 'Rename'}">
+      <button type="button" class="profile-edit-btn" title="${t('renameTooltip') || 'Rename'}">
         <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
         </svg>
-      </span>
+      </button>
+      <button type="button" class="profile-delete-btn" title="${t('deleteProfileTooltip') || 'Delete'}">
+        <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     `;
   }
 
@@ -647,6 +928,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function startProfileRename(profileId) {
+    resetDeleteConfirm();
+    hideCreateProfilePanel();
     if (activeRenamingProfile === profileId) {
       cancelProfileRename();
       return;
@@ -669,7 +952,7 @@ document.addEventListener('DOMContentLoaded', () => {
     input.type = 'text';
     input.className = 'profile-name-input';
     input.value = currentName;
-    input.maxLength = 14;
+    input.maxLength = 20;
     input.setAttribute('autocomplete', 'off');
     input.setAttribute('spellcheck', 'false');
 
@@ -713,7 +996,7 @@ document.addEventListener('DOMContentLoaded', () => {
           .replace(/\s+/g, ' ');
         if (val.length > 0 && val !== currentName) {
           if (!state.profiles[profileId]) {
-            state.profiles[profileId] = { ...DEFAULT_PROFILES[profileId] };
+            state.profiles[profileId] = { id: profileId, name: val };
           }
           state.profiles[profileId].name = val;
           state.profiles[profileId].isCustomName = true;
@@ -773,6 +1056,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function switchProfile(profileId) {
     if (!state.profiles?.[profileId]) return;
+    hideCreateProfilePanel();
+    resetDeleteConfirm();
+    cancelProfileRename();
     state.activeProfile = profileId;
     const profile = state.profiles[profileId];
 
@@ -787,9 +1073,7 @@ document.addEventListener('DOMContentLoaded', () => {
     saveState();
   }
 
-  profileButtons.forEach((btn) => {
-    const profId = btn.getAttribute('data-profile');
-
+  function attachProfileChipEvents(btn, profId) {
     btn.addEventListener('click', (e) => {
       if (
         e.target.closest('.profile-name-input') ||
@@ -805,6 +1089,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           startProfileRename(profId);
         }
+        return;
+      }
+
+      const delBtn = e.target.closest('.profile-delete-btn');
+      if (delBtn) {
+        e.stopPropagation();
+        handleProfileDelete(profId, delBtn);
         return;
       }
 
@@ -824,7 +1115,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (
         e.target.closest('.profile-name-input') ||
         e.target.closest('.profile-action-btn') ||
-        e.target.closest('.profile-edit-btn')
+        e.target.closest('.profile-edit-btn') ||
+        e.target.closest('.profile-delete-btn')
       ) {
         return;
       }
@@ -844,43 +1136,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     });
-  });
+  }
 
-  // Preset button clicks (applies baseline to the active profile)
+  // Preset button clicks (switches to base preset mode without modifying saved profiles)
   presetButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
       const chosenPreset = btn.getAttribute('data-preset');
       if (PRESET_MAP[chosenPreset]) {
+        hideCreateProfilePanel();
+        resetDeleteConfirm();
+        cancelProfileRename();
         state.preset = chosenPreset;
+        // Deactivate active profile, keeping its saved memory 100% intact
+        state.activeProfile = null;
         const config = PRESET_MAP[chosenPreset];
         TOGGLE_KEYS.forEach((key) => {
           if (config[key] !== undefined) {
             state[key] = config[key];
           }
         });
-        if (state.profiles?.[state.activeProfile]) {
-          state.profiles[state.activeProfile].preset = chosenPreset;
-          if (!state.profiles[state.activeProfile].toggles) {
-            state.profiles[state.activeProfile].toggles = {};
-          }
-          TOGGLE_KEYS.forEach((key) => {
-            if (config[key] !== undefined) {
-              state.profiles[state.activeProfile].toggles[key] = config[key];
-            }
-          });
-        }
         saveState();
       }
     });
   });
 
-  // Individual toggle changes (saves strictly to the active profile)
+  // Individual toggle changes (saves strictly to the active profile or root state)
   TOGGLE_KEYS.forEach((key) => {
     if (!toggles[key]) return;
     toggles[key].addEventListener('change', (e) => {
       state[key] = e.target.checked;
       state.preset = 'custom';
-      if (state.profiles?.[state.activeProfile]) {
+      if (state.activeProfile && state.profiles?.[state.activeProfile]) {
         state.profiles[state.activeProfile].preset = 'custom';
         if (!state.profiles[state.activeProfile].toggles) {
           state.profiles[state.activeProfile].toggles = {};
@@ -891,6 +1177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         [key]: state[key],
         preset: state.preset,
         profiles: state.profiles,
+        activeProfile: state.activeProfile,
       });
     });
   });
@@ -1001,8 +1288,9 @@ document.addEventListener('DOMContentLoaded', () => {
       theme: 'auto',
       lang: 'auto',
       scale: 'auto',
-      activeProfile: 'profile1',
-      profiles: JSON.parse(JSON.stringify(DEFAULT_PROFILES)),
+      activeProfile: null,
+      profiles: {},
+      preset: 'balanced',
     };
     applyThemeAndScale();
     saveState();
@@ -1019,6 +1307,13 @@ document.addEventListener('DOMContentLoaded', () => {
       resetBtn.classList.remove('is-success');
       resetBtn.textContent = t('resetBtn');
     }, 1200);
+  });
+
+  // Global outside click listener to auto-dismiss delete confirmation
+  document.addEventListener('click', (e) => {
+    if (activeDeletingProfile && !e.target.closest('.profile-delete-btn')) {
+      resetDeleteConfirm();
+    }
   });
 
   // Safe external navigation via chrome.tabs.create

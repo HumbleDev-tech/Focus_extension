@@ -59,19 +59,23 @@ I built **Libertad** to change that. It is a lightweight, distraction-free layer
 
 ## Focus Profiles & Presets
 
-Different tasks require different levels of focus. Libertad includes **3 isolated profiles** that remember your personal setup:
+Libertad is designed with **Progressive Disclosure**: zero friction out of the box, with full personalization when you want it.
 
-| Profile | Default Setup | Best For |
-| :--- | :---: | :--- |
-| **P1: Work** *(Trabajo)* | `EXTREME` | **Deep focus & study.** No home feed, no sidebar, no comments, centered player. |
-| **P2: Relax** *(Relax)* | `BALANCED` | **Podcasts & casual viewing.** Distracting sidebar hidden, comments and player open. |
-| **P3: Personal** *(Pessoal)* | `BASIC` | **Clean everyday baseline.** Shorts and annoying overlays removed, feeds intact. |
+### 1. Quick Mode (Zero-Friction Baseline)
+When you install Libertad, you start in **Quick Mode**. No pre-created profiles or complex setup required. Simply choose your preferred level of focus with one click:
 
-> **Tip:** Click any profile pill (`P1`, `P2`, `P3`) to switch instantly. Click the pencil icon (✎) or double-click to rename a profile inline (<kbd>Enter</kbd> to save, <kbd>Esc</kbd> to cancel). Any tweak you make is saved strictly to your active profile.
+* **OFF:** Default YouTube state with all algorithmic feeds visible.
+* **BASIC:** Everyday baseline. Suppresses shorts, intrusive overlays, promo buttons, and end screens.
+* **BALANCED *(Default)*:** Optimal balance. Suppresses sidebar recommendations, shorts, autoplay, and clutter while keeping comments open.
+* **EXTREME *(Zen)*:** Pure minimalist focus. Centered player, Zen search-only home screen, and zero metrics or comments.
 
-### Preset Overview
+### 2. Custom Profiles (Up to 3 Slots)
+Whenever you fine-tune switches to your liking, save your configuration with **`+ Save as Profile`**:
+* **Name it your way:** Give it a meaningful name (e.g., *Study*, *Podcasts*, *Evening*).
+* **Switch seamlessly:** Click any profile chip to load its preferences instantly.
+* **Non-Destructive Independence:** Base presets and custom profiles are completely independent. Switching to a base preset (OFF, BASIC, BALANCED, EXTREME) engages that mode immediately without ever modifying or overwriting your saved custom profiles. You can switch back to any saved profile at any time with its exact settings preserved.
 
-Choose a baseline template for your profile, or fine-tune individual toggles:
+### Preset Matrix Overview
 
 | Feature / Element | OFF | BASIC | BALANCED *(Default)* | EXTREME *(Zen)* |
 | :--- | :---: | :---: | :---: | :---: |
@@ -91,7 +95,7 @@ Choose a baseline template for your profile, or fine-tune individual toggles:
 | **Video Metrics (Likes, Views, Subs)** | Shown | Shown | Shown | **Hidden** |
 | **Feeds (Live Chat, Trending, More from YT)** | Shown | Shown | **Hidden** | **Hidden** |
 
-*(Fine-tuning any switch automatically marks the preset badge as `CUSTOM` so you know your setup is personalized).*
+*(Fine-tuning any switch marks the badge as `CUSTOM` so you know your setup is personalized).*
 
 ---
 

@@ -193,44 +193,18 @@ function extractToggles(config) {
   return result;
 }
 
-const DEFAULT_PROFILES = {
-  profile1: {
-    id: 'profile1',
-    name: 'Trabajo',
-    nameKey: 'profile1Default',
-    preset: 'extreme',
-    toggles: extractToggles(PRESET_MAP.extreme),
-  },
-  profile2: {
-    id: 'profile2',
-    name: 'Relax',
-    nameKey: 'profile2Default',
-    preset: 'balanced',
-    toggles: {
-      ...extractToggles(PRESET_MAP.balanced),
-      hideSidebar: false,
-      hideComments: false,
-    },
-  },
-  profile3: {
-    id: 'profile3',
-    name: 'Personal',
-    nameKey: 'profile3Default',
-    preset: 'basic',
-    toggles: extractToggles(PRESET_MAP.basic),
-  },
-};
+const DEFAULT_PROFILES = {};
 
 const DEFAULT_SETTINGS = {
-  activeProfile: 'profile1',
+  activeProfile: null,
   profiles: DEFAULT_PROFILES,
-  preset: 'extreme',
+  preset: 'balanced',
   theme: 'auto',
   lang: 'auto',
   scale: 'auto',
   activeTab: 'focus',
-  // Active toggle values matching profile1 default
-  ...DEFAULT_PROFILES.profile1.toggles,
+  // Active toggle values matching balanced preset default
+  ...extractToggles(PRESET_MAP.balanced),
   // Power Modules
   showDislikes: true,
   untranslateMaster: true,

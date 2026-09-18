@@ -93,53 +93,51 @@
       </div>
     </div>
 
-    <!-- Master Profile & Base Preset Section -->
-    <section class="global-preset-container">
-      <div class="profile-section-header">
-        <span class="preset-tag" data-i18n="profileHeader">PROFILE</span>
-        <span class="profile-hint" data-i18n="profileHint">Click to switch • Click edit to rename</span>
-      </div>
-      <div class="profile-track" id="profileTrack">
-        <div class="profile-btn active" role="button" tabindex="0" data-profile="profile1">
-          <span class="profile-slot-tag">P1</span>
-          <span class="profile-name">Work</span>
-          <span class="profile-actions">
-            <span class="profile-edit-btn" role="button" tabindex="0" title="Rename">
-              <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-              </svg>
-            </span>
-          </span>
+    <!-- Master Profile & Base Preset Section (Progressive Disclosure) -->
+    <section class="global-preset-container" id="globalPresetContainer">
+      <!-- Dynamic Profiles Section (Shown when >= 1 profile exists) -->
+      <div class="profile-section-wrapper" id="profileSectionWrapper" style="display: none;">
+        <div class="profile-section-header">
+          <div class="profile-title-group">
+            <span class="preset-tag" data-i18n="profilesCountLabel">PROFILES</span>
+            <span class="profile-count-tag" id="profileCountTag">0/3</span>
+          </div>
+          <span class="profile-hint" data-i18n="profileHint">Click to switch • Click edit to rename</span>
         </div>
-        <div class="profile-btn" role="button" tabindex="0" data-profile="profile2">
-          <span class="profile-slot-tag">P2</span>
-          <span class="profile-name">Relax</span>
-          <span class="profile-actions">
-            <span class="profile-edit-btn" role="button" tabindex="0" title="Rename">
-              <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-              </svg>
-            </span>
-          </span>
-        </div>
-        <div class="profile-btn" role="button" tabindex="0" data-profile="profile3">
-          <span class="profile-slot-tag">P3</span>
-          <span class="profile-name">Personal</span>
-          <span class="profile-actions">
-            <span class="profile-edit-btn" role="button" tabindex="0" title="Rename">
-              <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-              </svg>
-            </span>
-          </span>
+        <div class="profile-track" id="profileTrack">
+          <!-- Dynamically injected via popup.js -->
         </div>
       </div>
 
+      <!-- Inline Profile Creation Panel -->
+      <div class="profile-create-panel" id="profileCreatePanel" style="display: none;">
+        <div class="profile-create-row">
+          <input type="text" class="profile-create-input" id="profileCreateInput" maxlength="20" placeholder="Profile name..." />
+          <button type="button" class="profile-action-btn profile-action-confirm" id="confirmCreateProfileBtn" title="Save profile (Enter)">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
+          <button type="button" class="profile-action-btn profile-action-cancel" id="cancelCreateProfileBtn" title="Cancel (Esc)">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Preset Meta Header -->
       <div class="preset-meta-header">
-        <span class="preset-tag" data-i18n="basePresetLabel">BASE PRESET</span>
+        <div class="preset-title-row">
+          <span class="preset-tag" id="presetTagLabel" data-i18n="quickModeLabel">FOCUS LEVEL</span>
+          <button type="button" class="save-profile-trigger-btn" id="saveProfileBtn" title="Save current settings as a profile" data-i18n="saveAsProfileBtn">
+            + Save as Profile
+          </button>
+        </div>
         <span class="preset-summary" id="presetDesc">Suppresses sidebar recommendations, shorts, autoplay, and clutter. Comments preserved.</span>
       </div>
-      <div class="preset-track">
+      <div class="preset-track" id="presetTrack">
         <button type="button" class="preset-btn" data-preset="off" data-i18n="presetOff">OFF</button>
         <button type="button" class="preset-btn" data-preset="basic" data-i18n="presetBasic">BASIC</button>
         <button type="button" class="preset-btn" data-preset="balanced" data-i18n="presetBalanced">BALANCED</button>
