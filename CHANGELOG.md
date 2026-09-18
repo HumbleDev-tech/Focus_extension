@@ -2,8 +2,10 @@
 
 ## [1.1.1]
 - **Profiles & Presets:** Profiles now save your extra tools (Dislikes and Sponsors), and the OFF mode turns everything off.
-- **Fixes & Improvements:** More reliable original audio, smoother dislike counter, and accurate video titles.
-- **Visual Polish:** Better player alignment and a subtle update badge in the popup.
+- **UI Cleaner:** Added toggles for sidebar Explore and Live Chat Replays, and corrected the Like/Dislike icon shape.
+- **Interface & Languages:** Improved text fitting and button scaling across all languages (ES, EN, PT) so labels never clip.
+- **Fixes & Improvements:** More reliable original audio, smoother dislike counter, and better video player alignment.
+- **Subtle Update Badge:** Added a clean 24-hour update indicator next to the version in the popup.
 
 ---
 

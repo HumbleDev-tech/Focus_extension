@@ -150,6 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Cleaner: Feeds & Navigation
     hideMerchShelf: document.getElementById('toggleMerchShelf'),
     hideLiveChat: document.getElementById('toggleLiveChat'),
+    hideChatReplay: document.getElementById('toggleChatReplay'),
+    hideExplore: document.getElementById('toggleExplore'),
     hideTrending: document.getElementById('toggleTrending'),
     hideMoreFromYoutube: document.getElementById('toggleMoreFromYoutube'),
     // Power Modules
