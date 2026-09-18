@@ -732,28 +732,29 @@ globalThis.Libertad = globalThis.Libertad || {};
         [target-id="engagement-panel-live-chat-replay"],
         [target-id="engagement-panel-live-chat"],
         [target-id*="chat-replay"],
-        [target-id*="live-chat"],
-        ytd-button-renderer[target-id*="chat"],
-        ytd-button-renderer:has([target-id*="chat"]),
-        yt-button-shape:has([target-id*="chat"]),
-        yt-button-view-model:has([target-id*="chat"]),
-        ytd-button-renderer:has(button[aria-label*="chat" i]),
-        ytd-button-renderer:has(button[aria-label*="repetición" i]),
-        ytd-button-renderer:has(button[aria-label*="reprise" i]),
-        yt-button-shape:has(button[aria-label*="chat" i]),
-        yt-button-shape:has(button[aria-label*="repetición" i]),
-        yt-button-shape:has(button[aria-label*="reprise" i]),
-        yt-button-view-model:has(button[aria-label*="chat" i]),
-        yt-button-view-model:has(button[aria-label*="repetición" i]),
-        yt-button-view-model:has(button[aria-label*="reprise" i]),
-        yt-chip-cloud-chip-renderer:has([aria-label*="chat" i]),
-        yt-chip-cloud-chip-renderer:has([aria-label*="repetición" i]),
-        yt-chip-cloud-chip-renderer:has([title*="chat" i]),
-        yt-chip-cloud-chip-renderer:has([title*="repetición" i]),
-        tp-yt-paper-tab:has([aria-label*="chat" i]),
-        tp-yt-paper-tab:has([aria-label*="repetición" i]),
-        yt-tab-shape:has([aria-label*="chat" i]),
-        yt-tab-shape:has([aria-label*="repetición" i]),
+        ytd-button-renderer[target-id*="live-chat"],
+        ytd-button-renderer[target-id*="chat-replay"],
+        ytd-button-renderer:has([target-id*="live-chat"]),
+        ytd-button-renderer:has([target-id*="chat-replay"]),
+        yt-button-shape:has([target-id*="live-chat"]),
+        yt-button-shape:has([target-id*="chat-replay"]),
+        yt-button-view-model:has([target-id*="live-chat"]),
+        yt-button-view-model:has([target-id*="chat-replay"]),
+        ytd-button-renderer:has(button[aria-label*="live chat" i]),
+        ytd-button-renderer:has(button[aria-label*="chat replay" i]),
+        ytd-button-renderer:has(button[aria-label*="repetición del chat" i]),
+        ytd-button-renderer:has(button[aria-label*="reprise do chat" i]),
+        yt-button-shape:has(button[aria-label*="live chat" i]),
+        yt-button-shape:has(button[aria-label*="chat replay" i]),
+        yt-button-shape:has(button[aria-label*="repetición del chat" i]),
+        yt-button-shape:has(button[aria-label*="reprise do chat" i]),
+        yt-button-view-model:has(button[aria-label*="live chat" i]),
+        yt-button-view-model:has(button[aria-label*="chat replay" i]),
+        yt-button-view-model:has(button[aria-label*="repetición del chat" i]),
+        yt-button-view-model:has(button[aria-label*="reprise do chat" i]),
+        yt-chip-cloud-chip-renderer:has([aria-label*="live chat" i]),
+        yt-chip-cloud-chip-renderer:has([aria-label*="chat replay" i]),
+        yt-chip-cloud-chip-renderer:has([aria-label*="repetición del chat" i]),
         button[aria-label*="live chat" i],
         button[aria-label*="chat replay" i],
         button[aria-label*="repetición del chat" i],
@@ -783,14 +784,6 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-watch-flexy[theater] {
           --ytd-watch-flexy-chat-width: 0px !important;
           --ytd-watch-flexy-chat-max-height: 0px !important;
-        }
-
-        /* Collapse empty secondary column when chat is hidden so default mode primary fills available space */
-        ytd-watch-flexy[is-two-columns_]:has(#chat[data-libertad-hidden-chat="true"]) #secondary:empty,
-        ytd-watch-flexy:has(#chat[data-libertad-hidden-chat="true"]) #secondary:empty {
-          display: none !important;
-          width: 0px !important;
-          min-width: 0px !important;
         }
       `);
     }
@@ -1312,6 +1305,15 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
   }
 
+  let chatResizeTimer = null;
+  function scheduleChatResize() {
+    if (chatResizeTimer) clearTimeout(chatResizeTimer);
+    chatResizeTimer = setTimeout(() => {
+      chatResizeTimer = null;
+      window.dispatchEvent(new Event('resize'));
+    }, 80);
+  }
+
   // Dynamic DOM cleaner for Live Chat & Replay elements (handles Shadow DOM, dynamic Lit/Polymer elements, and localized button text)
   function cleanLiveChat(settings) {
     const flexy = document.querySelector('ytd-watch-flexy');
@@ -1326,29 +1328,70 @@ globalThis.Libertad = globalThis.Libertad || {};
         hiddenElements[i].style.removeProperty('display');
       }
       if (flexy) {
-        window.dispatchEvent(new Event('resize'));
+        flexy.removeAttribute('flexy-chat-collapsed_');
+        scheduleChatResize();
       }
       return;
     }
 
-    // 1. If chat is currently open and not collapsed, trigger native collapse so YouTube updates its layout
-    const chatFrame = document.querySelector(
-      'ytd-live-chat-frame:not([collapsed]), #chat:not([collapsed])',
+    // Early exit if the page has no live chat containers at all
+    const hasChatInDom = document.querySelector(
+      '#chat, #chat-container, ytd-live-chat-frame, iframe#chatframe, [target-id*="chat"], .ytp-live-chat-button',
     );
-    if (chatFrame) {
-      const nativeHideBtn = chatFrame.querySelector(
-        '#show-hide-button button, ytd-toggle-button-renderer#show-hide-button button, #show-hide-button',
-      );
-      if (nativeHideBtn) {
-        try {
-          nativeHideBtn.click();
-        } catch (_) {}
+    if (!hasChatInDom) {
+      return;
+    }
+
+    let didMutateChat = false;
+
+    // 1. If chat is currently open and not collapsed, trigger native collapse so YouTube updates its layout
+    const isAlreadyCollapsed =
+      flexy?.hasAttribute('flexy-chat-collapsed_') ||
+      document.querySelector('ytd-live-chat-frame[collapsed]');
+
+    if (!isAlreadyCollapsed) {
+      const chatFrame = document.querySelector('ytd-live-chat-frame, #chat');
+      if (chatFrame) {
+        const nativeHideBtn = chatFrame.querySelector(
+          '#show-hide-button button, ytd-toggle-button-renderer#show-hide-button button, #show-hide-button',
+        );
+        if (
+          nativeHideBtn &&
+          !nativeHideBtn.hasAttribute('data-libertad-clicked')
+        ) {
+          const btnAria = (
+            nativeHideBtn.getAttribute('aria-label') || ''
+          ).toLowerCase();
+          const btnText = (nativeHideBtn.textContent || '')
+            .trim()
+            .toLowerCase();
+          const isHideAction =
+            btnAria.includes('hide') ||
+            btnAria.includes('ocultar') ||
+            btnAria.includes('fechar') ||
+            btnText.includes('hide') ||
+            btnText.includes('ocultar') ||
+            btnText.includes('fechar') ||
+            (!btnAria.includes('show') &&
+              !btnAria.includes('mostrar') &&
+              !btnText.includes('show') &&
+              !btnText.includes('mostrar'));
+
+          if (isHideAction) {
+            nativeHideBtn.setAttribute('data-libertad-clicked', 'true');
+            try {
+              nativeHideBtn.click();
+              didMutateChat = true;
+            } catch (_) {}
+          }
+        }
       }
     }
 
     // Mark flexy as chat-collapsed so YouTube's layout engine expands player
-    if (flexy) {
+    if (flexy && !flexy.hasAttribute('flexy-chat-collapsed_')) {
       flexy.setAttribute('flexy-chat-collapsed_', '');
+      didMutateChat = true;
       try {
         if (typeof flexy.handleResize_ === 'function') flexy.handleResize_();
         if (typeof flexy.notifyResize === 'function') flexy.notifyResize();
@@ -1379,11 +1422,14 @@ globalThis.Libertad = globalThis.Libertad || {};
     const directNodes = document.querySelectorAll(directSelectors.join(','));
     for (let i = 0; i < directNodes.length; i++) {
       const node = directNodes[i];
-      node.setAttribute('data-libertad-hidden-chat', 'true');
-      node.style.setProperty('display', 'none', 'important');
+      if (node.getAttribute('data-libertad-hidden-chat') !== 'true') {
+        node.setAttribute('data-libertad-hidden-chat', 'true');
+        node.style.setProperty('display', 'none', 'important');
+        didMutateChat = true;
+      }
     }
 
-    // 2. Scan candidate buttons, chips, tabs, and action items across action bar & sidebars
+    // 3. Scan candidate buttons, chips, tabs, and action items across action bar & sidebars
     const candidates = document.querySelectorAll(
       'ytd-button-renderer, yt-button-shape, yt-button-view-model, yt-chip-cloud-chip-renderer, tp-yt-paper-tab, yt-tab-shape',
     );
@@ -1398,10 +1444,10 @@ globalThis.Libertad = globalThis.Libertad || {};
       'live chat replay',
       'repetición del chat en vivo',
       'reprise do chat ao vivo',
-      'mostrar repetición',
+      'mostrar repetición del chat',
       'show chat replay',
       'hide chat replay',
-      'ocultar repetición',
+      'ocultar repetición del chat',
       'live chat',
       'chat vivo',
       'chat en vivo',
@@ -1417,9 +1463,10 @@ globalThis.Libertad = globalThis.Libertad || {};
       if (node.getAttribute('data-libertad-hidden-chat') === 'true') continue;
 
       const targetId = (node.getAttribute('target-id') || '').toLowerCase();
-      if (targetId.includes('chat')) {
+      if (targetId.includes('live-chat') || targetId.includes('chat-replay')) {
         node.setAttribute('data-libertad-hidden-chat', 'true');
         node.style.setProperty('display', 'none', 'important');
+        didMutateChat = true;
         continue;
       }
 
@@ -1461,17 +1508,14 @@ globalThis.Libertad = globalThis.Libertad || {};
       if (match) {
         node.setAttribute('data-libertad-hidden-chat', 'true');
         node.style.setProperty('display', 'none', 'important');
+        didMutateChat = true;
       }
     }
 
-    // 3. Dispatch resize events so the HTML5 video element recalculates inline dimensions and expands to 100%
-    window.dispatchEvent(new Event('resize'));
-    setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 60);
-    setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 250);
+    // 4. Only dispatch resize if we actually hid or collapsed something, and debounce it!
+    if (didMutateChat) {
+      scheduleChatResize();
+    }
   }
 
   globalThis.Libertad.buildStylesheet = buildStylesheet;
