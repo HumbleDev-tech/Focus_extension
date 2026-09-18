@@ -360,10 +360,10 @@ globalThis.Libertad = globalThis.Libertad || {};
     const player = getMainPlayerContainer();
     if (!player) return null;
     const bar =
-      player.querySelector('.ytp-progress-bar-container') ||
       player.querySelector('.ytp-progress-bar') ||
-      document.querySelector('.ytp-progress-bar-container') ||
-      document.querySelector('.ytp-progress-bar');
+      player.querySelector('.ytp-progress-bar-container') ||
+      document.querySelector('.ytp-progress-bar') ||
+      document.querySelector('.ytp-progress-bar-container');
     activeProgressBar = bar || null;
     return bar;
   }

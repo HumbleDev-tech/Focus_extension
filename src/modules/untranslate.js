@@ -332,9 +332,6 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   function extractVideoId(el) {
     if (!el) return null;
-    if (el.dataset?.libertadVideoId) {
-      return el.dataset.libertadVideoId;
-    }
 
     const parseId =
       globalThis.Libertad.parseYouTubeVideoId ||
@@ -343,38 +340,30 @@ globalThis.Libertad = globalThis.Libertad || {};
         return m ? m[1] : null;
       };
 
-    let foundId = null;
-
     if (el.tagName === 'A' && el.href) {
-      foundId = parseId(el.href);
+      const foundId = parseId(el.href);
+      if (foundId) return foundId;
     }
 
-    if (!foundId) {
-      const a = el.closest('a');
-      if (a?.href) {
-        foundId = parseId(a.href);
-      }
+    const a = el.closest('a');
+    if (a?.href) {
+      const foundId = parseId(a.href);
+      if (foundId) return foundId;
     }
 
-    if (!foundId) {
-      const card = el.closest(
-        'ytd-rich-item-renderer, ytd-rich-grid-media, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, ytd-playlist-video-renderer, ytd-reel-item-renderer, yt-lockup-view-model, [class*="lockup"], [class*="item-section"]',
+    const card = el.closest(
+      'ytd-rich-item-renderer, ytd-rich-grid-media, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, ytd-playlist-video-renderer, ytd-reel-item-renderer, yt-lockup-view-model, [class*="lockup"], [class*="item-section"]',
+    );
+    if (card) {
+      const link = card.querySelector(
+        'a[href*="watch?v="], a[href*="/shorts/"], a#video-title-link, a#thumbnail, a.ytd-thumbnail',
       );
-      if (card) {
-        const link = card.querySelector(
-          'a[href*="watch?v="], a[href*="/shorts/"], a#video-title-link, a#thumbnail, a.ytd-thumbnail',
-        );
-        if (link?.href) {
-          foundId = parseId(link.href);
-        }
+      if (link?.href) {
+        return parseId(link.href);
       }
     }
 
-    if (foundId && el.dataset) {
-      el.dataset.libertadVideoId = foundId;
-    }
-
-    return foundId;
+    return null;
   }
 
   function applyTitleToNode(titleNode, cleanTitle, videoId) {
@@ -509,14 +498,16 @@ globalThis.Libertad = globalThis.Libertad || {};
               feedIntersectionObserver.unobserve(targetNode);
               const vId = targetNode.dataset.libertadPendingId;
               if (vId) {
-                if (titlesCache.has(vId)) {
-                  const cached = titlesCache.get(vId);
+                const currentActualId = extractVideoId(targetNode);
+                const effectiveId = currentActualId || vId;
+                if (titlesCache.has(effectiveId)) {
+                  const cached = titlesCache.get(effectiveId);
                   if (cached) {
-                    applyTitleToNode(targetNode, cached, vId);
+                    applyTitleToNode(targetNode, cached, effectiveId);
                   }
-                } else if (!pendingFeedVideoIds.has(vId)) {
-                  pendingFeedVideoIds.add(vId);
-                  feedFetchQueue.push(vId);
+                } else if (!pendingFeedVideoIds.has(effectiveId)) {
+                  pendingFeedVideoIds.add(effectiveId);
+                  feedFetchQueue.push(effectiveId);
                   processFeedFetchQueue();
                 }
               }
@@ -626,13 +617,6 @@ globalThis.Libertad = globalThis.Libertad || {};
     const videoId = parseId(window.location.href);
     if (!videoId) return;
 
-    if (
-      lastRestoredSnippetVideoId === videoId &&
-      lastRestoredExpandedVideoId === videoId
-    ) {
-      return;
-    }
-
     if (!latestOriginalMetadata || latestOriginalMetadata.videoId !== videoId) {
       if (!metadataRequestPending) {
         metadataRequestPending = true;
@@ -648,25 +632,26 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (!rawDescription || typeof rawDescription !== 'string') return;
 
     // 1. Update the expanded description body (revealed when clicking "...more")
-    if (lastRestoredExpandedVideoId !== videoId) {
-      const expandedSpan =
-        document.querySelector(
-          '#description-inline-expander ytd-expandable-video-description-body-renderer yt-attributed-string span.yt-core-attributed-string',
-        ) ||
-        document.querySelector(
-          '#description-inline-expander #expanded yt-attributed-string span.yt-core-attributed-string',
-        ) ||
-        document.querySelector(
-          '#description-inline-expander #expanded yt-attributed-string',
-        ) ||
-        document.querySelector(
-          'ytd-watch-metadata #description yt-formatted-string',
-        );
+    const expandedSpan =
+      document.querySelector(
+        '#description-inline-expander ytd-expandable-video-description-body-renderer yt-attributed-string span.yt-core-attributed-string',
+      ) ||
+      document.querySelector(
+        '#description-inline-expander #expanded yt-attributed-string span.yt-core-attributed-string',
+      ) ||
+      document.querySelector(
+        '#description-inline-expander #expanded yt-attributed-string',
+      ) ||
+      document.querySelector(
+        'ytd-watch-metadata #description yt-formatted-string',
+      );
 
-      if (expandedSpan) {
-        if (expandedSpan.textContent !== rawDescription) {
-          expandedSpan.textContent = rawDescription;
-        }
+    if (expandedSpan) {
+      if (
+        lastRestoredExpandedVideoId !== videoId ||
+        expandedSpan.textContent !== rawDescription
+      ) {
+        expandedSpan.textContent = rawDescription;
         expandedSpan.dataset.libertadOrigApplied = videoId;
         lastRestoredExpandedVideoId = videoId;
       }

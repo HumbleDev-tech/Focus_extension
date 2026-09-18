@@ -192,10 +192,10 @@
   }
 
   // Enforce the creator's true original audio track (Anti AI-Dubbing)
-  function enforceOriginalAudio() {
+  function enforceOriginalAudio(force = false) {
     const videoId = getCurrentVideoId();
     if (!videoId) return false;
-    if (lastEnforcedVideoId === videoId) return true;
+    if (!force && lastEnforcedVideoId === videoId) return true;
 
     const player = getPlayer();
     if (!player || typeof player.getAvailableAudioTracks !== 'function') {
@@ -206,12 +206,6 @@
       const tracks = player.getAvailableAudioTracks();
       if (!Array.isArray(tracks) || tracks.length === 0) {
         return false; // Still waiting for tracks to load
-      }
-
-      // If only one track exists, nothing to switch
-      if (tracks.length === 1) {
-        lastEnforcedVideoId = videoId;
-        return true;
       }
 
       // Ensure current track is actually initialized before querying/switching
@@ -231,6 +225,17 @@
         response?.videoDetails?.defaultAudioLanguage ||
         ''
       ).toLowerCase();
+
+      // If only one track exists currently, verify if it is genuinely the original track
+      if (tracks.length === 1) {
+        if (isOriginalTrack(tracks[0], defaultLang)) {
+          lastEnforcedVideoId = videoId;
+          return true;
+        }
+        // If the single loaded track is dubbed or not yet verified as original,
+        // keep retry timer alive to await additional manifest audio tracks
+        return false;
+      }
 
       // If current track is already original, no switch needed
       if (isOriginalTrack(currentTrack, defaultLang)) {
@@ -357,7 +362,7 @@
       player.addEventListener('onStateChange', (state) => {
         // State 1: PLAYING. Only enforce once playback actively starts, NEVER on BUFFERING (state 3)
         if (state === 1) {
-          enforceOriginalAudio();
+          enforceOriginalAudio(true);
           neutralizeAutoCaptions();
           broadcastMetadata();
         }
@@ -371,7 +376,7 @@
     if (video && !video.__libertadEventsBound) {
       video.__libertadEventsBound = true;
       video.addEventListener('playing', () => {
-        enforceOriginalAudio();
+        enforceOriginalAudio(true);
         neutralizeAutoCaptions();
         broadcastMetadata();
       });

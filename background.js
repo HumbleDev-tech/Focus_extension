@@ -38,6 +38,37 @@ function setBoundedCache(cache, key, value, prefix) {
   cache.set(key, value);
 }
 
+async function pruneSessionStorage(prefix) {
+  if (!chrome.storage?.session) return;
+  try {
+    const indexKey = `${prefix}__keys_index`;
+    const res = await chrome.storage.session.get(indexKey);
+    let keys = Array.isArray(res?.[indexKey]) ? res[indexKey] : [];
+    if (keys.length > MAX_SW_CACHE_SIZE) {
+      const toRemove = keys.slice(0, keys.length - MAX_SW_CACHE_SIZE);
+      keys = keys.slice(keys.length - MAX_SW_CACHE_SIZE);
+      await chrome.storage.session.remove(toRemove);
+      await chrome.storage.session.set({ [indexKey]: keys });
+    }
+  } catch (_) {}
+}
+
+async function recordSessionKey(prefix, storageKey) {
+  if (!chrome.storage?.session) return;
+  try {
+    const indexKey = `${prefix}__keys_index`;
+    const res = await chrome.storage.session.get(indexKey);
+    const keys = Array.isArray(res?.[indexKey]) ? res[indexKey] : [];
+    if (!keys.includes(storageKey)) {
+      keys.push(storageKey);
+      await chrome.storage.session.set({ [indexKey]: keys });
+    }
+    if (keys.length > MAX_SW_CACHE_SIZE + 10) {
+      await pruneSessionStorage(prefix);
+    }
+  } catch (_) {}
+}
+
 async function getFromCache(cacheMap, prefix, key) {
   if (cacheMap.has(key)) {
     const val = cacheMap.get(key);
@@ -64,6 +95,7 @@ async function setToCache(cacheMap, prefix, key, value) {
     try {
       const storageKey = `${prefix}_${key}`;
       await chrome.storage.session.set({ [storageKey]: value });
+      recordSessionKey(prefix, storageKey);
     } catch (_) {}
   }
 }

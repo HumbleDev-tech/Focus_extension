@@ -29,7 +29,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     };
 
   const dislikeCache = new BoundedCache(200);
-  let isFetchingDislikes = false;
+  const inFlightDislikes = new Set();
 
   // Find modern YouTube dislike button
   function findDislikeButton() {
@@ -51,6 +51,15 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   // Inject or update the dislike badge
   function injectDislikeBadge(button, formattedCount) {
+    if (!button || !formattedCount) return;
+
+    if (!button.hasAttribute('data-libertad-orig-aria')) {
+      const origAria = button.getAttribute('aria-label');
+      if (origAria) {
+        button.setAttribute('data-libertad-orig-aria', origAria);
+      }
+    }
+
     button.classList.remove('yt-spec-button-shape-next--icon-button');
     button.classList.add('yt-spec-button-shape-next--icon-leading');
 
@@ -79,6 +88,15 @@ globalThis.Libertad = globalThis.Libertad || {};
   function removeDislikeBadge() {
     const badges = document.querySelectorAll('.libertad-dislike-badge');
     badges.forEach((b) => {
+      const btn = b.closest('button');
+      if (btn) {
+        btn.classList.remove('yt-spec-button-shape-next--icon-leading');
+        btn.classList.add('yt-spec-button-shape-next--icon-button');
+        const defaultAria = btn.getAttribute('data-libertad-orig-aria');
+        if (defaultAria) {
+          btn.setAttribute('aria-label', defaultAria);
+        }
+      }
       b.remove();
     });
   }
@@ -107,13 +125,18 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (!dislikeButton) return;
 
     if (dislikeCache.has(videoId)) {
-      injectDislikeBadge(dislikeButton, dislikeCache.get(videoId));
+      const cached = dislikeCache.get(videoId);
+      if (cached) {
+        injectDislikeBadge(dislikeButton, cached);
+      } else {
+        removeDislikeBadge();
+      }
       return;
     }
 
-    if (isFetchingDislikes) return;
+    if (inFlightDislikes.has(videoId)) return;
     if (!chrome.runtime?.id) return;
-    isFetchingDislikes = true;
+    inFlightDislikes.add(videoId);
 
     const fetchPromise = new Promise((resolve) => {
       chrome.runtime.sendMessage(
@@ -130,26 +153,36 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     fetchPromise
       .then((data) => {
-        isFetchingDislikes = false;
+        inFlightDislikes.delete(videoId);
+        const currentVideoId = parseId(window.location.href);
         if (data && typeof data.dislikes === 'number') {
           const formatNum =
             globalThis.Libertad.formatNumber ||
             function (n) {
               return n.toString();
             };
-          const formatted = formatNum(data.dislikes, settings.lang);
+          const formatted = formatNum(data.dislikes, settings?.lang);
           dislikeCache.set(videoId, formatted);
-          const currentBtn = findDislikeButton();
-          if (currentBtn) {
-            injectDislikeBadge(currentBtn, formatted);
+          if (currentVideoId === videoId) {
+            const currentBtn = findDislikeButton();
+            if (currentBtn) {
+              injectDislikeBadge(currentBtn, formatted);
+            }
           }
         } else {
-          dislikeCache.set(videoId, null);
+          dislikeCache.set(videoId, false);
+          if (currentVideoId === videoId) {
+            removeDislikeBadge();
+          }
         }
       })
       .catch(() => {
-        isFetchingDislikes = false;
-        dislikeCache.set(videoId, null);
+        inFlightDislikes.delete(videoId);
+        dislikeCache.set(videoId, false);
+        const currentVideoId = parseId(window.location.href);
+        if (currentVideoId === videoId) {
+          removeDislikeBadge();
+        }
       });
   }
 
