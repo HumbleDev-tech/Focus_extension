@@ -7,6 +7,7 @@ before generating a clean distribution zip ready for the Chrome Web Store.
 
 import json
 import os
+import re
 import subprocess
 import sys
 import zipfile
@@ -53,7 +54,35 @@ def run_preflight_checks():
         print(f"❌ Error: Version mismatch! manifest.json is '{manifest_ver}', but package.json is '{pkg_ver}'.")
         sys.exit(1)
 
-    # 2. Check CHANGELOG.md entry
+    # 2. Check version synchronization in UI & documentation files
+    if os.path.exists("popup.html"):
+        with open("popup.html", "r", encoding="utf-8") as f:
+            html_content = f.read()
+        m_html = re.search(r'id=[\"\']footerVersion[\"\']>v?([^<]+)<', html_content)
+        if not m_html or m_html.group(1).strip() != manifest_ver:
+            found_v = m_html.group(1).strip() if m_html else "not found"
+            print(f"❌ Error: Version mismatch in popup.html! Expected 'v{manifest_ver}', but found '{found_v}'.")
+            sys.exit(1)
+
+    if os.path.exists("popup.js"):
+        with open("popup.js", "r", encoding="utf-8") as f:
+            js_content = f.read()
+        m_js = re.search(r'let\s+manifestVersion\s*=\s*[\"\']([^\'\"]+)[\"\']', js_content)
+        if not m_js or m_js.group(1).strip() != manifest_ver:
+            found_v = m_js.group(1).strip() if m_js else "not found"
+            print(f"❌ Error: Version mismatch in popup.js! Expected '{manifest_ver}', but found '{found_v}'.")
+            sys.exit(1)
+
+    if os.path.exists("README.md"):
+        with open("README.md", "r", encoding="utf-8") as f:
+            readme_content = f.read()
+        m_readme = re.search(r'img\.shields\.io/badge/Version-([^\-\s]+)-blue\.svg', readme_content)
+        if not m_readme or m_readme.group(1).strip() != manifest_ver:
+            found_v = m_readme.group(1).strip() if m_readme else "not found"
+            print(f"❌ Error: Version mismatch in README.md! Expected '{manifest_ver}', but found '{found_v}'.")
+            sys.exit(1)
+
+    # 3. Check CHANGELOG.md entry
     if not os.path.exists("CHANGELOG.md"):
         print("❌ Error: CHANGELOG.md is missing from repository root!")
         sys.exit(1)
@@ -67,7 +96,7 @@ def run_preflight_checks():
         print(f"   Please add a section '{expected_section}' detailing changes before packaging.")
         sys.exit(1)
 
-    # 3. Run Biome check
+    # 4. Run Biome check
     print("  + Running Biome code quality check...")
     try:
         res = subprocess.run(["npm", "run", "check"], capture_output=True, text=True)
