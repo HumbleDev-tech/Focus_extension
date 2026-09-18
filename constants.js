@@ -42,6 +42,59 @@ const TOGGLE_KEYS = [
   'hideMoreFromYoutube',
 ];
 
+const POWER_MODULE_KEYS = [
+  'showDislikes',
+  'untranslateMaster',
+  'untranslateTitles',
+  'untranslateAudio',
+  'untranslateDescription',
+  'untranslateCaptions',
+  'untranslateChapters',
+  'skipSponsors',
+  'sponsorSkipSponsors',
+  'sponsorSkipSelfpromo',
+  'sponsorSkipInteraction',
+  'sponsorSkipIntro',
+  'sponsorSkipOutro',
+  'sponsorSkipMusicOfftopic',
+];
+
+const POWER_MODULE_DEFAULTS = {
+  showDislikes: true,
+  untranslateMaster: true,
+  untranslateTitles: true,
+  untranslateAudio: true,
+  untranslateDescription: true,
+  untranslateCaptions: true,
+  untranslateChapters: true,
+  skipSponsors: true,
+  sponsorSkipSponsors: true,
+  sponsorSkipSelfpromo: false,
+  sponsorSkipInteraction: true,
+  sponsorSkipIntro: false,
+  sponsorSkipOutro: false,
+  sponsorSkipMusicOfftopic: false,
+};
+
+const POWER_MODULE_OFF = {
+  showDislikes: false,
+  untranslateMaster: false,
+  untranslateTitles: false,
+  untranslateAudio: false,
+  untranslateDescription: false,
+  untranslateCaptions: false,
+  untranslateChapters: false,
+  skipSponsors: false,
+  sponsorSkipSponsors: false,
+  sponsorSkipSelfpromo: false,
+  sponsorSkipInteraction: false,
+  sponsorSkipIntro: false,
+  sponsorSkipOutro: false,
+  sponsorSkipMusicOfftopic: false,
+};
+
+const ALL_TOGGLE_KEYS = [...TOGGLE_KEYS, ...POWER_MODULE_KEYS];
+
 const PRESET_MAP = {
   off: {
     hideHomeFeed: false,
@@ -75,6 +128,7 @@ const PRESET_MAP = {
     hideLiveChat: false,
     hideTrending: false,
     hideMoreFromYoutube: false,
+    ...POWER_MODULE_OFF,
     descKey: 'descOff',
   },
   basic: {
@@ -109,6 +163,7 @@ const PRESET_MAP = {
     hideLiveChat: false,
     hideTrending: false,
     hideMoreFromYoutube: false,
+    ...POWER_MODULE_DEFAULTS,
     descKey: 'descBasic',
   },
   balanced: {
@@ -143,6 +198,7 @@ const PRESET_MAP = {
     hideLiveChat: true,
     hideTrending: true,
     hideMoreFromYoutube: true,
+    ...POWER_MODULE_DEFAULTS,
     descKey: 'descBalanced',
   },
   extreme: {
@@ -177,6 +233,7 @@ const PRESET_MAP = {
     hideLiveChat: true,
     hideTrending: true,
     hideMoreFromYoutube: true,
+    ...POWER_MODULE_DEFAULTS,
     descKey: 'descExtreme',
   },
   custom: {
@@ -186,9 +243,11 @@ const PRESET_MAP = {
 
 function extractToggles(config) {
   const result = {};
-  for (let i = 0; i < TOGGLE_KEYS.length; i++) {
-    const key = TOGGLE_KEYS[i];
-    result[key] = !!config[key];
+  for (let i = 0; i < ALL_TOGGLE_KEYS.length; i++) {
+    const key = ALL_TOGGLE_KEYS[i];
+    if (config[key] !== undefined) {
+      result[key] = !!config[key];
+    }
   }
   return result;
 }
@@ -203,27 +262,15 @@ const DEFAULT_SETTINGS = {
   lang: 'auto',
   scale: 'auto',
   activeTab: 'focus',
-  // Active toggle values matching basic preset default
   ...extractToggles(PRESET_MAP.basic),
-  // Power Modules
-  showDislikes: true,
-  untranslateMaster: true,
-  untranslateTitles: true,
-  untranslateAudio: true,
-  untranslateDescription: true,
-  untranslateCaptions: true,
-  untranslateChapters: true,
-  skipSponsors: true,
-  sponsorSkipSponsors: true,
-  sponsorSkipSelfpromo: false,
-  sponsorSkipInteraction: true,
-  sponsorSkipIntro: false,
-  sponsorSkipOutro: false,
-  sponsorSkipMusicOfftopic: false,
 };
 
 if (typeof globalThis !== 'undefined') {
   globalThis.TOGGLE_KEYS = TOGGLE_KEYS;
+  globalThis.POWER_MODULE_KEYS = POWER_MODULE_KEYS;
+  globalThis.POWER_MODULE_DEFAULTS = POWER_MODULE_DEFAULTS;
+  globalThis.POWER_MODULE_OFF = POWER_MODULE_OFF;
+  globalThis.ALL_TOGGLE_KEYS = ALL_TOGGLE_KEYS;
   globalThis.DEFAULT_SETTINGS = DEFAULT_SETTINGS;
   globalThis.PRESET_MAP = PRESET_MAP;
   globalThis.DEFAULT_PROFILES = DEFAULT_PROFILES;
@@ -233,6 +280,10 @@ if (typeof globalThis !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     TOGGLE_KEYS,
+    POWER_MODULE_KEYS,
+    POWER_MODULE_DEFAULTS,
+    POWER_MODULE_OFF,
+    ALL_TOGGLE_KEYS,
     DEFAULT_SETTINGS,
     PRESET_MAP,
     DEFAULT_PROFILES,

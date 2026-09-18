@@ -296,15 +296,19 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.activeProfile && state.profiles[state.activeProfile]) {
         const activeToggles =
           state.profiles[state.activeProfile]?.toggles || {};
-        TOGGLE_KEYS.forEach((k) => {
+        ALL_TOGGLE_KEYS.forEach((k) => {
           if (activeToggles[k] !== undefined) {
             state[k] = !!activeToggles[k];
+          } else if (saved[k] !== undefined) {
+            state[k] = !!saved[k];
+          } else if (DEFAULT_SETTINGS[k] !== undefined) {
+            state[k] = DEFAULT_SETTINGS[k];
           }
         });
         state.preset = state.profiles[state.activeProfile]?.preset || 'basic';
       } else {
         state.preset = saved.preset || 'basic';
-        TOGGLE_KEYS.forEach((k) => {
+        ALL_TOGGLE_KEYS.forEach((k) => {
           if (saved[k] !== undefined) {
             state[k] = !!saved[k];
           } else if (PRESET_MAP[state.preset]?.[k] !== undefined) {
@@ -907,7 +911,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const currentToggles = {};
-    TOGGLE_KEYS.forEach((k) => {
+    ALL_TOGGLE_KEYS.forEach((k) => {
       currentToggles[k] = !!state[k];
     });
 
@@ -1118,9 +1122,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const profile = state.profiles[profileId];
 
     if (profile.toggles) {
-      TOGGLE_KEYS.forEach((key) => {
+      ALL_TOGGLE_KEYS.forEach((key) => {
         if (profile.toggles[key] !== undefined) {
           state[key] = !!profile.toggles[key];
+        } else if (DEFAULT_SETTINGS[key] !== undefined) {
+          state[key] = DEFAULT_SETTINGS[key];
         }
       });
     }
@@ -1205,7 +1211,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Deactivate active profile, keeping its saved memory 100% intact
         state.activeProfile = null;
         const config = PRESET_MAP[chosenPreset];
-        TOGGLE_KEYS.forEach((key) => {
+        ALL_TOGGLE_KEYS.forEach((key) => {
           if (config[key] !== undefined) {
             state[key] = config[key];
           }
@@ -1215,37 +1221,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Individual toggle changes (saves strictly to the active profile or root state)
+  // Universal toggle change handler for Profile and Base modes
+  function handleToggleChange(key, checked) {
+    state[key] = checked;
+    state.preset = 'custom';
+    if (state.activeProfile && state.profiles?.[state.activeProfile]) {
+      state.profiles[state.activeProfile].preset = 'custom';
+      if (!state.profiles[state.activeProfile].toggles) {
+        state.profiles[state.activeProfile].toggles = {};
+      }
+      state.profiles[state.activeProfile].toggles[key] = checked;
+    }
+    saveState({
+      [key]: state[key],
+      preset: state.preset,
+      profiles: state.profiles,
+      activeProfile: state.activeProfile,
+    });
+  }
+
+  // Individual UI cleaner and distraction toggle changes
   TOGGLE_KEYS.forEach((key) => {
     if (!toggles[key]) return;
     toggles[key].addEventListener('change', (e) => {
-      state[key] = e.target.checked;
-      state.preset = 'custom';
-      if (state.activeProfile && state.profiles?.[state.activeProfile]) {
-        state.profiles[state.activeProfile].preset = 'custom';
-        if (!state.profiles[state.activeProfile].toggles) {
-          state.profiles[state.activeProfile].toggles = {};
-        }
-        state.profiles[state.activeProfile].toggles[key] = e.target.checked;
-      }
-      saveState({
-        [key]: state[key],
-        preset: state.preset,
-        profiles: state.profiles,
-        activeProfile: state.activeProfile,
-      });
+      handleToggleChange(key, e.target.checked);
     });
   });
 
   // Power Modules: Dislikes toggle
   toggles.showDislikes?.addEventListener('change', (e) => {
-    state.showDislikes = e.target.checked;
-    saveState({ showDislikes: state.showDislikes });
+    handleToggleChange('showDislikes', e.target.checked);
   });
 
   // Power Modules: Untranslate Suite
   toggles.untranslateMaster?.addEventListener('change', (e) => {
-    state.untranslateMaster = e.target.checked;
+    handleToggleChange('untranslateMaster', e.target.checked);
     const untranslateSubContainer = document.getElementById(
       'untranslateSubOptions',
     );
@@ -1255,68 +1265,55 @@ document.addEventListener('DOMContentLoaded', () => {
         !state.untranslateMaster,
       );
     }
-    saveState({ untranslateMaster: state.untranslateMaster });
   });
 
   toggles.untranslateTitles?.addEventListener('change', (e) => {
-    state.untranslateTitles = e.target.checked;
-    saveState({ untranslateTitles: state.untranslateTitles });
+    handleToggleChange('untranslateTitles', e.target.checked);
   });
 
   toggles.untranslateAudio?.addEventListener('change', (e) => {
-    state.untranslateAudio = e.target.checked;
-    saveState({ untranslateAudio: state.untranslateAudio });
+    handleToggleChange('untranslateAudio', e.target.checked);
   });
 
   toggles.untranslateDescription?.addEventListener('change', (e) => {
-    state.untranslateDescription = e.target.checked;
-    saveState({ untranslateDescription: state.untranslateDescription });
+    handleToggleChange('untranslateDescription', e.target.checked);
   });
 
   toggles.untranslateCaptions?.addEventListener('change', (e) => {
-    state.untranslateCaptions = e.target.checked;
-    saveState({ untranslateCaptions: state.untranslateCaptions });
+    handleToggleChange('untranslateCaptions', e.target.checked);
   });
 
   toggles.untranslateChapters?.addEventListener('change', (e) => {
-    state.untranslateChapters = e.target.checked;
-    saveState({ untranslateChapters: state.untranslateChapters });
+    handleToggleChange('untranslateChapters', e.target.checked);
   });
 
   // Power Modules: Skip sponsors toggle
   toggles.skipSponsors?.addEventListener('change', (e) => {
-    state.skipSponsors = e.target.checked;
+    handleToggleChange('skipSponsors', e.target.checked);
     const sponsorSubContainer = document.getElementById('sponsorSubOptions');
     if (sponsorSubContainer) {
       sponsorSubContainer.classList.toggle('is-collapsed', !state.skipSponsors);
     }
-    saveState({ skipSponsors: state.skipSponsors });
   });
 
   // Power Modules: SponsorBlock sub-options
   toggles.sponsorSkipSponsors?.addEventListener('change', (e) => {
-    state.sponsorSkipSponsors = e.target.checked;
-    saveState({ sponsorSkipSponsors: state.sponsorSkipSponsors });
+    handleToggleChange('sponsorSkipSponsors', e.target.checked);
   });
   toggles.sponsorSkipSelfpromo?.addEventListener('change', (e) => {
-    state.sponsorSkipSelfpromo = e.target.checked;
-    saveState({ sponsorSkipSelfpromo: state.sponsorSkipSelfpromo });
+    handleToggleChange('sponsorSkipSelfpromo', e.target.checked);
   });
   toggles.sponsorSkipInteraction?.addEventListener('change', (e) => {
-    state.sponsorSkipInteraction = e.target.checked;
-    saveState({ sponsorSkipInteraction: state.sponsorSkipInteraction });
+    handleToggleChange('sponsorSkipInteraction', e.target.checked);
   });
   toggles.sponsorSkipIntro?.addEventListener('change', (e) => {
-    state.sponsorSkipIntro = e.target.checked;
-    saveState({ sponsorSkipIntro: state.sponsorSkipIntro });
+    handleToggleChange('sponsorSkipIntro', e.target.checked);
   });
   toggles.sponsorSkipOutro?.addEventListener('change', (e) => {
-    state.sponsorSkipOutro = e.target.checked;
-    saveState({ sponsorSkipOutro: state.sponsorSkipOutro });
+    handleToggleChange('sponsorSkipOutro', e.target.checked);
   });
   toggles.sponsorSkipMusicOfftopic?.addEventListener('change', (e) => {
-    state.sponsorSkipMusicOfftopic = e.target.checked;
-    saveState({ sponsorSkipMusicOfftopic: state.sponsorSkipMusicOfftopic });
+    handleToggleChange('sponsorSkipMusicOfftopic', e.target.checked);
   });
 
   // Reset configuration button (with 2-step confirmation)

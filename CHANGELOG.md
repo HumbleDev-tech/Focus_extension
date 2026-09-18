@@ -1,6 +1,7 @@
 # Changelog
 
 ## [1.1.1]
+- **Profiles & Presets:** Profiles now save your extra tools (Dislikes and Sponsors), and the OFF mode turns everything off.
 - **Fixes & Improvements:** More reliable original audio, smoother dislike counter, and accurate video titles.
 - **Visual Polish:** Better player alignment and a subtle update badge in the popup.
 
