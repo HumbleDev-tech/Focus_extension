@@ -378,11 +378,19 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   function applyTitleToNode(titleNode, cleanTitle, videoId) {
-    if (!titleNode || !cleanTitle) return;
+    if (
+      !titleNode ||
+      !cleanTitle ||
+      typeof cleanTitle !== 'string' ||
+      !cleanTitle.trim()
+    ) {
+      return;
+    }
 
+    const clean = cleanTitle.trim();
     if (
       titleNode.dataset.libertadApplied === videoId &&
-      titleNode.textContent.trim() === cleanTitle
+      titleNode.textContent.trim() === clean
     ) {
       return;
     }
@@ -391,16 +399,16 @@ globalThis.Libertad = globalThis.Libertad || {};
       'span.yt-core-attributed-string, span[role="text"], #video-title, yt-formatted-string',
     );
     if (childSpan && childSpan !== titleNode) {
-      childSpan.textContent = cleanTitle;
+      childSpan.textContent = clean;
       childSpan.dataset.libertadApplied = videoId;
-      childSpan.setAttribute('title', cleanTitle);
+      childSpan.setAttribute('title', clean);
     } else {
-      titleNode.textContent = cleanTitle;
+      titleNode.textContent = clean;
     }
 
     titleNode.dataset.libertadApplied = videoId;
     delete titleNode.dataset.libertadPendingId;
-    titleNode.setAttribute('title', cleanTitle);
+    titleNode.setAttribute('title', clean);
     titleNode.removeAttribute('is-empty');
 
     const parentCard = titleNode.closest(

@@ -119,7 +119,6 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-rich-shelf-renderer[is-shorts],
         ytd-rich-section-renderer:has(ytd-reel-shelf-renderer),
         ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]),
-        ytd-item-section-renderer:has(ytd-reel-shelf-renderer),
 
         /* Navigation Drawer & Guide */
         ytd-guide-entry-renderer:has(a[title*="Shorts" i]),
@@ -129,16 +128,21 @@ globalThis.Libertad = globalThis.Libertad || {};
         yt-list-item-view-model:has(a[href*="/shorts"]),
         a[title="Shorts"],
 
-        /* Modern Shorts Lockup & Feeds/Search/Channel Grid Cards */
+        /* Modern Shorts Lockup & Feeds/Search/Channel Grid Cards (Strictly scoped to video targets) */
         ytm-shorts-lockup-view-model,
         ytm-shorts-lockup-view-model-v2,
         ytd-rich-item-renderer:has(ytm-shorts-lockup-view-model),
         ytd-rich-item-renderer:has(ytm-shorts-lockup-view-model-v2),
-        ytd-rich-item-renderer:has(a[href*="/shorts/"]),
-        ytd-video-renderer:has(a[href*="/shorts/"]),
-        ytd-grid-video-renderer:has(a[href*="/shorts/"]),
-        ytd-compact-video-renderer:has(a[href*="/shorts/"]),
-        yt-lockup-view-model:has(a[href*="/shorts/"]),
+        ytd-rich-item-renderer:has(a#thumbnail[href*="/shorts/"]),
+        ytd-rich-item-renderer:has(a#video-title-link[href*="/shorts/"]),
+        ytd-video-renderer:has(a#thumbnail[href*="/shorts/"]),
+        ytd-video-renderer:has(a#video-title-link[href*="/shorts/"]),
+        ytd-video-renderer:has(a#video-title[href*="/shorts/"]),
+        ytd-grid-video-renderer:has(a#thumbnail[href*="/shorts/"]),
+        ytd-grid-video-renderer:has(a#video-title[href*="/shorts/"]),
+        ytd-compact-video-renderer:has(a#thumbnail[href*="/shorts/"]),
+        yt-lockup-view-model:has(a[href*="/shorts/"][class*="thumbnail"]),
+        yt-lockup-view-model:has(a.yt-lockup-metadata-view-model-wiz__title[href*="/shorts/"]),
         ytd-reel-item-renderer,
 
         /* Standalone Player */
