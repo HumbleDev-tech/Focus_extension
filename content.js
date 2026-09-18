@@ -14,7 +14,7 @@
     typeof DEFAULT_SETTINGS !== 'undefined'
       ? { ...DEFAULT_SETTINGS }
       : {
-          preset: 'balanced',
+          preset: 'basic',
           theme: 'dark',
           lang: 'auto',
           scale: 'auto',

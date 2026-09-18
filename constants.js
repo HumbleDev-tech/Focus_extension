@@ -198,13 +198,13 @@ const DEFAULT_PROFILES = {};
 const DEFAULT_SETTINGS = {
   activeProfile: null,
   profiles: DEFAULT_PROFILES,
-  preset: 'balanced',
+  preset: 'basic',
   theme: 'auto',
   lang: 'auto',
   scale: 'auto',
   activeTab: 'focus',
-  // Active toggle values matching balanced preset default
-  ...extractToggles(PRESET_MAP.balanced),
+  // Active toggle values matching basic preset default
+  ...extractToggles(PRESET_MAP.basic),
   // Power Modules
   showDislikes: true,
   untranslateMaster: true,

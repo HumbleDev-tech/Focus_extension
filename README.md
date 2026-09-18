@@ -65,8 +65,8 @@ Libertad is designed with **Progressive Disclosure**: zero friction out of the b
 When you install Libertad, you start in **Quick Mode**. No pre-created profiles or complex setup required. Simply choose your preferred level of focus with one click:
 
 * **OFF:** Default YouTube state with all algorithmic feeds visible.
-* **BASIC:** Everyday baseline. Suppresses shorts, intrusive overlays, promo buttons, and end screens.
-* **BALANCED *(Default)*:** Optimal balance. Suppresses sidebar recommendations, shorts, autoplay, and clutter while keeping comments open.
+* **BASIC *(Default)*:** Everyday baseline. Suppresses shorts, intrusive overlays, promo buttons, and end screens.
+* **BALANCED:** Optimal balance. Suppresses sidebar recommendations, shorts, autoplay, and clutter while keeping comments open.
 * **EXTREME *(Zen)*:** Pure minimalist focus. Centered player, Zen search-only home screen, and zero metrics or comments.
 
 ### 2. Custom Profiles (Up to 3 Slots)
@@ -77,7 +77,7 @@ Whenever you fine-tune switches to your liking, save your configuration with **`
 
 ### Preset Matrix Overview
 
-| Feature / Element | OFF | BASIC | BALANCED *(Default)* | EXTREME *(Zen)* |
+| Feature / Element | OFF | BASIC *(Default)* | BALANCED | EXTREME *(Zen)* |
 | :--- | :---: | :---: | :---: | :---: |
 | **Home Feed (Zen Screen)** | Shown | Shown | Shown | **Minimal Search** |
 | **Direct to Subscriptions** | Off | Off | Off | Off |

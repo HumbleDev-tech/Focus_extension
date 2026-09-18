@@ -245,10 +245,9 @@ document.addEventListener('DOMContentLoaded', () => {
             state[k] = !!activeToggles[k];
           }
         });
-        state.preset =
-          state.profiles[state.activeProfile]?.preset || 'balanced';
+        state.preset = state.profiles[state.activeProfile]?.preset || 'basic';
       } else {
-        state.preset = saved.preset || 'balanced';
+        state.preset = saved.preset || 'basic';
         TOGGLE_KEYS.forEach((k) => {
           if (saved[k] !== undefined) {
             state[k] = !!saved[k];
@@ -860,7 +859,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.profiles[newSlotId] = {
       id: newSlotId,
       name: finalName,
-      preset: state.preset || 'balanced',
+      preset: state.preset || 'basic',
       toggles: currentToggles,
       isCustomName: true,
     };
@@ -1290,7 +1289,7 @@ document.addEventListener('DOMContentLoaded', () => {
       scale: 'auto',
       activeProfile: null,
       profiles: {},
-      preset: 'balanced',
+      preset: 'basic',
     };
     applyThemeAndScale();
     saveState();
