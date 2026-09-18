@@ -41,8 +41,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const i18nElements = document.querySelectorAll('[data-i18n]');
   const resetBtn = document.getElementById('resetBtn');
   const footerVersion = document.getElementById('footerVersion');
+  const footerVersionLink = document.getElementById('footerVersionLink');
+  const versionBadgeNew = document.getElementById('versionBadgeNew');
 
-  // Populate dynamic manifest version
+  // Populate dynamic manifest version & manage NEW badge lifecycle (24h TTL)
+  const CHANGELOG_URL =
+    'https://github.com/HumbleDev-tech/Focus_extension/blob/main/CHANGELOG.md';
+  const BADGE_STORAGE_KEY = 'libertad_ver_badge';
+  const BADGE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours (1 day)
+
+  let manifestVersion = '1.1.1';
   if (
     footerVersion &&
     typeof chrome !== 'undefined' &&
@@ -51,9 +59,57 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const manifest = chrome.runtime.getManifest();
       if (manifest?.version) {
+        manifestVersion = manifest.version;
         footerVersion.textContent = `v${manifest.version}`;
       }
     } catch (_) {}
+  }
+
+  let badgeRecord = null;
+  try {
+    const raw = localStorage.getItem(BADGE_STORAGE_KEY);
+    if (raw) badgeRecord = JSON.parse(raw);
+  } catch (_) {}
+
+  if (!badgeRecord || badgeRecord.version !== manifestVersion) {
+    badgeRecord = {
+      version: manifestVersion,
+      firstSeen: Date.now(),
+      dismissed: false,
+    };
+    try {
+      localStorage.setItem(BADGE_STORAGE_KEY, JSON.stringify(badgeRecord));
+    } catch (_) {}
+  }
+
+  const isBadgeExpired =
+    typeof badgeRecord.firstSeen === 'number' &&
+    Date.now() - badgeRecord.firstSeen > BADGE_TTL_MS;
+
+  const shouldShowBadge = !badgeRecord.dismissed && !isBadgeExpired;
+
+  if (versionBadgeNew) {
+    versionBadgeNew.style.display = shouldShowBadge ? 'inline-flex' : 'none';
+  }
+
+  if (footerVersionLink) {
+    footerVersionLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (badgeRecord && !badgeRecord.dismissed) {
+        badgeRecord.dismissed = true;
+        try {
+          localStorage.setItem(BADGE_STORAGE_KEY, JSON.stringify(badgeRecord));
+        } catch (_) {}
+      }
+      if (versionBadgeNew) {
+        versionBadgeNew.style.display = 'none';
+      }
+      if (typeof chrome !== 'undefined' && chrome.tabs?.create) {
+        chrome.tabs.create({ url: CHANGELOG_URL });
+      } else {
+        window.open(CHANGELOG_URL, '_blank', 'noopener,noreferrer');
+      }
+    });
   }
 
   // Toggle Checkboxes (Macro shields, cleaner chips, and power modules)

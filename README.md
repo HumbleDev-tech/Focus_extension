@@ -10,7 +10,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Manifest-V3-blue.svg?style=flat-square" alt="Manifest V3" />
-  <img src="https://img.shields.io/badge/Version-1.1.0-blue.svg?style=flat-square" alt="Version 1.1.0" />
+  <img src="https://img.shields.io/badge/Version-1.1.1-blue.svg?style=flat-square" alt="Version 1.1.1" />
   <img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="MIT License" />
   <img src="https://img.shields.io/badge/Telemetry-Zero-brightgreen.svg?style=flat-square" alt="Zero Telemetry" />
   <img src="https://img.shields.io/badge/Dependencies-Vanilla%20JS-orange.svg?style=flat-square" alt="Vanilla JS" />
