@@ -35,6 +35,8 @@
           hideWatermark: true,
           hidePaidPromo: true,
           hideMiniplayer: false,
+          hidePlayOnTv: false,
+          hideSubtitles: false,
           hideAskAi: true,
           hideDownload: true,
           hideThanksClips: false,

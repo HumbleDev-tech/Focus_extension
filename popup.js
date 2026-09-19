@@ -135,6 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
     hideWatermark: document.getElementById('toggleWatermark'),
     hidePaidPromo: document.getElementById('togglePaidPromo'),
     hideMiniplayer: document.getElementById('toggleMiniplayer'),
+    hidePlayOnTv: document.getElementById('togglePlayOnTv'),
+    hideSubtitles: document.getElementById('toggleSubtitles'),
     // Cleaner: Action Bar & Social
     hideAskAi: document.getElementById('toggleAskAi'),
     hideDownload: document.getElementById('toggleDownload'),

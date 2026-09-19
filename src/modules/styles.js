@@ -699,6 +699,36 @@ globalThis.Libertad = globalThis.Libertad || {};
       `);
     }
 
+    // Play on TV (Remote Control / Cast Button and Overlays)
+    if (settings.hidePlayOnTv) {
+      rules.push(`
+        .ytp-remote-button,
+        button[data-tooltip-target-id="ytp-remote-button"],
+        .ytp-button.ytp-remote-button,
+        ytd-remote-control-panel-renderer,
+        .ytp-remote-dialog,
+        .ytp-remote-control-overlay,
+        yt-remote-control-panel-renderer {
+          display: none !important;
+        }
+      `);
+    }
+
+    // Subtitles / Closed Captions (CC) Button & Overlays
+    if (settings.hideSubtitles) {
+      rules.push(`
+        .ytp-subtitles-button,
+        button[data-tooltip-target-id="ytp-subtitles-button"],
+        .ytp-subtitles-button-icon,
+        #ytp-caption-window-container,
+        .caption-window,
+        .ytp-caption-window-bottom,
+        .ytp-caption-window-rollup {
+          display: none !important;
+        }
+      `);
+    }
+
     // Search Box Autocomplete Suggestions
     if (settings.hideSearchSuggestions) {
       rules.push(`
