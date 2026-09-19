@@ -65,8 +65,8 @@ Libertad is designed with **Progressive Disclosure**: zero friction out of the b
 When you install Libertad, you start in **Quick Mode**. No pre-created profiles or complex setup required. Simply choose your preferred level of focus with one click:
 
 * **OFF:** Default YouTube state with all algorithmic feeds visible.
-* **BASIC *(Default)*:** Everyday baseline. Suppresses shorts, intrusive overlays, promo buttons, and end screens.
-* **BALANCED:** Optimal balance. Suppresses sidebar recommendations, shorts, autoplay, and clutter while keeping comments open.
+* **BASIC:** Everyday baseline. Suppresses shorts, intrusive overlays, promo buttons, and end screens.
+* **BALANCED *(Default & Recommended)*:** Optimal balance. Suppresses sidebar recommendations, shorts, autoplay, and clutter while keeping comments open. Pre-selected upon first install.
 * **EXTREME *(Zen)*:** Pure minimalist focus. Centered player, Zen search-only home screen, and zero metrics or comments.
 
 ### 2. Custom Profiles (Up to 3 Slots)
@@ -77,7 +77,7 @@ Whenever you fine-tune switches to your liking, save your configuration with **`
 
 ### Preset Matrix Overview
 
-| Feature / Element | OFF | BASIC *(Default)* | BALANCED | EXTREME *(Zen)* |
+| Feature / Element | OFF | BASIC | BALANCED *(Recommended)* | EXTREME *(Zen)* |
 | :--- | :---: | :---: | :---: | :---: |
 | **Home Feed (Zen Screen)** | Shown | Shown | Shown | **Minimal Search** |
 | **Direct to Subscriptions** | Off | Off | Off | Off |
@@ -96,7 +96,7 @@ Whenever you fine-tune switches to your liking, save your configuration with **`
 | **Video Metrics (Likes, Views, Subs)** | Shown | Shown | Shown | **Hidden** |
 | **Feeds (Live Chat, Trending, More from YT)** | Shown | Shown | **Hidden** | **Hidden** |
 
-*(Fine-tuning any switch marks the badge as `CUSTOM` so you know your setup is personalized).*
+*(Fine-tuning any switch dynamically expands the preset selector into 5 columns, activating `CUSTOM` both on the button track and in the header status pill).*
 
 ---
 
@@ -109,7 +109,7 @@ Controls inside the popup are organized into three clean tabs:
 Macro blockers for YouTube's biggest time sinks:
 
 * **Zen Mode Home Screen:** Instead of an endless wall of algorithmic videos, your homepage displays a sleek, calm card with a live focus reticle and a simple reminder to use the search bar. It matches your active theme (Dark, Light, OLED) and DPI scale.
-* **Direct to Subscriptions:** Prefer jumping straight to the channels you already care about? Turn this on to have the homepage route directly to `/feed/subscriptions`. Includes native click interception so clicking the YouTube logo routes you without refreshing.
+* **Direct to Subscriptions:** Prefer jumping straight to the channels you already care about? Turn this on to have the homepage route directly to `/feed/subscriptions`. Includes native click interception so clicking the YouTube logo routes you without refreshing. *(When enabled, the Home Feed switch is visually attenuated and tagged with `[OVERRIDDEN BY REDIRECT]` to make functional priority completely transparent).*
 * **Auto-Centered Watch Player:** Hiding the recommended sidebar automatically centers the video player on your screen (`max-width: 1100px; margin: 0 auto;`), creating an immersive, cinema-like experience.
 * **Shorts Eradication & Smart Redirect:**
   * Hides Shorts carousels, navigation links, and channel tabs.
@@ -141,7 +141,7 @@ Integrates with the public [Return YouTube Dislike API](https://returnyoutubedis
 #### Smart SponsorBlock Integration
 Skips sponsored segments, intros, and reminders using community data from [SponsorBlock](https://sponsor.ajay.app):
 
-* **Color-Coded Timeline:** Visual markers directly on YouTube's player bar showing where segments start and end (Green for Sponsors, Yellow for Self-promo, Purple for Interaction, Cyan for Intros, Blue for Outros, Orange for Non-music segments).
+* **Color-Coded Timeline:** Visual markers directly on YouTube's player bar showing where segments start and end (Green for Sponsors, Yellow for Self-promo, Purple for Interaction, Cyan for Intros, Blue for Outros, Orange for Non-music segments). Category chips in the popup share matching color accents.
 * **6 Configurable Categories:** Pick exactly what you want to skip from the popup (e.g. skip paid sponsors and intros, but keep self-promotions).
 * **Rich On-Screen Toast:** Shows what was skipped and how much time was saved (e.g., `SPONSOR SKIPPED · 18s`).
 * **Interactive Undo Button:** Want to see what was skipped? Hit **"UNSKIP" / "DESHACER"** on the toast to jump right back.
@@ -159,6 +159,9 @@ Ever get annoyed when YouTube forces an unnatural synthetic AI voiceover on an i
 
 ## Themes & Ergonomics
 
+* **Interactive Master Status (Pause/Resume):** The header status pill functions as an accessible master switch. Pausing takes a persistent snapshot (`libertad_paused_snapshot`) into `chrome.storage.local` with fallback, allowing you to resume with your exact custom tweaks preserved.
+* **Contextual Non-YouTube Detection:** Opening the popup on external or system tabs displays an intentional status banner with a 1-click shortcut to launch YouTube.
+* **First-Run Onboarding Flow:** A lightweight, trilingual welcome setup (`welcome.html`) guides new users through pinning the extension in Chrome and selecting their initial focus preset on first install.
 * **Themes:**
   * **Auto:** Synchronizes with your system or YouTube's current light/dark state.
   * **Dark:** Sleek, modern dark palette (`#131722`).
@@ -216,6 +219,8 @@ flowchart TD
 * **Smooth 60fps Feed Processing:** Eliminates continuous scroll event listeners in favor of debounced `MutationObserver` triggers and an O(1) fast-path for processed video nodes, guaranteeing buttery-smooth scrolling without CPU thrashing.
 * **Dual-Layer Background Caching:** Implements an in-memory L1 cache and an L2 `chrome.storage.session` cache so fetched metadata survives Service Worker suspensions in Manifest V3.
 * **In-Flight Request Deduplication:** If multiple cards request data for the same video simultaneously, they share a single pending Promise, preventing duplicate HTTP requests.
+* **Instant Tab Scripting Injection:** Programmatic injection via the `scripting` API triggers content scripts on pre-existing YouTube tabs upon install or update, avoiding "Extension context invalidated" errors and eliminating the need for manual page reloads.
+* **Persistent Pause Snapshotting:** The master pause switch snapshots active custom configurations (`libertad_paused_snapshot`) into `chrome.storage.local` with fallback, guaranteeing your custom tweaks are never lost across pause/resume cycles.
 * **Anti-FOUC Startup:** Syncs settings from `sessionStorage` at `document_start` so styles apply before the browser paints, completely eliminating layout flashes.
 * **Extension Context Invalidation Resilience:** Defensive messaging barriers protect background calls against extension reload/update disconnections.
 * **Fast-Path DOM Caching:** Reuses verified DOM elements instead of repeatedly calling `querySelector`.
@@ -241,9 +246,12 @@ Works on any Chromium-based browser (Chrome, Brave, Edge, Opera, Vivaldi, Arc):
 
 ## Development
 
-Code formatting and linting are powered by [Biome](https://biomejs.dev):
+Code formatting, linting, and quality testing:
 
 ```bash
+# Run automated pre-flight parity test suite (48 toggles, 127 i18n keys)
+npm test
+
 # Check formatting and linting
 npm run check
 
@@ -275,7 +283,9 @@ Focus_extension/
 │       ├── styles.js      # Dynamic stylesheet generator & Zen card interface
 │       ├── subscriptions.js # Direct subscriptions router & SPA link interceptor
 │       └── untranslate.js # Title, description, caption & chapter restoration
-├── background.js          # Service worker with dual-layer caching
+├── test/
+│   └── parity-check.js    # Automated toggle parity and locale integrity test suite
+├── background.js          # Service worker with dual-layer caching & tab injection
 ├── constants.js           # Single source of truth for toggles, presets & profiles
 ├── content.js             # SPA lifecycle router and module orchestrator
 ├── i18n.js                # UI translation dictionary (EN, ES, PT)
@@ -283,9 +293,14 @@ Focus_extension/
 ├── popup.css              # Design system with Dark, Light, and OLED themes
 ├── popup.js               # Popup interactions, profile management & auto-scale
 ├── theme-init.js          # Synchronous anti-FOUC theme bootstrapper
+├── welcome.html           # Trilingual first-run onboarding interface
+├── welcome.js             # Onboarding setup controller & locale detection
 ├── manifest.json          # Manifest V3 extension configuration
-├── pack.py                # Automated extension packager
-└── biome.json             # Biome formatting and linting rules
+├── pack.py                # Automated extension packager & pre-flight validator
+├── package.json           # Scripts, test runners & metadata
+├── biome.json             # Biome formatting and linting rules
+├── CHANGELOG.md           # Comprehensive version history & release notes
+└── PRIVACY.md             # Dedicated privacy policy
 ```
 
 ---
@@ -296,7 +311,7 @@ Libertad is built on strict privacy principles:
 
 * **Zero Telemetry:** No tracking, no user analytics, no behavioral logs.
 * **On-Device Storage:** All preferences and profile names are stored locally in your browser's private `chrome.storage.sync`.
-* **Minimal Permissions:** Only requests access to `storage` and YouTube domains. Public API requests (Dislikes, SponsorBlock, oEmbed) only transmit public 11-character video IDs when those specific features are turned on.
+* **Minimal Permissions:** Only requests access to `storage`, `scripting` (used solely to activate content scripts immediately on already-open YouTube tabs at install/update time without page reloads), and YouTube domains. Public API requests (Dislikes, SponsorBlock, oEmbed) only transmit public 11-character video IDs when those specific features are turned on.
 
 Read our complete [Privacy Policy](PRIVACY.md).
 
