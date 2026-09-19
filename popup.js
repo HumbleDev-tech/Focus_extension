@@ -386,6 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
             chrome.storage.sync.get(null, (syncSaved) => {
               if (!syncSaved || Object.keys(syncSaved).length === 0) {
                 chrome.storage.sync.set(localSaved, () => {
+                  // Consume lastError to prevent unhandled runtime warnings if sync is unavailable
                   if (chrome.runtime?.lastError) {
                   }
                 });
@@ -718,6 +719,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (chrome.storage?.sync) {
           chrome.storage.sync.set(partialPatch, () => {
+            // Consume lastError to prevent unhandled runtime warnings if sync is unavailable
             if (chrome.runtime?.lastError) {
             }
           });
@@ -737,6 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (chrome.storage?.sync) {
         chrome.storage.sync.set(syncPayload, () => {
+          // Consume lastError to prevent unhandled runtime warnings if sync is unavailable
           if (chrome.runtime?.lastError) {
           }
         });

@@ -489,9 +489,6 @@ globalThis.Libertad = globalThis.Libertad || {};
         if (lastSkippedSegmentUuid !== seg.uuid) {
           lastSkippedSegmentUuid = seg.uuid;
           showSponsorSkipToast(seg, video, conf);
-          console.log(
-            `[Libertad SponsorBlock] Skipped ${seg.category} (${seg.start.toFixed(1)}s -> ${seg.end.toFixed(1)}s)`,
-          );
         }
         break;
       }
@@ -523,9 +520,6 @@ globalThis.Libertad = globalThis.Libertad || {};
         ) {
           ignoredSegmentUuids.add(seg.uuid);
           dismissSponsorToast();
-          console.log(
-            `[Libertad SponsorBlock] User manually rewound into ${seg.category} (${seg.start.toFixed(1)}s -> ${seg.end.toFixed(1)}s); unskipping`,
-          );
         } else if (toTime < seg.start - 2.0) {
           // If the user rewound well before the segment, re-arm it
           ignoredSegmentUuids.delete(seg.uuid);

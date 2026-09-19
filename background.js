@@ -54,6 +54,7 @@ chrome.runtime.onStartup.addListener(async () => {
             } else {
               chrome.storage.local.set(DEFAULT_SETTINGS);
               chrome.storage.sync.set(DEFAULT_SETTINGS, () => {
+                // Consume lastError to prevent unhandled runtime warnings if sync is unavailable
                 if (chrome.runtime?.lastError) {
                 }
               });
@@ -76,6 +77,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       if (chrome.storage?.local) chrome.storage.local.set(DEFAULT_SETTINGS);
       if (chrome.storage?.sync) {
         chrome.storage.sync.set(DEFAULT_SETTINGS, () => {
+          // Consume lastError to prevent unhandled runtime warnings if sync is unavailable
           if (chrome.runtime?.lastError) {
           }
         });
@@ -103,6 +105,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     if (chrome.storage?.local) chrome.storage.local.set(merged);
     if (chrome.storage?.sync) {
       chrome.storage.sync.set(merged, () => {
+        // Consume lastError to prevent unhandled runtime warnings if sync is unavailable
         if (chrome.runtime?.lastError) {
         }
       });

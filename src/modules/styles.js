@@ -1869,7 +1869,6 @@ globalThis.Libertad = globalThis.Libertad || {};
   globalThis.Libertad.applyStyles = applyStyles;
   globalThis.Libertad.updateZenBanner = updateZenBanner;
   globalThis.Libertad.cleanLiveChat = cleanLiveChat;
-  globalThis.Libertad.cleanChatReplay = cleanLiveChat;
   globalThis.Libertad.cleanExplore = cleanExplore;
   globalThis.Libertad.cleanAutoplay = cleanAutoplay;
 })();

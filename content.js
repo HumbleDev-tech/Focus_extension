@@ -12,59 +12,13 @@
 
   const Libertad = globalThis.Libertad || {};
 
-  // Fallback defaults from single source of truth
+  // Single source of truth defaults from constants.js
   let currentSettings =
     typeof DEFAULT_SETTINGS !== 'undefined'
       ? { ...DEFAULT_SETTINGS }
-      : {
-          preset: 'basic',
-          theme: 'dark',
-          lang: 'auto',
-          scale: 'auto',
-          activeTab: 'focus',
-          hideHomeFeed: false,
-          redirectHomeToSubscriptions: false,
-          hideSidebar: false,
-          hideComments: false,
-          hideShorts: true,
-          hideEndScreens: true,
-          hideVoiceSearch: false,
-          hideCreateButton: false,
-          hideNotifications: false,
-          hideSearchSuggestions: false,
-          hideFilterChips: false,
-          hideAutoplay: false,
-          hideUpNext: true,
-          hideWatermark: true,
-          hidePaidPromo: true,
-          hideMiniplayer: false,
-          hidePlayOnTv: false,
-          hideSubtitles: false,
-          hideAskAi: true,
-          hideDownload: true,
-          hideThanksClips: false,
-          hideJoinButton: false,
-          hideShare: false,
-          hideSave: false,
-          hideLikeDislike: false,
-          hideSubscribeButton: false,
-          hideSubscriberCount: false,
-          hideViewsDate: false,
-          hideMoreActions: false,
-          hideMerchShelf: true,
-          hideLiveChat: false,
-          hideExplore: false,
-          hideTrending: false,
-          hideMoreFromYoutube: false,
-          showDislikes: true,
-          untranslateMaster: true,
-          untranslateTitles: true,
-          untranslateAudio: true,
-          untranslateDescription: true,
-          untranslateCaptions: true,
-          untranslateChapters: true,
-          skipSponsors: true,
-        };
+      : typeof PRESET_MAP !== 'undefined' && PRESET_MAP.basic
+        ? { preset: 'basic', ...extractToggles(PRESET_MAP.basic) }
+        : {};
 
   // Synchronous cache hydration to completely eliminate reverse FOUC at document_start
   try {

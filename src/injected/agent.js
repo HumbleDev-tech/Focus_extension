@@ -357,10 +357,6 @@
         (!currentId || !targetId || currentId !== targetId)
       ) {
         player.setAudioTrack(targetTrack);
-        console.log(
-          '[Libertad Untranslate] Switched to original audio track:',
-          targetTrack.displayName || targetId,
-        );
       }
 
       lastEnforcedVideoId = videoId;
@@ -388,9 +384,6 @@
       );
       if (translationLang) {
         player.setOption('captions', 'translationLanguage', null);
-        console.log(
-          '[Libertad Untranslate] Cleared auto-translated captions language layer',
-        );
         return true;
       }
     } catch (_) {}

@@ -133,6 +133,7 @@
           chrome.storage.local.set({ lang: chosenLang });
         if (chrome.storage?.sync) {
           chrome.storage.sync.set({ lang: chosenLang }, () => {
+            // Consume lastError to prevent unhandled runtime warnings if sync is unavailable
             if (chrome.runtime?.lastError) {
             }
           });
@@ -172,6 +173,7 @@
           if (chrome.storage?.local) chrome.storage.local.set(updated);
           if (chrome.storage?.sync) {
             chrome.storage.sync.set(updated, () => {
+              // Consume lastError to prevent unhandled runtime warnings if sync is unavailable
               if (chrome.runtime?.lastError) {
               }
             });
