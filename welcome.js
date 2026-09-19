@@ -70,14 +70,45 @@
     },
   };
 
-  let currentLang = 'en';
-  const userLang = (
-    navigator.language ||
-    navigator.userLanguage ||
-    'en'
-  ).toLowerCase();
-  if (userLang.startsWith('es')) currentLang = 'es';
-  else if (userLang.startsWith('pt')) currentLang = 'pt';
+  function isSpanishLocale(langStr) {
+    if (!langStr || typeof langStr !== 'string') return false;
+    const clean = langStr.trim().toLowerCase();
+    return clean === 'es' || clean.startsWith('es-') || clean.startsWith('es_');
+  }
+
+  function isPortugueseLocale(langStr) {
+    if (!langStr || typeof langStr !== 'string') return false;
+    const clean = langStr.trim().toLowerCase();
+    return clean === 'pt' || clean.startsWith('pt-') || clean.startsWith('pt_');
+  }
+
+  function detectSystemLang() {
+    try {
+      if (typeof chrome !== 'undefined' && chrome.i18n?.getUILanguage) {
+        const uiLang = chrome.i18n.getUILanguage();
+        if (uiLang) {
+          if (isSpanishLocale(uiLang)) return 'es';
+          if (isPortugueseLocale(uiLang)) return 'pt';
+        }
+      }
+      if (typeof navigator !== 'undefined') {
+        if (navigator.language) {
+          if (isSpanishLocale(navigator.language)) return 'es';
+          if (isPortugueseLocale(navigator.language)) return 'pt';
+        }
+        if (Array.isArray(navigator.languages)) {
+          for (let i = 0; i < navigator.languages.length; i++) {
+            const l = navigator.languages[i];
+            if (isSpanishLocale(l)) return 'es';
+            if (isPortugueseLocale(l)) return 'pt';
+          }
+        }
+      }
+    } catch (_) {}
+    return 'en';
+  }
+
+  let currentLang = detectSystemLang();
 
   function applyTranslations(lang) {
     currentLang = lang;

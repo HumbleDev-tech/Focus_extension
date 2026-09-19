@@ -1,18 +1,74 @@
 // Libertad Service Worker
 importScripts('constants.js');
 
+async function injectYouTubeTabs() {
+  if (!chrome.scripting || !chrome.tabs) return;
+  try {
+    const ytTabs = await chrome.tabs.query({
+      url: ['*://*.youtube.com/*', '*://youtube.com/*'],
+    });
+    const contentScriptFiles = [
+      'constants.js',
+      'src/core/cache.js',
+      'src/core/utils.js',
+      'src/modules/styles.js',
+      'src/modules/shorts.js',
+      'src/modules/subscriptions.js',
+      'src/modules/dislikes.js',
+      'src/modules/sponsors.js',
+      'src/modules/untranslate.js',
+      'content.js',
+    ];
+
+    for (const tab of ytTabs) {
+      if (!tab.id || tab.url?.startsWith('chrome://')) continue;
+      // Inject main world player agent
+      chrome.scripting
+        .executeScript({
+          target: { tabId: tab.id },
+          files: ['src/injected/agent.js'],
+          world: 'MAIN',
+        })
+        .catch(() => {});
+
+      // Inject isolated world orchestrator and modules
+      chrome.scripting
+        .executeScript({
+          target: { tabId: tab.id },
+          files: contentScriptFiles,
+        })
+        .catch(() => {});
+    }
+  } catch (_) {}
+}
+
 chrome.runtime.onInstalled.addListener(async (details) => {
   chrome.storage.sync.get(null, (saved) => {
-    const merged = { ...DEFAULT_SETTINGS, ...(saved || {}) };
+    if (!saved || Object.keys(saved).length === 0) {
+      chrome.storage.sync.set(DEFAULT_SETTINGS);
+      return;
+    }
+    const currentPreset = saved.preset || 'basic';
+    const presetTemplate =
+      typeof PRESET_MAP !== 'undefined' && PRESET_MAP[currentPreset]
+        ? extractToggles(PRESET_MAP[currentPreset])
+        : typeof PRESET_MAP !== 'undefined' && PRESET_MAP.basic
+          ? extractToggles(PRESET_MAP.basic)
+          : {};
+    const merged = {
+      ...DEFAULT_SETTINGS,
+      ...presetTemplate,
+      ...saved,
+    };
     merged.profiles = {
       ...DEFAULT_SETTINGS.profiles,
-      ...(saved?.profiles || {}),
+      ...(saved.profiles || {}),
     };
     chrome.storage.sync.set(merged);
   });
 
   if (details?.reason === 'install') {
-    // 1. Open onboarding welcome page strictly once
+    // 1. Open onboarding welcome page strictly once upon first install
     chrome.storage.local.get(['hasSeenWelcome'], (res) => {
       if (!res?.hasSeenWelcome) {
         chrome.storage.local.set({ hasSeenWelcome: true });
@@ -21,48 +77,10 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         } catch (_) {}
       }
     });
-
-    // 2. Programmatically inject content scripts into already open YouTube tabs
-    if (chrome.scripting && chrome.tabs) {
-      try {
-        const ytTabs = await chrome.tabs.query({
-          url: ['*://*.youtube.com/*', '*://youtube.com/*'],
-        });
-        const contentScriptFiles = [
-          'constants.js',
-          'src/core/cache.js',
-          'src/core/utils.js',
-          'src/modules/styles.js',
-          'src/modules/shorts.js',
-          'src/modules/subscriptions.js',
-          'src/modules/dislikes.js',
-          'src/modules/sponsors.js',
-          'src/modules/untranslate.js',
-          'content.js',
-        ];
-
-        for (const tab of ytTabs) {
-          if (!tab.id || tab.url?.startsWith('chrome://')) continue;
-          // Inject main world player agent
-          chrome.scripting
-            .executeScript({
-              target: { tabId: tab.id },
-              files: ['src/injected/agent.js'],
-              world: 'MAIN',
-            })
-            .catch(() => {});
-
-          // Inject isolated world orchestrator and modules
-          chrome.scripting
-            .executeScript({
-              target: { tabId: tab.id },
-              files: contentScriptFiles,
-            })
-            .catch(() => {});
-        }
-      } catch (_) {}
-    }
   }
+
+  // 2. Programmatically inject content scripts into already open YouTube tabs (install and update)
+  await injectYouTubeTabs();
 });
 
 // Relay external requests to prevent CSP/CORS issues with two-level caching:

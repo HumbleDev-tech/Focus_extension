@@ -1275,6 +1275,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ALL_TOGGLE_KEYS.forEach((k) => {
         snapshot.toggles[k] = Boolean(state[k]);
       });
+      chrome.storage.local.set({ libertad_paused_snapshot: snapshot });
       try {
         localStorage.setItem(
           'libertad_paused_snapshot',
@@ -1290,40 +1291,59 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       saveState();
     } else {
-      // RESUME: Restore from snapshot if available
-      let snapshot = null;
-      try {
-        const raw = localStorage.getItem('libertad_paused_snapshot');
-        if (raw) snapshot = JSON.parse(raw);
-      } catch (_) {}
-
-      if (snapshot && typeof snapshot === 'object' && snapshot.preset) {
-        state.isOff = false;
-        state.preset = snapshot.preset;
-        state.activeProfile = snapshot.activeProfile || null;
-        if (snapshot.toggles) {
-          ALL_TOGGLE_KEYS.forEach((k) => {
-            if (snapshot.toggles[k] !== undefined) {
-              state[k] = snapshot.toggles[k];
+      // RESUME: Restore from snapshot if available (storage.local with localStorage fallback)
+      const restoreSnapshot = (snapshot) => {
+        if (snapshot && typeof snapshot === 'object' && snapshot.preset) {
+          state.isOff = false;
+          state.preset = snapshot.preset;
+          state.activeProfile = snapshot.activeProfile || null;
+          if (snapshot.toggles) {
+            ALL_TOGGLE_KEYS.forEach((k) => {
+              if (snapshot.toggles[k] !== undefined) {
+                state[k] = snapshot.toggles[k];
+              }
+            });
+          }
+          try {
+            chrome.storage.local.remove('libertad_paused_snapshot');
+          } catch (_) {}
+          try {
+            localStorage.removeItem('libertad_paused_snapshot');
+          } catch (_) {}
+          saveState();
+        } else {
+          // Fallback to basic preset if no snapshot exists
+          state.isOff = false;
+          state.preset = 'basic';
+          state.activeProfile = null;
+          const config = PRESET_MAP.basic;
+          ALL_TOGGLE_KEYS.forEach((key) => {
+            if (config[key] !== undefined) {
+              state[key] = config[key];
             }
           });
+          saveState();
         }
-        try {
-          localStorage.removeItem('libertad_paused_snapshot');
-        } catch (_) {}
-        saveState();
-      } else {
-        // Fallback to basic preset if no snapshot exists
-        state.isOff = false;
-        state.preset = 'basic';
-        state.activeProfile = null;
-        const config = PRESET_MAP.basic;
-        ALL_TOGGLE_KEYS.forEach((key) => {
-          if (config[key] !== undefined) {
-            state[key] = config[key];
+      };
+
+      if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+        chrome.storage.local.get(['libertad_paused_snapshot'], (res) => {
+          let snapshot = res?.libertad_paused_snapshot;
+          if (!snapshot) {
+            try {
+              const raw = localStorage.getItem('libertad_paused_snapshot');
+              if (raw) snapshot = JSON.parse(raw);
+            } catch (_) {}
           }
+          restoreSnapshot(snapshot);
         });
-        saveState();
+      } else {
+        let snapshot = null;
+        try {
+          const raw = localStorage.getItem('libertad_paused_snapshot');
+          if (raw) snapshot = JSON.parse(raw);
+        } catch (_) {}
+        restoreSnapshot(snapshot);
       }
     }
   });
