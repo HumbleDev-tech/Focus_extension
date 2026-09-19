@@ -1,6 +1,10 @@
 # Changelog
 
 ## [1.3.1]
+- **Decisive Initial Preset UX:** Set `BALANCED` as the default and clearly badged `RECOMMENDED` (`RECOMENDADO`) in both the welcome onboarding flow and default configuration, ensuring new users immediately experience distraction removal.
+- **Switch Cannibalization Transparency:** When `Direct to Subscriptions` (`redirectHomeSubscriptions`) is active, the `Home Feed` card is visually attenuated and tagged with `[OVERRIDDEN BY REDIRECT]` / `[ANULADO POR REDIRECCIÓN]` to clarify functional priority.
+- **Dynamic "CUSTOM" Feedback:** Added an explicit `CUSTOM` active preset pill to the preset track (expanding seamlessly into a 5-column layout) and a header status indicator whenever manual toggle adjustments deviate from established presets.
+- **Zero-Defect Automated Test Suite:** Integrated a full parity check suite (`test/parity-check.js`, `npm test`) running 48 toggle validations, 127 i18n keys across all 3 languages, DOM ID integrity, and automated lint checks before release packaging.
 - **Preset-Aware Data Migration:** Resolved a migration flaw where existing users on Balanced or Extreme presets had newly introduced cleaner options (`hidePlayOnTv`, `hideSubtitles`) inadvertently defaulted to false; migration now correctly applies the user's active preset template.
 - **Update Tab Re-injection:** Extended instant programmatic script injection to trigger on extension updates as well as initial installs, preventing `Extension context invalidated` errors on pre-existing YouTube tabs.
 - **Robust Onboarding Language Detection:** Aligned `welcome.js` locale resolution with the popup's hierarchical detection engine (`chrome.i18n.getUILanguage()`, `navigator.languages`, and regional dialect prefixes), ensuring new users always see onboarding in their preferred language.

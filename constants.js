@@ -273,12 +273,12 @@ const DEFAULT_PROFILES = {};
 const DEFAULT_SETTINGS = {
   activeProfile: null,
   profiles: DEFAULT_PROFILES,
-  preset: 'basic',
+  preset: 'balanced',
   theme: 'auto',
   lang: 'auto',
   scale: 'auto',
   activeTab: 'focus',
-  ...extractToggles(PRESET_MAP.basic),
+  ...extractToggles(PRESET_MAP.balanced),
 };
 
 if (typeof globalThis !== 'undefined') {

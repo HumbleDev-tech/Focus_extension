@@ -98,7 +98,16 @@ def run_preflight_checks():
         print(f"   Please add a section '{expected_section}' detailing changes before packaging.")
         sys.exit(1)
 
-    # 4. Run Biome check
+    # 4. Run Parity checks & Biome check
+    print("  + Running Parity check suite...")
+    try:
+        res = subprocess.run(["npm", "test"], capture_output=True, text=True)
+        if res.returncode != 0:
+            print(f"[ERROR] Parity tests failed!\n{res.stdout}\n{res.stderr}")
+            sys.exit(1)
+    except FileNotFoundError:
+        pass
+
     print("  + Running Biome code quality check...")
     try:
         res = subprocess.run(["npm", "run", "check"], capture_output=True, text=True)

@@ -144,6 +144,9 @@ const LIBERTAD_I18N = {
     statusActive: 'ACTIVE',
     statusTitlePause: 'Click to pause Libertad',
     statusTitleResume: 'Click to resume Libertad',
+    badgeRecommended: 'RECOMMENDED',
+    tagOverridden: 'BYPASSED',
+    tagOverriddenDesc: 'Bypassed while Direct to Subscriptions is active',
   },
   es: {
     statusOff: 'OFF',
@@ -284,6 +287,9 @@ const LIBERTAD_I18N = {
     statusActive: 'ACTIVO',
     statusTitlePause: 'Clic para pausar Libertad',
     statusTitleResume: 'Clic para reanudar Libertad',
+    badgeRecommended: 'RECOMENDADO',
+    tagOverridden: 'ANULADO',
+    tagOverriddenDesc: 'Anulado mientras Directo a Suscripciones esté activo',
   },
   pt: {
     statusOff: 'OFF',
@@ -326,7 +332,7 @@ const LIBERTAD_I18N = {
     presetBasic: 'BÁSICO',
     presetBalanced: 'EQUILIBRADO',
     presetExtreme: 'EXTREMO',
-    presetCustom: 'PERSONALIZADO',
+    presetCustom: 'CUSTOM',
     descOff:
       'Estado padrão do YouTube. Todos os feeds e recomendações visíveis.',
     descBasic:
@@ -424,6 +430,10 @@ const LIBERTAD_I18N = {
     statusActive: 'ATIVO',
     statusTitlePause: 'Clique para pausar o Libertad',
     statusTitleResume: 'Clique para retomar o Libertad',
+    badgeRecommended: 'RECOMENDADO',
+    tagOverridden: 'SUBSTITUÍDO',
+    tagOverriddenDesc:
+      'Substituído enquanto Direto para Inscrições estiver ativo',
   },
 };
 

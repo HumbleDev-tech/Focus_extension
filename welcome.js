@@ -23,6 +23,7 @@
         'Zero clutter. Zen home screen, centered player, no comments, live chat, or metrics.',
       launchText: 'Open YouTube',
       footerNote: '100% PRIVATE • ZERO TELEMETRY • MANIFEST V3',
+      badgeRecommended: 'RECOMMENDED',
     },
     es: {
       welcomeTag: 'INSTALACIÓN COMPLETADA',
@@ -45,6 +46,7 @@
         'Cero distracciones. Modo Zen en inicio, reproductor centrado, sin comentarios ni métricas.',
       launchText: 'Abrir YouTube',
       footerNote: '100% PRIVADO • CERO TELEMETRÍA • MANIFEST V3',
+      badgeRecommended: 'RECOMENDADO',
     },
     pt: {
       welcomeTag: 'CONFIGURAÇÃO CONCLUÍDA',
@@ -67,6 +69,7 @@
         'Zero distrações. Modo Zen no início, reprodutor centralizado, sem comentários nem métricas.',
       launchText: 'Abrir o YouTube',
       footerNote: '100% PRIVADO • ZERO TELEMETRIA • MANIFEST V3',
+      badgeRecommended: 'RECOMENDADO',
     },
   };
 
@@ -205,14 +208,13 @@
 
   // Reconcile initial state with storage if previously configured
   const reconcileWelcomeUI = (saved) => {
-    if (saved?.preset) {
-      presetButtons.forEach((b) => {
-        b.classList.toggle(
-          'selected',
-          b.getAttribute('data-preset') === saved.preset,
-        );
-      });
-    }
+    const activePreset = saved?.preset || 'balanced';
+    presetButtons.forEach((b) => {
+      b.classList.toggle(
+        'selected',
+        b.getAttribute('data-preset') === activePreset,
+      );
+    });
     if (
       saved?.lang &&
       (saved.lang === 'en' || saved.lang === 'es' || saved.lang === 'pt')

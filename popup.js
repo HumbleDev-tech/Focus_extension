@@ -24,6 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const profileCountTag = document.getElementById('profileCountTag');
   const saveProfileBtn = document.getElementById('saveProfileBtn');
   const presetTagLabel = document.getElementById('presetTagLabel');
+  const customStatusPill = document.getElementById('customStatusPill');
+  const presetTrackEl = document.getElementById('presetTrack');
+  const presetBtnCustom = document.getElementById('presetBtnCustom');
+  const cardHomeFeed = document.getElementById('cardHomeFeed');
+  const homeFeedBypassTag = document.getElementById('homeFeedBypassTag');
   const profileCreatePanel = document.getElementById('profileCreatePanel');
   const profileCreateInput = document.getElementById('profileCreateInput');
   const confirmCreateProfileBtn = document.getElementById(
@@ -635,10 +640,36 @@ document.addEventListener('DOMContentLoaded', () => {
     // Render dynamic profiles bar
     renderProfiles();
 
-    // Preset buttons active state (only illuminated when in Base Preset mode)
+    // Synchronize Home Feed bypass indicator when Direct to Subscriptions is active
+    const isRedirectSubs = Boolean(state.redirectHomeToSubscriptions);
+    if (cardHomeFeed) {
+      cardHomeFeed.classList.toggle('is-bypassed', isRedirectSubs);
+    }
+    if (homeFeedBypassTag) {
+      homeFeedBypassTag.style.display = isRedirectSubs ? 'inline-flex' : 'none';
+      if (isRedirectSubs) {
+        homeFeedBypassTag.setAttribute('title', t('tagOverriddenDesc'));
+      }
+    }
+
+    // Preset buttons active state and Custom mode visual feedback
+    const isCustomMode = !state.activeProfile && state.preset === 'custom';
+    if (presetTrackEl) {
+      presetTrackEl.classList.toggle('has-custom', isCustomMode);
+    }
+    if (presetBtnCustom) {
+      presetBtnCustom.style.display = isCustomMode ? 'block' : 'none';
+      presetBtnCustom.classList.toggle('active', isCustomMode);
+    }
+    if (customStatusPill) {
+      customStatusPill.style.display = isCustomMode ? 'inline-flex' : 'none';
+    }
+
     presetButtons.forEach((btn) => {
       const p = btn.getAttribute('data-preset');
-      if (!state.activeProfile && p === state.preset) {
+      if (p === 'custom') {
+        btn.classList.toggle('active', isCustomMode);
+      } else if (!state.activeProfile && p === state.preset) {
         btn.classList.add('active');
       } else {
         btn.classList.remove('active');
@@ -1351,6 +1382,7 @@ document.addEventListener('DOMContentLoaded', () => {
   presetButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
       const chosenPreset = btn.getAttribute('data-preset');
+      if (chosenPreset === 'custom') return;
       if (PRESET_MAP[chosenPreset]) {
         hideCreateProfilePanel();
         resetDeleteConfirm();

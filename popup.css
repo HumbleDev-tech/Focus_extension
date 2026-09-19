@@ -1048,6 +1048,12 @@ button:focus-visible {
   border-color: var(--accent);
 }
 
+.preset-tag-wrap {
+  display: flex;
+  align-items: center;
+  gap: calc(5px * var(--ui-scale));
+}
+
 .preset-tag {
   font-family: var(--font-mono);
   font-size: calc(8px * var(--ui-scale));
@@ -1055,6 +1061,19 @@ button:focus-visible {
   letter-spacing: 0.8px;
   color: var(--text-muted);
   text-transform: uppercase;
+}
+
+.custom-status-pill {
+  font-family: var(--font-mono);
+  font-size: calc(7.5px * var(--ui-scale));
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  background: var(--accent-soft-bg);
+  border: 1px solid var(--accent-subtle-border);
+  border-radius: 2px;
+  padding: calc(1px * var(--ui-scale)) calc(4px * var(--ui-scale));
+  line-height: 1.2;
 }
 
 .preset-summary {
@@ -1073,6 +1092,10 @@ button:focus-visible {
   border: 1px solid var(--border-hairline);
   border-radius: 3px;
   padding: 2px;
+}
+
+.preset-track.has-custom {
+  grid-template-columns: repeat(5, 1fr);
 }
 
 .preset-btn {
@@ -1136,6 +1159,14 @@ button:focus-visible {
 :root[data-theme="light"] .preset-btn[data-preset="extreme"].active {
   background: var(--accent);
   color: #ffffff;
+}
+
+/* CUSTOM: Vibrant framed state */
+.preset-btn[data-preset="custom"].active {
+  background: var(--accent-surface);
+  color: var(--accent);
+  border-color: var(--accent-subtle-border);
+  box-shadow: 0 0 calc(5px * var(--ui-scale)) var(--accent-glow);
 }
 
 /* ==========================================================================
@@ -1336,6 +1367,33 @@ button:focus-visible {
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.1px;
+}
+
+.shield-title-row {
+  display: flex;
+  align-items: center;
+  gap: calc(5px * var(--ui-scale));
+}
+
+.shield-bypass-tag {
+  font-family: var(--font-mono);
+  font-size: calc(7.5px * var(--ui-scale));
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 2px;
+  padding: calc(1px * var(--ui-scale)) calc(4px * var(--ui-scale));
+  line-height: 1.2;
+}
+
+.shield-card.is-bypassed {
+  opacity: 0.65;
+}
+
+.shield-card.is-bypassed .shield-icon {
+  color: var(--text-muted);
 }
 
 .shield-desc,

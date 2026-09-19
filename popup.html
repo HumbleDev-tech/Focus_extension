@@ -166,7 +166,10 @@
       <!-- Preset Meta Header -->
       <div class="preset-meta-header">
         <div class="preset-title-row">
-          <span class="preset-tag" id="presetTagLabel" data-i18n="quickModeLabel">FOCUS LEVEL</span>
+          <div class="preset-tag-wrap">
+            <span class="preset-tag" id="presetTagLabel" data-i18n="quickModeLabel">FOCUS LEVEL</span>
+            <span class="custom-status-pill" id="customStatusPill" style="display: none;" data-i18n="presetCustom">CUSTOM</span>
+          </div>
           <button type="button" class="save-profile-trigger-btn" id="saveProfileBtn"
             title="Save current settings as a profile" data-i18n="saveAsProfileBtn">
             + Save as Profile
@@ -180,6 +183,7 @@
         <button type="button" class="preset-btn" data-preset="basic" data-i18n="presetBasic">BASIC</button>
         <button type="button" class="preset-btn" data-preset="balanced" data-i18n="presetBalanced">BALANCED</button>
         <button type="button" class="preset-btn" data-preset="extreme" data-i18n="presetExtreme">EXTREME</button>
+        <button type="button" class="preset-btn" data-preset="custom" id="presetBtnCustom" style="display: none;" data-i18n="presetCustom">CUSTOM</button>
       </div>
     </section>
 
@@ -197,7 +201,7 @@
       </div>
       <div class="shield-list">
         <!-- Setting: Home Feed -->
-        <label class="shield-card" for="toggleHomeFeed">
+        <label class="shield-card" id="cardHomeFeed" for="toggleHomeFeed">
           <div class="shield-icon">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
@@ -206,8 +210,11 @@
             </svg>
           </div>
           <div class="shield-meta">
-            <span class="shield-title" data-i18n="toggleHomeFeedTitle">Home Feed</span>
-            <span class="shield-desc" data-i18n="toggleHomeFeedDesc">Suppress infinite recommendations grid and engage
+            <div class="shield-title-row">
+              <span class="shield-title" data-i18n="toggleHomeFeedTitle">Home Feed</span>
+              <span class="shield-bypass-tag" id="homeFeedBypassTag" style="display: none;" data-i18n="tagOverridden">BYPASSED</span>
+            </div>
+            <span class="shield-desc" id="homeFeedDesc" data-i18n="toggleHomeFeedDesc">Suppress infinite recommendations grid and engage
               Zen Mode</span>
           </div>
           <div class="switch">
