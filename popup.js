@@ -7,6 +7,11 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  const MAX_PROFILES =
+    typeof globalThis.MAX_PROFILES !== 'undefined'
+      ? globalThis.MAX_PROFILES
+      : 3;
+
   // Core UI Elements
   const statusPill = document.getElementById('statusPill');
   const statusText = document.getElementById('statusText');
@@ -289,19 +294,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const loadedProfiles = {};
     if (saved.profiles && typeof saved.profiles === 'object') {
-      Object.keys(saved.profiles).forEach((pId) => {
-        const pData = saved.profiles[pId];
-        if (pData && typeof pData === 'object' && pData.name) {
-          loadedProfiles[pId] = {
-            id: pId,
-            name: pData.name,
-            nameKey: pData.nameKey,
-            isCustomName: pData.isCustomName !== false,
-            preset: pData.preset || 'custom',
-            toggles: { ...(pData.toggles || {}) },
-          };
-        }
-      });
+      Object.keys(saved.profiles)
+        .slice(0, MAX_PROFILES)
+        .forEach((pId) => {
+          const pData = saved.profiles[pId];
+          if (pData && typeof pData === 'object' && pData.name) {
+            loadedProfiles[pId] = {
+              id: pId,
+              name: pData.name,
+              nameKey: pData.nameKey,
+              isCustomName: pData.isCustomName !== false,
+              preset: pData.preset || 'custom',
+              toggles: { ...(pData.toggles || {}) },
+            };
+          }
+        });
     }
 
     // Do NOT hijack activeProfile if saved.activeProfile is null or unset
@@ -808,8 +815,6 @@ document.addEventListener('DOMContentLoaded', () => {
       'Profile'
     );
   }
-
-  const MAX_PROFILES = 6;
 
   function renderProfiles() {
     const profileIds = Object.keys(state.profiles || {});

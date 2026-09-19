@@ -267,6 +267,7 @@ function extractToggles(config) {
   return result;
 }
 
+const MAX_PROFILES = 3;
 const DEFAULT_PROFILES = {};
 
 const DEFAULT_SETTINGS = {
@@ -289,6 +290,7 @@ if (typeof globalThis !== 'undefined') {
   globalThis.DEFAULT_SETTINGS = DEFAULT_SETTINGS;
   globalThis.PRESET_MAP = PRESET_MAP;
   globalThis.DEFAULT_PROFILES = DEFAULT_PROFILES;
+  globalThis.MAX_PROFILES = MAX_PROFILES;
   globalThis.extractToggles = extractToggles;
 }
 
@@ -302,6 +304,7 @@ if (typeof module !== 'undefined' && module.exports) {
     DEFAULT_SETTINGS,
     PRESET_MAP,
     DEFAULT_PROFILES,
+    MAX_PROFILES,
     extractToggles,
   };
 }
