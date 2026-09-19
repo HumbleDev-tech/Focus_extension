@@ -33,6 +33,7 @@
 
   let agentSettings = {
     isOff: false,
+    hideAutoplay: false,
     untranslateMaster: true,
     untranslateAudio: true,
     untranslateCaptions: true,
@@ -45,6 +46,9 @@
       const parsed = JSON.parse(cached);
       if (parsed && typeof parsed === 'object') {
         agentSettings.isOff = Boolean(parsed.isOff || parsed.preset === 'off');
+        if (parsed.hideAutoplay !== undefined) {
+          agentSettings.hideAutoplay = Boolean(parsed.hideAutoplay);
+        }
         if (parsed.untranslateMaster !== undefined) {
           agentSettings.untranslateMaster = parsed.untranslateMaster !== false;
         }
@@ -67,6 +71,9 @@
       ...agentSettings,
       ...detail,
     };
+    if (agentSettings.hideAutoplay && !agentSettings.isOff) {
+      enforceAutoplaySuppression();
+    }
     if (
       agentSettings.isOff ||
       !agentSettings.untranslateMaster ||
@@ -89,6 +96,22 @@
       document.getElementById('movie_player') ||
       document.querySelector('.html5-video-player')
     );
+  }
+
+  function enforceAutoplaySuppression() {
+    if (agentSettings.isOff || !agentSettings.hideAutoplay) return;
+    try {
+      const player = getPlayer();
+      if (player) {
+        if (typeof player.getAutonav === 'function') {
+          if (player.getAutonav() === true) {
+            player.setAutonav(false);
+          }
+        } else if (typeof player.setAutonav === 'function') {
+          player.setAutonav(false);
+        }
+      }
+    } catch (_) {}
   }
 
   function getVideoElement() {
@@ -429,6 +452,7 @@
       player.addEventListener('onStateChange', (state) => {
         // State 1: PLAYING. Only enforce once playback actively starts, NEVER on BUFFERING (state 3)
         if (state === 1) {
+          enforceAutoplaySuppression();
           if (!agentSettings.isOff && agentSettings.untranslateMaster) {
             if (agentSettings.untranslateAudio) enforceOriginalAudio(true);
             if (agentSettings.untranslateCaptions) neutralizeAutoCaptions();
@@ -512,6 +536,8 @@
       startEnforcementRoutine();
     } else if (cmd === 'NEUTRALIZE_CAPTIONS') {
       neutralizeAutoCaptions();
+    } else if (cmd === 'ENFORCE_AUTOPLAY') {
+      enforceAutoplaySuppression();
     } else if (cmd === 'REQUEST_METADATA') {
       broadcastMetadata(true);
     }
@@ -522,10 +548,12 @@
     lastEnforcedVideoId = null;
     lastBroadcastMetadataKey = null;
     bindPlayerEvents();
+    enforceAutoplaySuppression();
     setTimeout(startEnforcementRoutine, 400);
   });
 
   // Initial startup hook
   bindPlayerEvents();
+  enforceAutoplaySuppression();
   setTimeout(startEnforcementRoutine, 500);
 })();

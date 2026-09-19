@@ -240,29 +240,20 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-conversational-ai-view-model,
         conversational-ai-button-view-model,
         watch-metadata-view-model conversational-ai-button-view-model,
-        watch-metadata-view-model [target-id*="conversational"],
         [component-id*="conversational_ai"],
-        [target-id*="conversational_ai"],
-        [target-id*="conversational-ai"],
+        [target-id*="conversational"],
         #conversational-ai,
-        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="sparkle"]),
-        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="sparkle"]),
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="sparkle"]),
-        #actions yt-button-view-model:has(yt-icon[icon*="sparkle"]),
-        #actions yt-button-shape:has(yt-icon[icon*="sparkle"]),
-        #actions ytd-button-renderer:has(yt-icon[icon*="sparkle"]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="ask" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="pregunt" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="pergunt" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="ask" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="pregunt" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="pergunt" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="ask" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="pregunt" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="pergunt" i]),
-        #actions yt-button-view-model:has([aria-label*="ask" i]),
-        #actions yt-button-view-model:has([aria-label*="pregunt" i]),
-        #actions yt-button-view-model:has([aria-label*="pergunt" i]) {
+        :is(ytd-watch-metadata, watch-metadata-view-model, #actions) :is(yt-button-view-model, yt-button-shape, ytd-button-renderer):has(
+          :is(
+            yt-icon[icon*="sparkle"],
+            [aria-label*="ask" i],
+            [aria-label*="pregunt" i],
+            [aria-label*="pergunt" i],
+            [aria-label*="demander" i],
+            [aria-label*="fragen" i],
+            [aria-label*="chiedi" i]
+          )
+        ) {
           display: none !important;
         }
       `);
@@ -274,34 +265,30 @@ globalThis.Libertad = globalThis.Libertad || {};
         download-button-view-model,
         ytd-download-button-renderer,
         watch-metadata-view-model download-button-view-model,
-        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="download"]),
-        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="download"]),
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="download"]),
-        #actions yt-button-view-model:has(yt-icon[icon*="download"]),
-        #actions yt-button-shape:has(yt-icon[icon*="download"]),
-        #actions ytd-button-renderer:has(yt-icon[icon*="download"]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="download" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="descarg" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="baixar" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="download" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="descarg" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="baixar" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="download" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="baixar" i]),
-        ytd-watch-metadata ytd-button-renderer:has(a[href*="premium"]),
-        ytd-menu-service-item-renderer:has([aria-label*="descarg" i]),
-        ytd-menu-service-item-renderer:has([aria-label*="download" i]),
-        ytd-menu-service-item-renderer:has([aria-label*="baixar" i]),
-        ytd-menu-navigation-item-renderer:has([aria-label*="descarg" i]),
-        ytd-menu-navigation-item-renderer:has([aria-label*="download" i]),
-        ytd-menu-navigation-item-renderer:has([aria-label*="baixar" i]),
-        ytd-menu-navigation-item-renderer:has(a[href*="premium"]),
-        ytd-menu-popup-renderer ytd-menu-service-item-renderer:has(yt-icon[icon*="download"]),
-        ytd-menu-popup-renderer ytd-menu-navigation-item-renderer:has(yt-icon[icon*="download"]),
-        ytd-menu-popup-renderer tp-yt-paper-item:has(yt-icon[icon*="download"]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="descarg" i]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="download" i]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="baixar" i]) {
+        :is(ytd-watch-metadata, watch-metadata-view-model, #actions) :is(yt-button-view-model, yt-button-shape, ytd-button-renderer):has(
+          :is(
+            yt-icon[icon*="download"],
+            a[href*="premium"],
+            [aria-label*="download" i],
+            [aria-label*="descarg" i],
+            [aria-label*="baixar" i],
+            [aria-label*="télécharger" i],
+            [aria-label*="herunterladen" i],
+            [aria-label*="scarica" i]
+          )
+        ),
+        :is(ytd-menu-service-item-renderer, ytd-menu-navigation-item-renderer, tp-yt-paper-item, yt-list-item-view-model):has(
+          :is(
+            yt-icon[icon*="download"],
+            a[href*="premium"],
+            [aria-label*="download" i],
+            [aria-label*="descarg" i],
+            [aria-label*="baixar" i],
+            [aria-label*="télécharger" i],
+            [aria-label*="herunterladen" i],
+            [aria-label*="scarica" i]
+          )
+        ) {
           display: none !important;
         }
       `);
@@ -310,46 +297,21 @@ globalThis.Libertad = globalThis.Libertad || {};
     // Thanks, Clips, and Remix Buttons (Scoped strictly to watch metadata)
     if (settings.hideThanksClips) {
       rules.push(`
-        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="super-thanks"]),
-        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="clip"]),
-        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="remix"]),
-        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="super-thanks"]),
-        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="clip"]),
-        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="remix"]),
-        #actions yt-button-view-model:has(yt-icon[icon*="super-thanks"]),
-        #actions yt-button-view-model:has(yt-icon[icon*="clip"]),
-        #actions yt-button-view-model:has(yt-icon[icon*="remix"]),
-        #actions yt-button-shape:has(yt-icon[icon*="super-thanks"]),
-        #actions yt-button-shape:has(yt-icon[icon*="clip"]),
-        #actions yt-button-shape:has(yt-icon[icon*="remix"]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="thank" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="gracia" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="valeu" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="thank" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="gracia" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="valeu" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="thank" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="gracia" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="valeu" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="clip" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="clip" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="clip" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="remix" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="remix" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="remix" i]),
-        #actions yt-button-view-model:has([aria-label*="thank" i]),
-        #actions yt-button-view-model:has([aria-label*="gracia" i]),
-        #actions yt-button-view-model:has([aria-label*="valeu" i]),
-        #actions yt-button-view-model:has([aria-label*="clip" i]),
-        #actions yt-button-view-model:has([aria-label*="remix" i]),
-        #actions button[aria-label*="thank" i],
-        #actions button[aria-label*="gracia" i],
-        #actions button[aria-label*="valeu" i],
-        #actions button[aria-label*="clip" i],
-        #actions button[aria-label*="remix" i],
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="super-thanks"]),
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="clip"]),
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="remix"]) {
+        :is(ytd-watch-metadata, watch-metadata-view-model, #actions) :is(yt-button-view-model, yt-button-shape, ytd-button-renderer, button):has(
+          :is(
+            yt-icon[icon*="super-thanks"],
+            yt-icon[icon*="clip"],
+            yt-icon[icon*="remix"],
+            [aria-label*="thank" i],
+            [aria-label*="gracia" i],
+            [aria-label*="valeu" i],
+            [aria-label*="merci" i],
+            [aria-label*="dank" i],
+            [aria-label*="grazie" i],
+            [aria-label*="clip" i],
+            [aria-label*="remix" i]
+          )
+        ) {
           display: none !important;
         }
       `);
@@ -361,20 +323,16 @@ globalThis.Libertad = globalThis.Libertad || {};
         share-button-view-model,
         ytd-share-target-renderer,
         watch-metadata-view-model share-button-view-model,
-        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="share"]),
-        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="share"]),
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="share"]),
-        #actions yt-button-view-model:has(yt-icon[icon*="share"]),
-        #actions yt-button-shape:has(yt-icon[icon*="share"]),
-        #actions ytd-button-renderer:has(yt-icon[icon*="share"]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="share" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="compart" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="share" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="compart" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="share" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="compart" i]),
-        #actions yt-button-view-model:has([aria-label*="share" i]),
-        #actions yt-button-view-model:has([aria-label*="compart" i]) {
+        :is(ytd-watch-metadata, watch-metadata-view-model, #actions) :is(yt-button-view-model, yt-button-shape, ytd-button-renderer):has(
+          :is(
+            yt-icon[icon*="share"],
+            [aria-label*="share" i],
+            [aria-label*="compart" i],
+            [aria-label*="partager" i],
+            [aria-label*="teilen" i],
+            [aria-label*="condividi" i]
+          )
+        ) {
           display: none !important;
         }
       `);
@@ -387,17 +345,16 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-sponsor-button-renderer,
         sponsor-button-view-model,
         watch-metadata-view-model sponsor-button-view-model,
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="sponsor"]),
-        #actions ytd-button-renderer:has(yt-icon[icon*="sponsor"]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="unirse" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="join" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="membro" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="unirse" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="join" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="membro" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="unirse" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="join" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="membro" i]),
+        :is(ytd-watch-metadata, watch-metadata-view-model, #actions) :is(yt-button-view-model, yt-button-shape, ytd-button-renderer):has(
+          :is(
+            yt-icon[icon*="sponsor"],
+            [aria-label*="unirse" i],
+            [aria-label*="join" i],
+            [aria-label*="membro" i],
+            [aria-label*="rejoindre" i],
+            [aria-label*="mitglied" i]
+          )
+        ),
         ytd-watch-metadata #sponsor-button {
           display: none !important;
         }
@@ -427,117 +384,41 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (settings.hideSave) {
       rules.push(`
         /* Watch Metadata Top-level (Modern & Legacy) */
-        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="playlist-add"]),
-        ytd-watch-metadata yt-button-view-model:has(yt-icon[icon*="bookmark"]),
-        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="playlist-add"]),
-        ytd-watch-metadata yt-button-shape:has(yt-icon[icon*="bookmark"]),
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="playlist-add"]),
-        ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="bookmark"]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="save" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="guardar" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="salvar" i]),
-        ytd-watch-metadata yt-button-view-model:has([aria-label*="playlist" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="save" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="guardar" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="salvar" i]),
-        ytd-watch-metadata yt-button-shape:has([aria-label*="playlist" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="save" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="guardar" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="salvar" i]),
-        ytd-watch-metadata ytd-button-renderer:has([aria-label*="playlist" i]),
-        ytd-watch-metadata yt-button-view-model:has([title*="save" i]),
-        ytd-watch-metadata yt-button-view-model:has([title*="guardar" i]),
-        ytd-watch-metadata yt-button-view-model:has([title*="salvar" i]),
-        ytd-watch-metadata yt-button-shape:has([title*="save" i]),
-        ytd-watch-metadata yt-button-shape:has([title*="guardar" i]),
-        ytd-watch-metadata yt-button-shape:has([title*="salvar" i]),
-        ytd-watch-metadata ytd-button-renderer:has([title*="save" i]),
-        ytd-watch-metadata ytd-button-renderer:has([title*="guardar" i]),
-        ytd-watch-metadata ytd-button-renderer:has([title*="salvar" i]),
+        :is(ytd-watch-metadata, watch-metadata-view-model, #actions) :is(yt-button-view-model, yt-button-shape, ytd-button-renderer, button):has(
+          :is(
+            yt-icon[icon*="playlist-add"],
+            yt-icon[icon*="bookmark"],
+            [aria-label*="save" i],
+            [aria-label*="guardar" i],
+            [aria-label*="salvar" i],
+            [aria-label*="playlist" i],
+            [aria-label*="enregistrer" i],
+            [aria-label*="speichern" i],
+            [aria-label*="salva" i],
+            [title*="save" i],
+            [title*="guardar" i],
+            [title*="salvar" i],
+            [title*="playlist" i]
+          )
+        ),
 
-        /* Modern watch-metadata-view-model Container */
-        watch-metadata-view-model yt-button-view-model:has([aria-label*="save" i]),
-        watch-metadata-view-model yt-button-view-model:has([aria-label*="guardar" i]),
-        watch-metadata-view-model yt-button-view-model:has([aria-label*="salvar" i]),
-        watch-metadata-view-model yt-button-view-model:has([aria-label*="playlist" i]),
-        watch-metadata-view-model yt-button-shape:has([aria-label*="save" i]),
-        watch-metadata-view-model yt-button-shape:has([aria-label*="guardar" i]),
-        watch-metadata-view-model yt-button-shape:has([aria-label*="salvar" i]),
-        watch-metadata-view-model yt-button-shape:has([aria-label*="playlist" i]),
-        watch-metadata-view-model :has(yt-icon[icon*="playlist-add"]),
-        watch-metadata-view-model :has(yt-icon[icon*="bookmark"]),
-        watch-metadata-view-model yt-button-view-model:has([title*="save" i]),
-        watch-metadata-view-model yt-button-view-model:has([title*="guardar" i]),
-        watch-metadata-view-model yt-button-view-model:has([title*="salvar" i]),
-        watch-metadata-view-model yt-button-shape:has([title*="save" i]),
-        watch-metadata-view-model yt-button-shape:has([title*="guardar" i]),
-        watch-metadata-view-model yt-button-shape:has([title*="salvar" i]),
-
-        /* Actions Bar & Direct Button Shapes */
-        #actions yt-button-view-model:has([aria-label*="save" i]),
-        #actions yt-button-view-model:has([aria-label*="guardar" i]),
-        #actions yt-button-view-model:has([aria-label*="salvar" i]),
-        #actions yt-button-view-model:has([aria-label*="playlist" i]),
-        #actions yt-button-shape:has([aria-label*="save" i]),
-        #actions yt-button-shape:has([aria-label*="guardar" i]),
-        #actions yt-button-shape:has([aria-label*="salvar" i]),
-        #actions yt-button-shape:has([aria-label*="playlist" i]),
-        #actions ytd-button-renderer:has([aria-label*="save" i]),
-        #actions ytd-button-renderer:has([aria-label*="guardar" i]),
-        #actions ytd-button-renderer:has([aria-label*="salvar" i]),
-        #actions ytd-button-renderer:has([aria-label*="playlist" i]),
-        #actions yt-button-view-model:has([title*="save" i]),
-        #actions yt-button-view-model:has([title*="guardar" i]),
-        #actions yt-button-view-model:has([title*="salvar" i]),
-        #actions yt-button-shape:has([title*="save" i]),
-        #actions yt-button-shape:has([title*="guardar" i]),
-        #actions yt-button-shape:has([title*="salvar" i]),
-        #actions ytd-button-renderer:has([title*="save" i]),
-        #actions ytd-button-renderer:has([title*="guardar" i]),
-        #actions ytd-button-renderer:has([title*="salvar" i]),
-        #actions button[aria-label*="save" i],
-        #actions button[aria-label*="guardar" i],
-        #actions button[aria-label*="salvar" i],
-        #actions button[aria-label*="playlist" i],
-        #actions button[title*="save" i],
-        #actions button[title*="guardar" i],
-        #actions button[title*="salvar" i],
-        #actions yt-button-view-model:has(yt-icon[icon*="playlist-add"]),
-        #actions yt-button-shape:has(yt-icon[icon*="playlist-add"]),
-        #actions ytd-button-renderer:has(yt-icon[icon*="playlist-add"]),
-        #actions yt-button-view-model:has(yt-icon[icon*="bookmark"]),
-        #actions yt-button-shape:has(yt-icon[icon*="bookmark"]),
-        #actions ytd-button-renderer:has(yt-icon[icon*="bookmark"]),
-
-        /* Overflow Menu (3-dots popup) when items don't fit horizontally */
-        ytd-menu-service-item-renderer:has([aria-label*="guardar" i]),
-        ytd-menu-service-item-renderer:has([aria-label*="save" i]),
-        ytd-menu-service-item-renderer:has([aria-label*="salvar" i]),
-        ytd-menu-service-item-renderer:has([aria-label*="playlist" i]),
-        ytd-menu-service-item-renderer:has(yt-formatted-string[title*="guardar" i]),
-        ytd-menu-service-item-renderer:has(yt-formatted-string[title*="save" i]),
-        ytd-menu-service-item-renderer:has(yt-formatted-string[title*="salvar" i]),
-        ytd-menu-service-item-renderer:has(yt-formatted-string[title*="playlist" i]),
-        ytd-menu-service-item-renderer:has(yt-icon[icon*="playlist-add"]),
-        ytd-menu-service-item-renderer:has(yt-icon[icon*="bookmark"]),
-        ytd-menu-navigation-item-renderer:has([aria-label*="guardar" i]),
-        ytd-menu-navigation-item-renderer:has([aria-label*="save" i]),
-        ytd-menu-navigation-item-renderer:has([aria-label*="salvar" i]),
-        ytd-menu-navigation-item-renderer:has([aria-label*="playlist" i]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="guardar" i]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="save" i]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="salvar" i]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="playlist" i]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([title*="guardar" i]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([title*="save" i]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([title*="salvar" i]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([title*="playlist" i]),
-        ytd-menu-popup-renderer tp-yt-paper-item:has(yt-icon[icon*="playlist-add"]),
-        ytd-menu-popup-renderer tp-yt-paper-item:has(yt-icon[icon*="bookmark"]),
-        ytd-menu-popup-renderer tp-yt-paper-item:has([aria-label*="guardar" i]),
-        ytd-menu-popup-renderer tp-yt-paper-item:has([aria-label*="save" i]),
-        ytd-menu-popup-renderer tp-yt-paper-item:has([aria-label*="salvar" i]),
-        ytd-menu-popup-renderer tp-yt-paper-item:has([aria-label*="playlist" i]) {
+        /* Overflow Menu when items don't fit horizontally */
+        :is(ytd-menu-service-item-renderer, ytd-menu-navigation-item-renderer, ytd-menu-popup-renderer yt-list-item-view-model, ytd-menu-popup-renderer tp-yt-paper-item):has(
+          :is(
+            yt-icon[icon*="playlist-add"],
+            yt-icon[icon*="bookmark"],
+            [aria-label*="save" i],
+            [aria-label*="guardar" i],
+            [aria-label*="salvar" i],
+            [aria-label*="playlist" i],
+            [aria-label*="enregistrer" i],
+            [aria-label*="speichern" i],
+            [title*="save" i],
+            [title*="guardar" i],
+            [title*="salvar" i],
+            [title*="playlist" i]
+          )
+        ) {
           display: none !important;
         }
       `);
@@ -620,44 +501,30 @@ globalThis.Libertad = globalThis.Libertad || {};
     // 3-Dots Overflow Menu & Report Actions (Action Bar More actions button + Report option)
     if (settings.hideMoreActions) {
       rules.push(`
-        ytd-watch-metadata #actions ytd-menu-renderer > yt-icon-button.dropdown-trigger,
-        ytd-watch-metadata #actions ytd-menu-renderer > yt-button-shape,
-        ytd-watch-metadata #actions ytd-menu-renderer #top-level-buttons-computed ~ yt-button-shape,
-        ytd-watch-metadata #actions ytd-menu-renderer #top-level-buttons-computed ~ yt-icon-button,
-        ytd-watch-metadata #actions ytd-menu-renderer #top-level-buttons-computed ~ ytd-button-renderer,
-        #actions ytd-menu-renderer > yt-icon-button.dropdown-trigger,
-        #actions ytd-menu-renderer > yt-button-shape,
-        #actions ytd-menu-renderer #top-level-buttons-computed ~ yt-button-shape,
-        #actions ytd-menu-renderer #top-level-buttons-computed ~ yt-icon-button,
-        #actions ytd-menu-renderer #top-level-buttons-computed ~ ytd-button-renderer,
-        ytd-watch-metadata #actions yt-icon-button[aria-label*="más acciones" i],
-        ytd-watch-metadata #actions yt-icon-button[aria-label*="more actions" i],
-        ytd-watch-metadata #actions yt-icon-button[aria-label*="otras acciones" i],
-        ytd-watch-metadata #actions yt-icon-button[aria-label*="mais ac" i],
-        ytd-watch-metadata #actions button[aria-label*="más acciones" i],
-        ytd-watch-metadata #actions button[aria-label*="more actions" i],
-        ytd-watch-metadata #actions button[aria-label*="otras acciones" i],
-        ytd-watch-metadata #actions button[aria-label*="mais ac" i],
-        ytd-watch-metadata #actions yt-button-shape:has(button[aria-label*="más acciones" i]),
-        ytd-watch-metadata #actions yt-button-shape:has(button[aria-label*="more actions" i]),
-        ytd-watch-metadata #actions yt-button-shape:has(button[aria-label*="otras acciones" i]),
-        ytd-watch-metadata #actions yt-button-shape:has(button[aria-label*="mais ac" i]),
-        #actions button[aria-label*="más acciones" i],
-        #actions button[aria-label*="more actions" i],
-        #actions button[aria-label*="otras acciones" i],
-        #actions button[aria-label*="mais ac" i],
-        #actions yt-button-shape:has(button[aria-label*="más acciones" i]),
-        #actions yt-button-shape:has(button[aria-label*="more actions" i]),
-        #actions yt-button-shape:has(button[aria-label*="otras acciones" i]),
-        #actions yt-button-shape:has(button[aria-label*="mais ac" i]),
-        ytd-menu-service-item-renderer:has(yt-icon[icon*="report"]),
-        ytd-menu-service-item-renderer:has(yt-icon[icon*="flag"]),
-        ytd-menu-service-item-renderer:has([aria-label*="report" i]),
-        ytd-menu-service-item-renderer:has([aria-label*="denunciar" i]),
-        ytd-menu-service-item-renderer:has([aria-label*="notificar" i]),
-        ytd-menu-popup-renderer tp-yt-paper-item:has(yt-icon[icon*="report"]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="report" i]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="denunciar" i]) {
+        :is(ytd-watch-metadata, watch-metadata-view-model, #actions) ytd-menu-renderer > yt-icon-button.dropdown-trigger,
+        :is(ytd-watch-metadata, watch-metadata-view-model, #actions) ytd-menu-renderer > yt-button-shape,
+        :is(ytd-watch-metadata, watch-metadata-view-model, #actions) ytd-menu-renderer #top-level-buttons-computed ~ :is(yt-button-shape, yt-icon-button, ytd-button-renderer),
+        :is(ytd-watch-metadata, watch-metadata-view-model, #actions) :is(yt-icon-button, button, yt-button-shape):has(
+          :is(
+            [aria-label*="más acciones" i],
+            [aria-label*="more actions" i],
+            [aria-label*="otras acciones" i],
+            [aria-label*="mais ac" i],
+            [aria-label*="plus d'actions" i],
+            [aria-label*="weitere aktionen" i]
+          )
+        ),
+        :is(ytd-menu-service-item-renderer, ytd-menu-popup-renderer tp-yt-paper-item, ytd-menu-popup-renderer yt-list-item-view-model):has(
+          :is(
+            yt-icon[icon*="report"],
+            yt-icon[icon*="flag"],
+            [aria-label*="report" i],
+            [aria-label*="denunciar" i],
+            [aria-label*="notificar" i],
+            [aria-label*="signaler" i],
+            [aria-label*="melden" i]
+          )
+        ) {
           display: none !important;
         }
       `);
@@ -1979,10 +1846,30 @@ globalThis.Libertad = globalThis.Libertad || {};
     } catch (_) {}
   }
 
+  // Physical DOM switch sync for Autoplay suppression
+  function cleanAutoplay(settings) {
+    if (
+      !settings?.hideAutoplay ||
+      settings.isOff ||
+      settings.preset === 'off'
+    ) {
+      return;
+    }
+    try {
+      const autonavBtn = document.querySelector(
+        '.ytp-autonav-toggle-button[aria-checked="true"]',
+      );
+      if (autonavBtn) {
+        autonavBtn.click();
+      }
+    } catch (_) {}
+  }
+
   globalThis.Libertad.buildStylesheet = buildStylesheet;
   globalThis.Libertad.applyStyles = applyStyles;
   globalThis.Libertad.updateZenBanner = updateZenBanner;
   globalThis.Libertad.cleanLiveChat = cleanLiveChat;
   globalThis.Libertad.cleanChatReplay = cleanLiveChat;
   globalThis.Libertad.cleanExplore = cleanExplore;
+  globalThis.Libertad.cleanAutoplay = cleanAutoplay;
 })();

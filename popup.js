@@ -336,6 +336,8 @@ document.addEventListener('DOMContentLoaded', () => {
           state[k] = !!saved[k];
         } else if (PRESET_MAP[state.preset]?.[k] !== undefined) {
           state[k] = !!PRESET_MAP[state.preset][k];
+        } else if (DEFAULT_SETTINGS[k] !== undefined) {
+          state[k] = DEFAULT_SETTINGS[k];
         }
       });
     }
@@ -680,8 +682,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  let isInternalSaving = false;
+  let internalSaveTimer = null;
+
+  function markInternalSave() {
+    isInternalSaving = true;
+    if (internalSaveTimer) clearTimeout(internalSaveTimer);
+    internalSaveTimer = setTimeout(() => {
+      isInternalSaving = false;
+      internalSaveTimer = null;
+    }, 150);
+  }
+
   // Save current state to storage (excluding local popup UI keys) with optimistic local caching
   function saveState(partialPatch) {
+    markInternalSave();
     if (partialPatch && typeof partialPatch === 'object') {
       Object.assign(state, partialPatch);
       try {
@@ -1424,15 +1439,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!state.profiles[state.activeProfile].toggles) {
         state.profiles[state.activeProfile].toggles = {};
       }
-      state.profiles[state.activeProfile].toggles[key] = checked;
+      ALL_TOGGLE_KEYS.forEach((k) => {
+        state.profiles[state.activeProfile].toggles[k] = Boolean(state[k]);
+      });
     }
-    saveState({
-      [key]: state[key],
-      preset: state.preset,
-      isOff: false,
-      profiles: state.profiles,
-      activeProfile: state.activeProfile,
-    });
+    saveState();
   }
 
   // Individual UI cleaner and distraction toggle changes
@@ -1607,21 +1618,26 @@ document.addEventListener('DOMContentLoaded', () => {
   // Real-time synchronization if settings are modified by other contexts
   if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
     chrome.storage.onChanged.addListener((changes, areaName) => {
-      if (areaName === 'local' || areaName === 'sync') {
-        let hasRelevantChange = false;
-        for (const [k, change] of Object.entries(changes)) {
-          if (
-            change &&
-            change.newValue !== undefined &&
-            state[k] !== change.newValue
-          ) {
+      // Only react to authoritative local storage changes
+      if (areaName !== 'local') return;
+      // Suppress echoes from our own synchronous popup interactions
+      if (isInternalSaving) return;
+
+      let hasRelevantChange = false;
+      for (const [k, change] of Object.entries(changes)) {
+        if (!change || change.newValue === undefined) continue;
+        if (typeof change.newValue === 'object' && change.newValue !== null) {
+          if (JSON.stringify(state[k]) !== JSON.stringify(change.newValue)) {
             hasRelevantChange = true;
             break;
           }
+        } else if (state[k] !== change.newValue) {
+          hasRelevantChange = true;
+          break;
         }
-        if (hasRelevantChange) {
-          loadPersistedState();
-        }
+      }
+      if (hasRelevantChange) {
+        loadPersistedState();
       }
     });
   }

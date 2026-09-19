@@ -85,6 +85,11 @@
           isOff: Boolean(
             currentSettings.isOff || currentSettings.preset === 'off',
           ),
+          hideAutoplay: Boolean(
+            currentSettings.hideAutoplay &&
+              !currentSettings.isOff &&
+              currentSettings.preset !== 'off',
+          ),
           untranslateMaster: currentSettings.untranslateMaster !== false,
           untranslateAudio: currentSettings.untranslateAudio !== false,
           untranslateCaptions: currentSettings.untranslateCaptions !== false,
@@ -137,6 +142,7 @@
     safeRun('applyStyles', Libertad.applyStyles, currentSettings);
     safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
     safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
+    safeRun('cleanAutoplay', Libertad.cleanAutoplay, currentSettings);
     safeRun(
       'redirectShortsIfActive',
       Libertad.redirectShortsIfActive,
@@ -233,116 +239,118 @@
 
   // Listen for storage changes in real time with granular key diffing
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName === 'local' || areaName === 'sync') {
-      let stylesChanged = false;
-      let dislikesChanged = false;
-      let titleChanged = false;
-      let sponsorsChanged = false;
-      let shortsChanged = false;
-      let subscriptionsChanged = false;
+    // Only react to local storage events (fallback to sync only if local is unsupported)
+    if (areaName !== 'local' && chrome.storage?.local) return;
 
-      for (const key in changes) {
-        currentSettings[key] = changes[key].newValue;
-        if (key === 'showDislikes' || key === 'hideLikeDislike') {
-          dislikesChanged = true;
-          stylesChanged = true;
-        }
-        if (key.startsWith('untranslate')) {
-          titleChanged = true;
-        }
-        if (key.startsWith('skipSponsors') || key.startsWith('sponsorSkip')) {
-          sponsorsChanged = true;
-        }
-        if (key === 'hideShorts') {
-          stylesChanged = true;
-          shortsChanged = true;
-        }
-        if (key === 'redirectHomeToSubscriptions') {
-          subscriptionsChanged = true;
-          stylesChanged = true;
-        }
-        if (
-          key === 'preset' ||
-          (typeof TOGGLE_KEYS !== 'undefined' && TOGGLE_KEYS.includes(key)) ||
-          key === 'lang' ||
-          key === 'theme' ||
-          key === 'scale'
-        ) {
-          stylesChanged = true;
-        }
-      }
+    let stylesChanged = false;
+    let dislikesChanged = false;
+    let titleChanged = false;
+    let sponsorsChanged = false;
+    let shortsChanged = false;
+    let subscriptionsChanged = false;
 
-      try {
-        sessionStorage.setItem(
-          'libertad_settings',
-          JSON.stringify(currentSettings),
-        );
-      } catch (_) {}
+    for (const key in changes) {
+      currentSettings[key] = changes[key].newValue;
+      if (key === 'showDislikes' || key === 'hideLikeDislike') {
+        dislikesChanged = true;
+        stylesChanged = true;
+      }
+      if (key.startsWith('untranslate')) {
+        titleChanged = true;
+      }
+      if (key.startsWith('skipSponsors') || key.startsWith('sponsorSkip')) {
+        sponsorsChanged = true;
+      }
+      if (key === 'hideShorts') {
+        stylesChanged = true;
+        shortsChanged = true;
+      }
+      if (key === 'redirectHomeToSubscriptions') {
+        subscriptionsChanged = true;
+        stylesChanged = true;
+      }
+      if (
+        key === 'preset' ||
+        (typeof TOGGLE_KEYS !== 'undefined' && TOGGLE_KEYS.includes(key)) ||
+        key === 'lang' ||
+        key === 'theme' ||
+        key === 'scale'
+      ) {
+        stylesChanged = true;
+      }
+    }
 
-      if (stylesChanged) {
-        safeRun('applyStyles', Libertad.applyStyles, currentSettings);
-        safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
-        safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
-      }
-      if (shortsChanged) {
-        safeRun(
-          'redirectShortsIfActive',
-          Libertad.redirectShortsIfActive,
-          currentSettings,
-        );
-      }
-      if (subscriptionsChanged) {
-        safeRun(
-          'redirectHomeToSubscriptions',
-          Libertad.redirectHomeToSubscriptions,
-          currentSettings,
-        );
-      }
+    try {
+      sessionStorage.setItem(
+        'libertad_settings',
+        JSON.stringify(currentSettings),
+      );
+    } catch (_) {}
 
-      broadcastAgentSettings();
-      if (dislikesChanged) {
-        safeRun(
-          'updateDislikeCount',
-          Libertad.updateDislikeCount,
-          currentSettings,
-        );
-      }
-      if (titleChanged) {
-        safeRun('updateWatchTitle', Libertad.updateWatchTitle, currentSettings);
-        safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
-        safeRun(
-          'enforceOriginalAudioTrack',
-          Libertad.enforceOriginalAudioTrack,
-          currentSettings,
-        );
-        safeRun(
-          'restoreOriginalDescription',
-          Libertad.restoreOriginalDescription,
-          currentSettings,
-        );
-        safeRun(
-          'neutralizeAutoTranslatedCaptions',
-          Libertad.neutralizeAutoTranslatedCaptions,
-          currentSettings,
-        );
-        safeRun(
-          'restoreOriginalChapters',
-          Libertad.restoreOriginalChapters,
-          currentSettings,
-        );
-      }
-      if (sponsorsChanged) {
-        safeRun(
-          'updateSponsorSegments',
-          Libertad.updateSponsorSegments,
-          currentSettings,
-        );
-        safeRun(
-          'bindVideoSponsorListener',
-          Libertad.bindVideoSponsorListener,
-          currentSettings,
-        );
-      }
+    if (stylesChanged) {
+      safeRun('applyStyles', Libertad.applyStyles, currentSettings);
+      safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
+      safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
+      safeRun('cleanAutoplay', Libertad.cleanAutoplay, currentSettings);
+    }
+    if (shortsChanged) {
+      safeRun(
+        'redirectShortsIfActive',
+        Libertad.redirectShortsIfActive,
+        currentSettings,
+      );
+    }
+    if (subscriptionsChanged) {
+      safeRun(
+        'redirectHomeToSubscriptions',
+        Libertad.redirectHomeToSubscriptions,
+        currentSettings,
+      );
+    }
+
+    broadcastAgentSettings();
+    if (dislikesChanged) {
+      safeRun(
+        'updateDislikeCount',
+        Libertad.updateDislikeCount,
+        currentSettings,
+      );
+    }
+    if (titleChanged) {
+      safeRun('updateWatchTitle', Libertad.updateWatchTitle, currentSettings);
+      safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
+      safeRun(
+        'enforceOriginalAudioTrack',
+        Libertad.enforceOriginalAudioTrack,
+        currentSettings,
+      );
+      safeRun(
+        'restoreOriginalDescription',
+        Libertad.restoreOriginalDescription,
+        currentSettings,
+      );
+      safeRun(
+        'neutralizeAutoTranslatedCaptions',
+        Libertad.neutralizeAutoTranslatedCaptions,
+        currentSettings,
+      );
+      safeRun(
+        'restoreOriginalChapters',
+        Libertad.restoreOriginalChapters,
+        currentSettings,
+      );
+    }
+    if (sponsorsChanged) {
+      safeRun(
+        'updateSponsorSegments',
+        Libertad.updateSponsorSegments,
+        currentSettings,
+      );
+      safeRun(
+        'bindVideoSponsorListener',
+        Libertad.bindVideoSponsorListener,
+        currentSettings,
+      );
     }
   });
 
@@ -441,6 +449,9 @@
       }
 
       if (currentPath === '/watch') {
+        if (currentSettings.hideAutoplay) {
+          safeRun('cleanAutoplay', Libertad.cleanAutoplay, currentSettings);
+        }
         if (currentSettings.hideLiveChat) {
           safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
         }
