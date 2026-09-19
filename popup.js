@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const profileCountTag = document.getElementById('profileCountTag');
   const saveProfileBtn = document.getElementById('saveProfileBtn');
   const presetTagLabel = document.getElementById('presetTagLabel');
-  const customStatusPill = document.getElementById('customStatusPill');
   const presetTrackEl = document.getElementById('presetTrack');
   const presetBtnCustom = document.getElementById('presetBtnCustom');
   const cardHomeFeed = document.getElementById('cardHomeFeed');
@@ -660,9 +659,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (presetBtnCustom) {
       presetBtnCustom.style.display = isCustomMode ? 'block' : 'none';
       presetBtnCustom.classList.toggle('active', isCustomMode);
-    }
-    if (customStatusPill) {
-      customStatusPill.style.display = isCustomMode ? 'inline-flex' : 'none';
     }
 
     presetButtons.forEach((btn) => {

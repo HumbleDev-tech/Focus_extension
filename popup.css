@@ -362,10 +362,10 @@ button:focus-visible {
   box-shadow: none;
 }
 
-/* CUSTOM: Dashed technical sky-blue outline */
+/* CUSTOM: Solid clean accent outline */
 .status-indicator[data-preset="custom"] {
   background: var(--accent-soft-bg);
-  border: 1px dashed var(--accent);
+  border: 1px solid var(--accent);
   color: var(--accent);
 }
 
@@ -1048,12 +1048,6 @@ button:focus-visible {
   border-color: var(--accent);
 }
 
-.preset-tag-wrap {
-  display: flex;
-  align-items: center;
-  gap: calc(5px * var(--ui-scale));
-}
-
 .preset-tag {
   font-family: var(--font-mono);
   font-size: calc(8px * var(--ui-scale));
@@ -1061,19 +1055,6 @@ button:focus-visible {
   letter-spacing: 0.8px;
   color: var(--text-muted);
   text-transform: uppercase;
-}
-
-.custom-status-pill {
-  font-family: var(--font-mono);
-  font-size: calc(7.5px * var(--ui-scale));
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  color: var(--accent);
-  background: var(--accent-soft-bg);
-  border: 1px solid var(--accent-subtle-border);
-  border-radius: 2px;
-  padding: calc(1px * var(--ui-scale)) calc(4px * var(--ui-scale));
-  line-height: 1.2;
 }
 
 .preset-summary {
