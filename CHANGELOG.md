@@ -5,6 +5,8 @@
 - **Update Tab Re-injection:** Extended instant programmatic script injection to trigger on extension updates as well as initial installs, preventing `Extension context invalidated` errors on pre-existing YouTube tabs.
 - **Robust Onboarding Language Detection:** Aligned `welcome.js` locale resolution with the popup's hierarchical detection engine (`chrome.i18n.getUILanguage()`, `navigator.languages`, and regional dialect prefixes), ensuring new users always see onboarding in their preferred language.
 - **Persistent Pause Snapshot:** Migrated `libertad_paused_snapshot` storage to `chrome.storage.local` with backward-compatible `localStorage` fallback, guaranteeing custom configurations are preserved across browser session cleanups and sync events.
+- **Seamless Video Transitions (Anti-Ghost Skips):** Eliminated a race condition in SponsorBlock during rapid continuous playback (playlists, queue, and autoplay) where segments from a preceding video could linger and prematurely skip the start of the next video; playback heartbeat and media events now enforce strict video ID validation and purge previous segments at frame zero.
+- **SponsorBlock Color Alignment:** Added subtle, minimalist color accents to each SponsorBlock category chip corresponding to its exact colored segment on the YouTube player progress bar (Green for Sponsors, Yellow for Self-Promo, Purple for Reminders, Cyan for Intros, Blue for Outros, and Orange for Off-Topic).
 
 ---
 

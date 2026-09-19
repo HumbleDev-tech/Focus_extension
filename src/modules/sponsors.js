@@ -105,6 +105,14 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   function seekVideoPlayer(video, targetTime) {
     if (video && Number.isFinite(targetTime)) {
+      const activeVid = getActiveVideoId();
+      if (
+        activeVid &&
+        currentSponsorVideoId &&
+        activeVid !== currentSponsorVideoId
+      ) {
+        return;
+      }
       isProgrammaticSkip = true;
       const maxTime =
         Number.isFinite(video.duration) && video.duration > 0
@@ -458,6 +466,16 @@ globalThis.Libertad = globalThis.Libertad || {};
       return;
     }
 
+    // Strict Guard: Never evaluate segments unless they verifiably match the active video
+    const activeVid = getActiveVideoId();
+    if (
+      !activeVid ||
+      !currentSponsorVideoId ||
+      activeVid !== currentSponsorVideoId
+    ) {
+      return;
+    }
+
     const currentTime = video.currentTime;
     for (const seg of currentSponsorSegments) {
       if (seg.uuid && ignoredSegmentUuids.has(seg.uuid)) {
@@ -482,6 +500,14 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   function handleVideoSeek(video) {
     if (!video || isProgrammaticSkip) return;
+    const activeVid = getActiveVideoId();
+    if (
+      !activeVid ||
+      !currentSponsorVideoId ||
+      activeVid !== currentSponsorVideoId
+    ) {
+      return;
+    }
     const fromTime = lastKnownPlaybackTime;
     const toTime = video.currentTime;
     if (!Number.isFinite(fromTime) || !Number.isFinite(toTime)) return;
@@ -534,6 +560,17 @@ globalThis.Libertad = globalThis.Libertad || {};
 
       const onTimeUpdate = () => {
         lastKnownPlaybackTime = video.currentTime;
+        const activeVid = getActiveVideoId();
+        if (
+          activeVid &&
+          currentSponsorVideoId &&
+          activeVid !== currentSponsorVideoId
+        ) {
+          // Transition between videos detected in media playback heartbeat
+          resetSponsorNavigation();
+          updateSponsorSegments(activeSponsorSettings);
+          return;
+        }
         checkVideoSponsors(video, activeSponsorSettings);
         if (
           currentSponsorSegments.length > 0 &&
@@ -562,9 +599,23 @@ globalThis.Libertad = globalThis.Libertad || {};
         onTimeUpdate();
       };
 
+      const onMediaTransition = () => {
+        const activeVid = getActiveVideoId();
+        if (
+          activeVid &&
+          currentSponsorVideoId &&
+          activeVid !== currentSponsorVideoId
+        ) {
+          resetSponsorNavigation();
+          updateSponsorSegments(activeSponsorSettings);
+        }
+      };
+
       video.addEventListener('timeupdate', onTimeUpdate, { passive: true });
       video.addEventListener('seeking', onSeeking, { passive: true });
       video.addEventListener('seeked', onSeeked, { passive: true });
+      video.addEventListener('loadstart', onMediaTransition, { passive: true });
+      video.addEventListener('emptied', onMediaTransition, { passive: true });
 
       video.addEventListener('durationchange', () => {
         renderSponsorProgressBar();

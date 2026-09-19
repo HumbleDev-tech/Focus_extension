@@ -1642,6 +1642,83 @@ input:checked + .slider:before {
   gap: calc(4px * var(--ui-scale));
 }
 
+/* Sponsor Category Timeline Color Indicators */
+.sponsor-chip-grid .chip-toggle {
+  border-left-width: calc(2.5px * var(--ui-scale));
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.sponsor-chip-grid .chip-toggle[data-category="sponsor"],
+.sponsor-chip-grid .chip-toggle:hover[data-category="sponsor"],
+.sponsor-chip-grid .chip-toggle.active[data-category="sponsor"] {
+  border-left-color: #00d406;
+}
+
+.sponsor-chip-grid .chip-toggle[data-category="selfpromo"],
+.sponsor-chip-grid .chip-toggle:hover[data-category="selfpromo"],
+.sponsor-chip-grid .chip-toggle.active[data-category="selfpromo"] {
+  border-left-color: #fbc02d;
+}
+
+.sponsor-chip-grid .chip-toggle[data-category="interaction"],
+.sponsor-chip-grid .chip-toggle:hover[data-category="interaction"],
+.sponsor-chip-grid .chip-toggle.active[data-category="interaction"] {
+  border-left-color: #cc00ff;
+}
+
+.sponsor-chip-grid .chip-toggle[data-category="intro"],
+.sponsor-chip-grid .chip-toggle:hover[data-category="intro"],
+.sponsor-chip-grid .chip-toggle.active[data-category="intro"] {
+  border-left-color: #00d8d8;
+}
+
+.sponsor-chip-grid .chip-toggle[data-category="outro"],
+.sponsor-chip-grid .chip-toggle:hover[data-category="outro"],
+.sponsor-chip-grid .chip-toggle.active[data-category="outro"] {
+  border-left-color: #0268ed;
+}
+
+.sponsor-chip-grid .chip-toggle[data-category="music_offtopic"],
+.sponsor-chip-grid .chip-toggle:hover[data-category="music_offtopic"],
+.sponsor-chip-grid .chip-toggle.active[data-category="music_offtopic"] {
+  border-left-color: #ff9900;
+}
+
+/* Active State accent pip & subtle glow corresponding to timeline category color */
+.sponsor-chip-grid .chip-toggle.active[data-category="sponsor"]:after {
+  background: #00d406;
+  box-shadow: 0 0 calc(3.5px * var(--ui-scale)) rgba(0, 212, 6, 0.45);
+}
+
+.sponsor-chip-grid .chip-toggle.active[data-category="selfpromo"]:after {
+  background: #fbc02d;
+  box-shadow: 0 0 calc(3.5px * var(--ui-scale)) rgba(251, 192, 45, 0.45);
+}
+
+.sponsor-chip-grid .chip-toggle.active[data-category="interaction"]:after {
+  background: #cc00ff;
+  box-shadow: 0 0 calc(3.5px * var(--ui-scale)) rgba(204, 0, 255, 0.45);
+}
+
+.sponsor-chip-grid .chip-toggle.active[data-category="intro"]:after {
+  background: #00d8d8;
+  box-shadow: 0 0 calc(3.5px * var(--ui-scale)) rgba(0, 216, 216, 0.45);
+}
+
+.sponsor-chip-grid .chip-toggle.active[data-category="outro"]:after {
+  background: #0268ed;
+  box-shadow: 0 0 calc(3.5px * var(--ui-scale)) rgba(2, 104, 237, 0.45);
+}
+
+.sponsor-chip-grid .chip-toggle.active[data-category="music_offtopic"]:after {
+  background: #ff9900;
+  box-shadow: 0 0 calc(3.5px * var(--ui-scale)) rgba(255, 153, 0, 0.45);
+}
+
 /* ==========================================================================
    8. Clean Footer
    ========================================================================== */
