@@ -24,6 +24,7 @@ FILES_TO_INCLUDE = [
     "i18n.js",
     "theme-init.js",
     "welcome.html",
+    "welcome.js",
 ]
 DIRS_TO_INCLUDE = [
     "icons",
