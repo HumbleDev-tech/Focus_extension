@@ -426,7 +426,9 @@
 
   // Listen for targeted execution commands from Libertad Content Script
   window.addEventListener('libertad-agent-cmd', (event) => {
-    const cmd = event?.detail?.action;
+    const detail = event?.detail;
+    if (!detail || typeof detail !== 'object') return;
+    const cmd = detail.action;
     if (cmd === 'ENFORCE_AUDIO') {
       startEnforcementRoutine();
     } else if (cmd === 'NEUTRALIZE_CAPTIONS') {

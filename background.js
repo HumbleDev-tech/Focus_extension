@@ -184,6 +184,10 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
           const data = await res.json();
           const payload = {
             success: true,
+            data: {
+              title: data.title,
+              author: data.author_name,
+            },
             title: data.title,
             author: data.author_name,
           };
@@ -245,15 +249,17 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
           clearTimeout(timeoutId);
           if (res.status === 404) {
             // 404 in SponsorBlock API means no sponsor segments exist for this video
-            const emptyPayload = { success: true, segments: [] };
+            const emptyPayload = { success: true, data: [], segments: [] };
             await setToCache(sponsorsCache, 'sponsors', videoId, emptyPayload);
             return emptyPayload;
           }
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const segments = await res.json();
+          const rawSegments = await res.json();
+          const segmentsList = Array.isArray(rawSegments) ? rawSegments : [];
           const payload = {
             success: true,
-            segments: Array.isArray(segments) ? segments : [],
+            data: segmentsList,
+            segments: segmentsList,
           };
           await setToCache(sponsorsCache, 'sponsors', videoId, payload);
           return payload;
@@ -276,4 +282,8 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 
     return true;
   }
+
+  // Gracefully handle unrecognized or empty actions to prevent dangling message channels
+  sendResponse({ success: false, error: 'Unknown or unhandled action' });
+  return false;
 });

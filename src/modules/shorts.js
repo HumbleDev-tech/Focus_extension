@@ -26,7 +26,16 @@ globalThis.Libertad = globalThis.Libertad || {};
       const videoId =
         parseId(rawUrl) || path.split('/shorts/')[1]?.split(/[?&#/]/)[0];
       if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
-        window.location.replace(`/watch?v=${videoId}`);
+        try {
+          const parsedUrl = new URL(rawUrl, window.location.origin);
+          parsedUrl.pathname = '/watch';
+          parsedUrl.searchParams.set('v', videoId);
+          window.location.replace(
+            parsedUrl.pathname + parsedUrl.search + (parsedUrl.hash || ''),
+          );
+        } catch (_) {
+          window.location.replace(`/watch?v=${videoId}`);
+        }
       } else if (path === '/shorts' || path === '/shorts/') {
         const dest = settings?.redirectHomeToSubscriptions
           ? '/feed/subscriptions'

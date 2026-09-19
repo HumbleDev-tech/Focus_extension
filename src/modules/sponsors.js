@@ -106,10 +106,11 @@ globalThis.Libertad = globalThis.Libertad || {};
   function seekVideoPlayer(video, targetTime) {
     if (video && Number.isFinite(targetTime)) {
       isProgrammaticSkip = true;
-      const safeTarget =
+      const maxTime =
         Number.isFinite(video.duration) && video.duration > 0
-          ? Math.min(targetTime, video.duration)
+          ? Math.max(0, video.duration - 0.1)
           : targetTime;
+      const safeTarget = Math.min(targetTime, maxTime);
       video.currentTime = safeTarget;
       if (programmaticSkipTimer) clearTimeout(programmaticSkipTimer);
       programmaticSkipTimer = setTimeout(() => {
@@ -621,39 +622,55 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     if (!chrome.runtime?.id) return;
 
-    chrome.runtime.sendMessage({ action: 'FETCH_SPONSORS', videoId }, (res) => {
-      if (chrome.runtime.lastError || !res || !res.success) {
-        sponsorCache.set(videoId, []);
-        return;
-      }
+    try {
+      chrome.runtime.sendMessage(
+        { action: 'FETCH_SPONSORS', videoId },
+        (res) => {
+          if (
+            !chrome.runtime?.id ||
+            chrome.runtime.lastError ||
+            !res ||
+            !res.success
+          ) {
+            sponsorCache.set(videoId, []);
+            return;
+          }
 
-      if (getActiveVideoId() !== videoId) return;
+          if (getActiveVideoId() !== videoId) return;
 
-      const rawSegments = Array.isArray(res.segments) ? res.segments : [];
-      const parsed = rawSegments
-        .map((s, index) => {
-          const start = Array.isArray(s.segment) ? s.segment[0] : 0;
-          const end = Array.isArray(s.segment) ? s.segment[1] : 0;
-          const fallbackUuid = `seg_${videoId}_${index}_${start.toFixed(2)}_${end.toFixed(2)}`;
-          return {
-            uuid: s.UUID || s.uuid || fallbackUuid,
-            category: s.category,
-            start,
-            end,
-          };
-        })
-        .filter((s) => s.end > s.start);
+          const rawSegments = Array.isArray(res.data)
+            ? res.data
+            : Array.isArray(res.segments)
+              ? res.segments
+              : [];
+          const parsed = rawSegments
+            .map((s, index) => {
+              const start = Array.isArray(s.segment) ? s.segment[0] : 0;
+              const end = Array.isArray(s.segment) ? s.segment[1] : 0;
+              const fallbackUuid = `seg_${videoId}_${index}_${start.toFixed(2)}_${end.toFixed(2)}`;
+              return {
+                uuid: s.UUID || s.uuid || fallbackUuid,
+                category: s.category,
+                start,
+                end,
+              };
+            })
+            .filter((s) => s.end > s.start);
 
-      sponsorCache.set(videoId, parsed);
-      currentSponsorSegments = parsed;
+          sponsorCache.set(videoId, parsed);
+          currentSponsorSegments = parsed;
 
-      const video = document.querySelector('video.html5-main-video');
-      if (video && Number.isFinite(video.duration) && video.duration > 0) {
-        currentSponsorVideoDuration = video.duration;
-      }
+          const video = document.querySelector('video.html5-main-video');
+          if (video && Number.isFinite(video.duration) && video.duration > 0) {
+            currentSponsorVideoDuration = video.duration;
+          }
 
-      renderSponsorProgressBar();
-    });
+          renderSponsorProgressBar();
+        },
+      );
+    } catch (_) {
+      sponsorCache.set(videoId, []);
+    }
   }
 
   globalThis.Libertad.getActiveVideoId = getActiveVideoId;

@@ -139,16 +139,28 @@ globalThis.Libertad = globalThis.Libertad || {};
     inFlightDislikes.add(videoId);
 
     const fetchPromise = new Promise((resolve) => {
-      chrome.runtime.sendMessage(
-        { action: 'FETCH_DISLIKES', videoId },
-        (res) => {
-          if (!chrome.runtime.lastError && res && res.success && res.data) {
-            resolve(res.data);
-          } else {
-            resolve(null);
-          }
-        },
-      );
+      try {
+        if (!chrome.runtime?.id) {
+          resolve(null);
+          return;
+        }
+        chrome.runtime.sendMessage(
+          { action: 'FETCH_DISLIKES', videoId },
+          (res) => {
+            if (!chrome.runtime?.id || chrome.runtime.lastError) {
+              resolve(null);
+              return;
+            }
+            if (res?.success && res.data) {
+              resolve(res.data);
+            } else {
+              resolve(null);
+            }
+          },
+        );
+      } catch (_) {
+        resolve(null);
+      }
     });
 
     fetchPromise

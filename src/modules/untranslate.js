@@ -59,32 +59,65 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   // Listen for broadcasted metadata from Main World Agent
   window.addEventListener('libertad-agent-metadata', (event) => {
-    if (event?.detail) {
-      latestOriginalMetadata = event.detail;
-      metadataRequestPending = false;
-      if (
-        event.detail.title &&
-        window.location.pathname === '/watch' &&
-        (!activeUntranslateSettings ||
-          (activeUntranslateSettings.untranslateMaster !== false &&
-            activeUntranslateSettings.untranslateTitles !== false))
-      ) {
-        applyWatchTitle(event.detail.title, event.detail.videoId);
-      }
-      if (
-        !activeUntranslateSettings ||
+    const detail = event?.detail;
+    if (!detail || typeof detail !== 'object') return;
+
+    const videoId = detail.videoId;
+    if (
+      !videoId ||
+      typeof videoId !== 'string' ||
+      !/^[a-zA-Z0-9_-]{11}$/.test(videoId)
+    ) {
+      return;
+    }
+
+    const parseId =
+      globalThis.Libertad.parseYouTubeVideoId ||
+      function (u) {
+        const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+        return m ? m[1] : null;
+      };
+
+    const currentVid = parseId(window.location.href);
+    if (currentVid && currentVid !== videoId) {
+      return;
+    }
+
+    latestOriginalMetadata = {
+      videoId,
+      title: typeof detail.title === 'string' ? detail.title : null,
+      description:
+        typeof detail.description === 'string' ? detail.description : null,
+      author: typeof detail.author === 'string' ? detail.author : null,
+      defaultAudioLanguage:
+        typeof detail.defaultAudioLanguage === 'string'
+          ? detail.defaultAudioLanguage
+          : null,
+    };
+    metadataRequestPending = false;
+
+    if (
+      latestOriginalMetadata.title &&
+      window.location.pathname === '/watch' &&
+      (!activeUntranslateSettings ||
         (activeUntranslateSettings.untranslateMaster !== false &&
-          activeUntranslateSettings.untranslateDescription !== false)
-      ) {
-        restoreOriginalDescription(activeUntranslateSettings);
-      }
-      if (
-        !activeUntranslateSettings ||
-        (activeUntranslateSettings.untranslateMaster !== false &&
-          activeUntranslateSettings.untranslateChapters !== false)
-      ) {
-        restoreOriginalChapters(activeUntranslateSettings);
-      }
+          activeUntranslateSettings.untranslateTitles !== false))
+    ) {
+      applyWatchTitle(latestOriginalMetadata.title, videoId);
+    }
+    if (
+      !activeUntranslateSettings ||
+      (activeUntranslateSettings.untranslateMaster !== false &&
+        activeUntranslateSettings.untranslateDescription !== false)
+    ) {
+      restoreOriginalDescription(activeUntranslateSettings);
+    }
+    if (
+      !activeUntranslateSettings ||
+      (activeUntranslateSettings.untranslateMaster !== false &&
+        activeUntranslateSettings.untranslateChapters !== false)
+    ) {
+      restoreOriginalChapters(activeUntranslateSettings);
     }
   });
 
@@ -142,19 +175,34 @@ globalThis.Libertad = globalThis.Libertad || {};
       // 2. Fallback to background worker
       if (!chrome.runtime?.id) return null;
       return new Promise((resolve) => {
-        chrome.runtime.sendMessage(
-          { action: 'FETCH_ORIGINAL_TITLE', videoId },
-          (res) => {
-            if (!chrome.runtime.lastError && res && res.success && res.title) {
-              const t = res.title.trim();
-              titlesCache.set(videoId, t);
-              resolve(t);
-            } else {
-              titlesCache.set(videoId, false);
-              resolve(null);
-            }
-          },
-        );
+        try {
+          chrome.runtime.sendMessage(
+            { action: 'FETCH_ORIGINAL_TITLE', videoId },
+            (res) => {
+              if (!chrome.runtime?.id || chrome.runtime.lastError) {
+                titlesCache.set(videoId, false);
+                resolve(null);
+                return;
+              }
+              const titleCandidate = res?.data?.title || res?.title;
+              if (
+                res?.success &&
+                typeof titleCandidate === 'string' &&
+                titleCandidate.trim()
+              ) {
+                const t = titleCandidate.trim();
+                titlesCache.set(videoId, t);
+                resolve(t);
+              } else {
+                titlesCache.set(videoId, false);
+                resolve(null);
+              }
+            },
+          );
+        } catch (_) {
+          titlesCache.set(videoId, false);
+          resolve(null);
+        }
       });
     })().finally(() => {
       inFlightTitles.delete(videoId);

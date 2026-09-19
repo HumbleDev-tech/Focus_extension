@@ -43,13 +43,29 @@ globalThis.Libertad = globalThis.Libertad || {};
         if (!anchor) return;
 
         const href = anchor.getAttribute('href');
-        if (
-          href === '/' ||
-          href === '' ||
-          href === 'https://www.youtube.com/' ||
-          href === 'https://youtube.com/'
-        ) {
-          anchor.setAttribute('href', '/feed/subscriptions');
+        if (!href) return;
+        try {
+          const parsed = new URL(href, window.location.origin);
+          const isYouTube =
+            parsed.hostname === window.location.hostname ||
+            parsed.hostname.endsWith('youtube.com');
+          if (
+            isYouTube &&
+            (parsed.pathname === '/' || parsed.pathname === '')
+          ) {
+            anchor.setAttribute('href', '/feed/subscriptions');
+          }
+        } catch (_) {
+          if (
+            href === '/' ||
+            href === '' ||
+            href.startsWith('/?') ||
+            href.startsWith('/#') ||
+            href === 'https://www.youtube.com/' ||
+            href === 'https://youtube.com/'
+          ) {
+            anchor.setAttribute('href', '/feed/subscriptions');
+          }
         }
       },
       { capture: true },
