@@ -573,14 +573,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Status pill
-    const isOff =
-      state.preset === 'off' ||
-      (!state.hideHomeFeed &&
-        !state.redirectHomeToSubscriptions &&
-        !state.hideSidebar &&
-        !state.hideComments &&
-        !state.hideShorts &&
-        !state.hideEndScreens);
+    const hasActiveToggle = ALL_TOGGLE_KEYS.some((k) => !!state[k]);
+    const isOff = state.preset === 'off' || !hasActiveToggle;
     const effectivePreset = isOff ? 'off' : state.preset;
     statusPill.setAttribute('data-preset', effectivePreset);
     if (isOff) {

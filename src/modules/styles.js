@@ -207,8 +207,12 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-masthead ytd-button-renderer:has([aria-label*="crear" i]),
         ytd-masthead yt-button-view-model:has([aria-label*="crear" i]),
         ytd-masthead yt-button-shape:has([aria-label*="crear" i]),
+        ytd-masthead ytd-button-renderer:has([aria-label*="criar" i]),
+        ytd-masthead yt-button-view-model:has([aria-label*="criar" i]),
+        ytd-masthead yt-button-shape:has([aria-label*="criar" i]),
         ytd-masthead ytd-topbar-menu-button-renderer:has([aria-label*="create" i]),
-        ytd-masthead ytd-topbar-menu-button-renderer:has([aria-label*="crear" i]) {
+        ytd-masthead ytd-topbar-menu-button-renderer:has([aria-label*="crear" i]),
+        ytd-masthead ytd-topbar-menu-button-renderer:has([aria-label*="criar" i]) {
           display: none !important;
         }
       `);
@@ -249,12 +253,16 @@ globalThis.Libertad = globalThis.Libertad || {};
         #actions ytd-button-renderer:has(yt-icon[icon*="sparkle"]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="ask" i]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="pregunt" i]),
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="pergunt" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="ask" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="pregunt" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="pergunt" i]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="ask" i]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="pregunt" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="pergunt" i]),
         #actions yt-button-view-model:has([aria-label*="ask" i]),
-        #actions yt-button-view-model:has([aria-label*="pregunt" i]) {
+        #actions yt-button-view-model:has([aria-label*="pregunt" i]),
+        #actions yt-button-view-model:has([aria-label*="pergunt" i]) {
           display: none !important;
         }
       `);
@@ -274,20 +282,26 @@ globalThis.Libertad = globalThis.Libertad || {};
         #actions ytd-button-renderer:has(yt-icon[icon*="download"]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="download" i]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="descarg" i]),
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="baixar" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="download" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="descarg" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="baixar" i]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="download" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="baixar" i]),
         ytd-watch-metadata ytd-button-renderer:has(a[href*="premium"]),
         ytd-menu-service-item-renderer:has([aria-label*="descarg" i]),
         ytd-menu-service-item-renderer:has([aria-label*="download" i]),
+        ytd-menu-service-item-renderer:has([aria-label*="baixar" i]),
         ytd-menu-navigation-item-renderer:has([aria-label*="descarg" i]),
         ytd-menu-navigation-item-renderer:has([aria-label*="download" i]),
+        ytd-menu-navigation-item-renderer:has([aria-label*="baixar" i]),
         ytd-menu-navigation-item-renderer:has(a[href*="premium"]),
         ytd-menu-popup-renderer ytd-menu-service-item-renderer:has(yt-icon[icon*="download"]),
         ytd-menu-popup-renderer ytd-menu-navigation-item-renderer:has(yt-icon[icon*="download"]),
         ytd-menu-popup-renderer tp-yt-paper-item:has(yt-icon[icon*="download"]),
         ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="descarg" i]),
-        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="download" i]) {
+        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="download" i]),
+        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="baixar" i]) {
           display: none !important;
         }
       `);
@@ -310,10 +324,13 @@ globalThis.Libertad = globalThis.Libertad || {};
         #actions yt-button-shape:has(yt-icon[icon*="remix"]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="thank" i]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="gracia" i]),
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="valeu" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="thank" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="gracia" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="valeu" i]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="thank" i]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="gracia" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="valeu" i]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="clip" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="clip" i]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="clip" i]),
@@ -322,10 +339,12 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="remix" i]),
         #actions yt-button-view-model:has([aria-label*="thank" i]),
         #actions yt-button-view-model:has([aria-label*="gracia" i]),
+        #actions yt-button-view-model:has([aria-label*="valeu" i]),
         #actions yt-button-view-model:has([aria-label*="clip" i]),
         #actions yt-button-view-model:has([aria-label*="remix" i]),
         #actions button[aria-label*="thank" i],
         #actions button[aria-label*="gracia" i],
+        #actions button[aria-label*="valeu" i],
         #actions button[aria-label*="clip" i],
         #actions button[aria-label*="remix" i],
         ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="super-thanks"]),
@@ -372,10 +391,13 @@ globalThis.Libertad = globalThis.Libertad || {};
         #actions ytd-button-renderer:has(yt-icon[icon*="sponsor"]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="unirse" i]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="join" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="membro" i]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="unirse" i]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="join" i]),
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="membro" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="unirse" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="join" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="membro" i]),
         ytd-watch-metadata #sponsor-button {
           display: none !important;
         }
@@ -413,55 +435,73 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-watch-metadata ytd-button-renderer:has(yt-icon[icon*="bookmark"]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="save" i]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="guardar" i]),
+        ytd-watch-metadata yt-button-view-model:has([aria-label*="salvar" i]),
         ytd-watch-metadata yt-button-view-model:has([aria-label*="playlist" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="save" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="guardar" i]),
+        ytd-watch-metadata yt-button-shape:has([aria-label*="salvar" i]),
         ytd-watch-metadata yt-button-shape:has([aria-label*="playlist" i]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="save" i]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="guardar" i]),
+        ytd-watch-metadata ytd-button-renderer:has([aria-label*="salvar" i]),
         ytd-watch-metadata ytd-button-renderer:has([aria-label*="playlist" i]),
         ytd-watch-metadata yt-button-view-model:has([title*="save" i]),
         ytd-watch-metadata yt-button-view-model:has([title*="guardar" i]),
+        ytd-watch-metadata yt-button-view-model:has([title*="salvar" i]),
         ytd-watch-metadata yt-button-shape:has([title*="save" i]),
         ytd-watch-metadata yt-button-shape:has([title*="guardar" i]),
+        ytd-watch-metadata yt-button-shape:has([title*="salvar" i]),
         ytd-watch-metadata ytd-button-renderer:has([title*="save" i]),
         ytd-watch-metadata ytd-button-renderer:has([title*="guardar" i]),
+        ytd-watch-metadata ytd-button-renderer:has([title*="salvar" i]),
 
         /* Modern watch-metadata-view-model Container */
         watch-metadata-view-model yt-button-view-model:has([aria-label*="save" i]),
         watch-metadata-view-model yt-button-view-model:has([aria-label*="guardar" i]),
+        watch-metadata-view-model yt-button-view-model:has([aria-label*="salvar" i]),
         watch-metadata-view-model yt-button-view-model:has([aria-label*="playlist" i]),
         watch-metadata-view-model yt-button-shape:has([aria-label*="save" i]),
         watch-metadata-view-model yt-button-shape:has([aria-label*="guardar" i]),
+        watch-metadata-view-model yt-button-shape:has([aria-label*="salvar" i]),
         watch-metadata-view-model yt-button-shape:has([aria-label*="playlist" i]),
         watch-metadata-view-model :has(yt-icon[icon*="playlist-add"]),
         watch-metadata-view-model :has(yt-icon[icon*="bookmark"]),
         watch-metadata-view-model yt-button-view-model:has([title*="save" i]),
         watch-metadata-view-model yt-button-view-model:has([title*="guardar" i]),
+        watch-metadata-view-model yt-button-view-model:has([title*="salvar" i]),
         watch-metadata-view-model yt-button-shape:has([title*="save" i]),
         watch-metadata-view-model yt-button-shape:has([title*="guardar" i]),
+        watch-metadata-view-model yt-button-shape:has([title*="salvar" i]),
 
         /* Actions Bar & Direct Button Shapes */
         #actions yt-button-view-model:has([aria-label*="save" i]),
         #actions yt-button-view-model:has([aria-label*="guardar" i]),
+        #actions yt-button-view-model:has([aria-label*="salvar" i]),
         #actions yt-button-view-model:has([aria-label*="playlist" i]),
         #actions yt-button-shape:has([aria-label*="save" i]),
         #actions yt-button-shape:has([aria-label*="guardar" i]),
+        #actions yt-button-shape:has([aria-label*="salvar" i]),
         #actions yt-button-shape:has([aria-label*="playlist" i]),
         #actions ytd-button-renderer:has([aria-label*="save" i]),
         #actions ytd-button-renderer:has([aria-label*="guardar" i]),
+        #actions ytd-button-renderer:has([aria-label*="salvar" i]),
         #actions ytd-button-renderer:has([aria-label*="playlist" i]),
         #actions yt-button-view-model:has([title*="save" i]),
         #actions yt-button-view-model:has([title*="guardar" i]),
+        #actions yt-button-view-model:has([title*="salvar" i]),
         #actions yt-button-shape:has([title*="save" i]),
         #actions yt-button-shape:has([title*="guardar" i]),
+        #actions yt-button-shape:has([title*="salvar" i]),
         #actions ytd-button-renderer:has([title*="save" i]),
         #actions ytd-button-renderer:has([title*="guardar" i]),
+        #actions ytd-button-renderer:has([title*="salvar" i]),
         #actions button[aria-label*="save" i],
         #actions button[aria-label*="guardar" i],
+        #actions button[aria-label*="salvar" i],
         #actions button[aria-label*="playlist" i],
         #actions button[title*="save" i],
         #actions button[title*="guardar" i],
+        #actions button[title*="salvar" i],
         #actions yt-button-view-model:has(yt-icon[icon*="playlist-add"]),
         #actions yt-button-shape:has(yt-icon[icon*="playlist-add"]),
         #actions ytd-button-renderer:has(yt-icon[icon*="playlist-add"]),
@@ -472,25 +512,31 @@ globalThis.Libertad = globalThis.Libertad || {};
         /* Overflow Menu (3-dots popup) when items don't fit horizontally */
         ytd-menu-service-item-renderer:has([aria-label*="guardar" i]),
         ytd-menu-service-item-renderer:has([aria-label*="save" i]),
+        ytd-menu-service-item-renderer:has([aria-label*="salvar" i]),
         ytd-menu-service-item-renderer:has([aria-label*="playlist" i]),
         ytd-menu-service-item-renderer:has(yt-formatted-string[title*="guardar" i]),
         ytd-menu-service-item-renderer:has(yt-formatted-string[title*="save" i]),
+        ytd-menu-service-item-renderer:has(yt-formatted-string[title*="salvar" i]),
         ytd-menu-service-item-renderer:has(yt-formatted-string[title*="playlist" i]),
         ytd-menu-service-item-renderer:has(yt-icon[icon*="playlist-add"]),
         ytd-menu-service-item-renderer:has(yt-icon[icon*="bookmark"]),
         ytd-menu-navigation-item-renderer:has([aria-label*="guardar" i]),
         ytd-menu-navigation-item-renderer:has([aria-label*="save" i]),
+        ytd-menu-navigation-item-renderer:has([aria-label*="salvar" i]),
         ytd-menu-navigation-item-renderer:has([aria-label*="playlist" i]),
         ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="guardar" i]),
         ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="save" i]),
+        ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="salvar" i]),
         ytd-menu-popup-renderer yt-list-item-view-model:has([aria-label*="playlist" i]),
         ytd-menu-popup-renderer yt-list-item-view-model:has([title*="guardar" i]),
         ytd-menu-popup-renderer yt-list-item-view-model:has([title*="save" i]),
+        ytd-menu-popup-renderer yt-list-item-view-model:has([title*="salvar" i]),
         ytd-menu-popup-renderer yt-list-item-view-model:has([title*="playlist" i]),
         ytd-menu-popup-renderer tp-yt-paper-item:has(yt-icon[icon*="playlist-add"]),
         ytd-menu-popup-renderer tp-yt-paper-item:has(yt-icon[icon*="bookmark"]),
         ytd-menu-popup-renderer tp-yt-paper-item:has([aria-label*="guardar" i]),
         ytd-menu-popup-renderer tp-yt-paper-item:has([aria-label*="save" i]),
+        ytd-menu-popup-renderer tp-yt-paper-item:has([aria-label*="salvar" i]),
         ytd-menu-popup-renderer tp-yt-paper-item:has([aria-label*="playlist" i]) {
           display: none !important;
         }
@@ -548,7 +594,9 @@ globalThis.Libertad = globalThis.Libertad || {};
         watch-metadata-view-model #view-count,
         watch-metadata-view-model #date,
         watch-metadata-view-model .view-count,
-        #description-inner #info-container {
+        #description-inner #info-container,
+        #description-inline-expander #info-container,
+        ytd-text-inline-expander #info-container {
           display: none !important;
         }
       `);
@@ -562,15 +610,31 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-watch-metadata #actions ytd-menu-renderer #top-level-buttons-computed ~ yt-button-shape,
         ytd-watch-metadata #actions ytd-menu-renderer #top-level-buttons-computed ~ yt-icon-button,
         ytd-watch-metadata #actions ytd-menu-renderer #top-level-buttons-computed ~ ytd-button-renderer,
+        #actions ytd-menu-renderer > yt-icon-button.dropdown-trigger,
+        #actions ytd-menu-renderer > yt-button-shape,
+        #actions ytd-menu-renderer #top-level-buttons-computed ~ yt-button-shape,
+        #actions ytd-menu-renderer #top-level-buttons-computed ~ yt-icon-button,
+        #actions ytd-menu-renderer #top-level-buttons-computed ~ ytd-button-renderer,
         ytd-watch-metadata #actions yt-icon-button[aria-label*="más acciones" i],
         ytd-watch-metadata #actions yt-icon-button[aria-label*="more actions" i],
         ytd-watch-metadata #actions yt-icon-button[aria-label*="otras acciones" i],
+        ytd-watch-metadata #actions yt-icon-button[aria-label*="mais ac" i],
         ytd-watch-metadata #actions button[aria-label*="más acciones" i],
         ytd-watch-metadata #actions button[aria-label*="more actions" i],
         ytd-watch-metadata #actions button[aria-label*="otras acciones" i],
+        ytd-watch-metadata #actions button[aria-label*="mais ac" i],
         ytd-watch-metadata #actions yt-button-shape:has(button[aria-label*="más acciones" i]),
         ytd-watch-metadata #actions yt-button-shape:has(button[aria-label*="more actions" i]),
         ytd-watch-metadata #actions yt-button-shape:has(button[aria-label*="otras acciones" i]),
+        ytd-watch-metadata #actions yt-button-shape:has(button[aria-label*="mais ac" i]),
+        #actions button[aria-label*="más acciones" i],
+        #actions button[aria-label*="more actions" i],
+        #actions button[aria-label*="otras acciones" i],
+        #actions button[aria-label*="mais ac" i],
+        #actions yt-button-shape:has(button[aria-label*="más acciones" i]),
+        #actions yt-button-shape:has(button[aria-label*="more actions" i]),
+        #actions yt-button-shape:has(button[aria-label*="otras acciones" i]),
+        #actions yt-button-shape:has(button[aria-label*="mais ac" i]),
         ytd-menu-service-item-renderer:has(yt-icon[icon*="report"]),
         ytd-menu-service-item-renderer:has(yt-icon[icon*="flag"]),
         ytd-menu-service-item-renderer:has([aria-label*="report" i]),
@@ -662,15 +726,25 @@ globalThis.Libertad = globalThis.Libertad || {};
     // Left Drawer Explore Section
     if (settings.hideExplore) {
       rules.push(`
-        ytd-guide-section-renderer:has(a[href*="/gaming"]),
-        ytd-guide-section-renderer:has(a[href*="/podcasts"]),
-        ytd-guide-section-renderer:has(a[href*="/feed/explore"]),
-        ytd-guide-section-renderer:has(a[href*="/channel/UCEgdi0XIXXZ-qJOFPf4JSKw"]),
-        ytd-guide-section-renderer:has(#guide-section-title yt-formatted-string:is([title*="Explor" i], [title*="Explore" i])),
+        /* Full Explore Section in Navigation Drawer (Strictly guarded against Subscriptions) */
+        ytd-guide-section-renderer:has(a[href*="/feed/explore"]):not(:has(a[href*="/feed/subscriptions"])),
+        ytd-guide-section-renderer:has(a[href*="/feed/courses_destination"]):not(:has(a[href*="/feed/subscriptions"])),
+        ytd-guide-section-renderer:has(#guide-section-title[title*="Explor" i]):not(:has(a[href*="/feed/subscriptions"])),
+        ytd-guide-section-renderer:has(#guide-section-title[aria-label*="Explor" i]):not(:has(a[href*="/feed/subscriptions"])),
+        ytd-guide-section-renderer:has(#guide-section-title yt-formatted-string[title*="Explor" i]):not(:has(a[href*="/feed/subscriptions"])),
+        ytd-guide-section-renderer:has(#guide-section-title yt-formatted-string[aria-label*="Explor" i]):not(:has(a[href*="/feed/subscriptions"])),
         ytd-guide-entry-renderer:has(a[href*="/feed/explore"]),
+        ytd-guide-entry-renderer:has(a[href*="/feed/courses_destination"]),
+
+        /* Mini Guide Explore Entries */
         ytd-mini-guide-entry-renderer:has(a[href*="/feed/explore"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/gaming"]),
-        ytd-mini-guide-entry-renderer:has(a[href*="/podcasts"]) {
+        ytd-mini-guide-entry-renderer:has(a[href*="/podcasts"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/channel/UCEgdi0XIXXZ-qJOFPf4JSKw"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/channel/UCYfdidRxbB8Qhf0Nx7ioOYw"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/channel/UC1x8rV_f-2yPpzlN0JWZXIQ"]),
+        ytd-mini-guide-entry-renderer[aria-label*="Explor" i] {
           display: none !important;
         }
       `);
@@ -681,7 +755,9 @@ globalThis.Libertad = globalThis.Libertad || {};
       rules.push(`
         ytd-guide-entry-renderer:has(a[href*="/feed/trending"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/feed/trending"]),
-        ytd-guide-section-renderer:has(a[href*="/feed/trending"]):not(:has(a[href*="/gaming"])) {
+        ytd-guide-entry-renderer:has(a[title*="Trending" i]),
+        ytd-guide-entry-renderer:has(a[title*="Tendencias" i]),
+        ytd-guide-entry-renderer:has(a[title*="Em alta" i]) {
           display: none !important;
         }
       `);
@@ -690,8 +766,8 @@ globalThis.Libertad = globalThis.Libertad || {};
     // Left Drawer "More from YouTube" Links
     if (settings.hideMoreFromYoutube) {
       rules.push(`
-        ytd-guide-section-renderer:has(a[href*="premium"]),
-        ytd-guide-section-renderer:has(a[href*="studio.youtube.com"]) {
+        ytd-guide-section-renderer:has(a[href*="premium"]):not(:has(a[href*="/feed/subscriptions"])),
+        ytd-guide-section-renderer:has(a[href*="studio.youtube.com"]):not(:has(a[href*="/feed/subscriptions"])) {
           display: none !important;
         }
       `);
@@ -740,21 +816,6 @@ globalThis.Libertad = globalThis.Libertad || {};
         yt-button-shape:has([target-id*="chat-replay"]),
         yt-button-view-model:has([target-id*="live-chat"]),
         yt-button-view-model:has([target-id*="chat-replay"]),
-        ytd-button-renderer:has(button[aria-label*="live chat" i]),
-        ytd-button-renderer:has(button[aria-label*="chat replay" i]),
-        ytd-button-renderer:has(button[aria-label*="repetición del chat" i]),
-        ytd-button-renderer:has(button[aria-label*="reprise do chat" i]),
-        yt-button-shape:has(button[aria-label*="live chat" i]),
-        yt-button-shape:has(button[aria-label*="chat replay" i]),
-        yt-button-shape:has(button[aria-label*="repetición del chat" i]),
-        yt-button-shape:has(button[aria-label*="reprise do chat" i]),
-        yt-button-view-model:has(button[aria-label*="live chat" i]),
-        yt-button-view-model:has(button[aria-label*="chat replay" i]),
-        yt-button-view-model:has(button[aria-label*="repetición del chat" i]),
-        yt-button-view-model:has(button[aria-label*="reprise do chat" i]),
-        yt-chip-cloud-chip-renderer:has([aria-label*="live chat" i]),
-        yt-chip-cloud-chip-renderer:has([aria-label*="chat replay" i]),
-        yt-chip-cloud-chip-renderer:has([aria-label*="repetición del chat" i]),
         button[aria-label*="live chat" i],
         button[aria-label*="chat replay" i],
         button[aria-label*="repetición del chat" i],
@@ -762,10 +823,43 @@ globalThis.Libertad = globalThis.Libertad || {};
         button[aria-label*="reprise do chat" i],
         button[aria-label*="chat en vivo" i],
         button[aria-label*="chat ao vivo" i],
-        [aria-label*="live chat" i],
-        [aria-label*="chat replay" i],
-        [aria-label*="repetición del chat" i],
-        [aria-label*="reprise do chat" i] {
+        ytd-button-renderer:has(button[aria-label*="live chat" i]),
+        ytd-button-renderer:has(button[aria-label*="chat replay" i]),
+        ytd-button-renderer:has(button[aria-label*="repetición del chat" i]),
+        ytd-button-renderer:has(button[aria-label*="repetición de chat" i]),
+        ytd-button-renderer:has(button[aria-label*="reprise do chat" i]),
+        ytd-button-renderer:has(button[aria-label*="chat en vivo" i]),
+        ytd-button-renderer:has(button[aria-label*="chat ao vivo" i]),
+        yt-button-shape:has(button[aria-label*="live chat" i]),
+        yt-button-shape:has(button[aria-label*="chat replay" i]),
+        yt-button-shape:has(button[aria-label*="repetición del chat" i]),
+        yt-button-shape:has(button[aria-label*="repetición de chat" i]),
+        yt-button-shape:has(button[aria-label*="reprise do chat" i]),
+        yt-button-shape:has(button[aria-label*="chat en vivo" i]),
+        yt-button-shape:has(button[aria-label*="chat ao vivo" i]),
+        yt-button-view-model:has(button[aria-label*="live chat" i]),
+        yt-button-view-model:has(button[aria-label*="chat replay" i]),
+        yt-button-view-model:has(button[aria-label*="repetición del chat" i]),
+        yt-button-view-model:has(button[aria-label*="repetición de chat" i]),
+        yt-button-view-model:has(button[aria-label*="reprise do chat" i]),
+        yt-button-view-model:has(button[aria-label*="chat en vivo" i]),
+        yt-button-view-model:has(button[aria-label*="chat ao vivo" i]),
+        yt-chip-cloud-chip-renderer:has([aria-label*="live chat" i]),
+        yt-chip-cloud-chip-renderer:has([aria-label*="chat replay" i]),
+        yt-chip-cloud-chip-renderer:has([aria-label*="repetición del chat" i]),
+        yt-chip-cloud-chip-renderer:has([aria-label*="repetición de chat" i]),
+        yt-chip-cloud-chip-renderer:has([aria-label*="chat en vivo" i]),
+        yt-chip-cloud-chip-renderer:has([aria-label*="chat ao vivo" i]),
+        tp-yt-paper-tab:has([aria-label*="live chat" i]),
+        tp-yt-paper-tab:has([aria-label*="chat replay" i]),
+        tp-yt-paper-tab:has([aria-label*="repetición del chat" i]),
+        tp-yt-paper-tab:has([aria-label*="chat en vivo" i]),
+        tp-yt-paper-tab:has([aria-label*="chat ao vivo" i]),
+        yt-tab-shape:has([aria-label*="live chat" i]),
+        yt-tab-shape:has([aria-label*="chat replay" i]),
+        yt-tab-shape:has([aria-label*="repetición del chat" i]),
+        yt-tab-shape:has([aria-label*="chat en vivo" i]),
+        yt-tab-shape:has([aria-label*="chat ao vivo" i]) {
           display: none !important;
         }
 
@@ -1316,6 +1410,15 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   // Dynamic DOM cleaner for Live Chat & Replay elements (handles Shadow DOM, dynamic Lit/Polymer elements, and localized button text)
   function cleanLiveChat(settings) {
+    const isWatch =
+      window.location.pathname.startsWith('/watch') ||
+      window.location.pathname.startsWith('/live') ||
+      Boolean(document.querySelector('ytd-watch-flexy'));
+
+    if (!isWatch) {
+      return;
+    }
+
     const flexy = document.querySelector('ytd-watch-flexy');
 
     if (!settings?.hideLiveChat) {
@@ -1327,6 +1430,12 @@ globalThis.Libertad = globalThis.Libertad || {};
         hiddenElements[i].removeAttribute('data-libertad-hidden-chat');
         hiddenElements[i].style.removeProperty('display');
       }
+      const checkedElements = document.querySelectorAll(
+        '[data-libertad-chat-checked="true"]',
+      );
+      for (let i = 0; i < checkedElements.length; i++) {
+        checkedElements[i].removeAttribute('data-libertad-chat-checked');
+      }
       if (flexy) {
         flexy.removeAttribute('flexy-chat-collapsed_');
         scheduleChatResize();
@@ -1334,68 +1443,84 @@ globalThis.Libertad = globalThis.Libertad || {};
       return;
     }
 
-    // Early exit if the page has no live chat containers at all
-    const hasChatInDom = document.querySelector(
-      '#chat, #chat-container, ytd-live-chat-frame, iframe#chatframe, [target-id*="chat"], .ytp-live-chat-button',
+    // Check if an actual populated live chat or chat replay exists on the page
+    const liveChatFrame = document.querySelector(
+      'ytd-live-chat-frame, iframe#chatframe, iframe[src*="live_chat"], ytd-engagement-panel-section-list-renderer[target-id*="chat"], [target-id*="engagement-panel-live-chat"], .ytp-live-chat-button',
     );
-    if (!hasChatInDom) {
+    const chatContainer = document.querySelector('#chat');
+    const hasPopulatedChat = Boolean(
+      liveChatFrame || (chatContainer && chatContainer.childElementCount > 0),
+    );
+
+    // Quick exit if this is a regular video without live chat or chat replay triggers
+    const hasChatTriggers =
+      hasPopulatedChat ||
+      Boolean(
+        document.querySelector(
+          '[target-id*="live-chat"], [target-id*="chat-replay"], .ytp-live-chat-button, ytd-button-renderer[target-id*="chat"], yt-button-view-model:has(button[aria-label*="chat" i])',
+        ),
+      );
+
+    if (!hasChatTriggers) {
       return;
     }
 
     let didMutateChat = false;
 
-    // 1. If chat is currently open and not collapsed, trigger native collapse so YouTube updates its layout
-    const isAlreadyCollapsed =
-      flexy?.hasAttribute('flexy-chat-collapsed_') ||
-      document.querySelector('ytd-live-chat-frame[collapsed]');
+    // 1. If live chat frame is currently open and not collapsed, trigger native collapse so YouTube updates its layout
+    if (hasPopulatedChat) {
+      const isAlreadyCollapsed =
+        flexy?.hasAttribute('flexy-chat-collapsed_') ||
+        document.querySelector('ytd-live-chat-frame[collapsed]');
 
-    if (!isAlreadyCollapsed) {
-      const chatFrame = document.querySelector('ytd-live-chat-frame, #chat');
-      if (chatFrame) {
-        const nativeHideBtn = chatFrame.querySelector(
-          '#show-hide-button button, ytd-toggle-button-renderer#show-hide-button button, #show-hide-button',
-        );
-        if (
-          nativeHideBtn &&
-          !nativeHideBtn.hasAttribute('data-libertad-clicked')
-        ) {
-          const btnAria = (
-            nativeHideBtn.getAttribute('aria-label') || ''
-          ).toLowerCase();
-          const btnText = (nativeHideBtn.textContent || '')
-            .trim()
-            .toLowerCase();
-          const isHideAction =
-            btnAria.includes('hide') ||
-            btnAria.includes('ocultar') ||
-            btnAria.includes('fechar') ||
-            btnText.includes('hide') ||
-            btnText.includes('ocultar') ||
-            btnText.includes('fechar') ||
-            (!btnAria.includes('show') &&
-              !btnAria.includes('mostrar') &&
-              !btnText.includes('show') &&
-              !btnText.includes('mostrar'));
+      if (!isAlreadyCollapsed) {
+        const chatFrame = document.querySelector('ytd-live-chat-frame, #chat');
+        if (chatFrame) {
+          const nativeHideBtn = chatFrame.querySelector(
+            '#show-hide-button button, ytd-toggle-button-renderer#show-hide-button button, #show-hide-button',
+          );
+          if (
+            nativeHideBtn &&
+            !nativeHideBtn.hasAttribute('data-libertad-clicked')
+          ) {
+            const btnAria = (
+              nativeHideBtn.getAttribute('aria-label') || ''
+            ).toLowerCase();
+            const btnText = (nativeHideBtn.textContent || '')
+              .trim()
+              .toLowerCase();
+            const isHideAction =
+              btnAria.includes('hide') ||
+              btnAria.includes('ocultar') ||
+              btnAria.includes('fechar') ||
+              btnText.includes('hide') ||
+              btnText.includes('ocultar') ||
+              btnText.includes('fechar') ||
+              (!btnAria.includes('show') &&
+                !btnAria.includes('mostrar') &&
+                !btnText.includes('show') &&
+                !btnText.includes('mostrar'));
 
-          if (isHideAction) {
-            nativeHideBtn.setAttribute('data-libertad-clicked', 'true');
-            try {
-              nativeHideBtn.click();
-              didMutateChat = true;
-            } catch (_) {}
+            if (isHideAction) {
+              nativeHideBtn.setAttribute('data-libertad-clicked', 'true');
+              try {
+                nativeHideBtn.click();
+                didMutateChat = true;
+              } catch (_) {}
+            }
           }
         }
       }
-    }
 
-    // Mark flexy as chat-collapsed so YouTube's layout engine expands player
-    if (flexy && !flexy.hasAttribute('flexy-chat-collapsed_')) {
-      flexy.setAttribute('flexy-chat-collapsed_', '');
-      didMutateChat = true;
-      try {
-        if (typeof flexy.handleResize_ === 'function') flexy.handleResize_();
-        if (typeof flexy.notifyResize === 'function') flexy.notifyResize();
-      } catch (_) {}
+      // Mark flexy as chat-collapsed so YouTube's layout engine expands player (only on streams with actual chat)
+      if (flexy && !flexy.hasAttribute('flexy-chat-collapsed_')) {
+        flexy.setAttribute('flexy-chat-collapsed_', '');
+        didMutateChat = true;
+        try {
+          if (typeof flexy.handleResize_ === 'function') flexy.handleResize_();
+          if (typeof flexy.notifyResize === 'function') flexy.notifyResize();
+        } catch (_) {}
+      }
     }
 
     // 2. Direct container cleanup
@@ -1460,7 +1585,22 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     for (let i = 0; i < candidates.length; i++) {
       const node = candidates[i];
-      if (node.getAttribute('data-libertad-hidden-chat') === 'true') continue;
+      if (
+        node.getAttribute('data-libertad-hidden-chat') === 'true' ||
+        node.getAttribute('data-libertad-chat-checked') === 'true'
+      ) {
+        continue;
+      }
+
+      // Never touch buttons or items inside comments or video cards
+      if (
+        node.closest(
+          '#comments, ytd-comments, ytd-comment-thread-renderer, ytd-rich-grid-renderer, ytd-video-renderer',
+        )
+      ) {
+        node.setAttribute('data-libertad-chat-checked', 'true');
+        continue;
+      }
 
       const targetId = (node.getAttribute('target-id') || '').toLowerCase();
       if (targetId.includes('live-chat') || targetId.includes('chat-replay')) {
@@ -1509,11 +1649,13 @@ globalThis.Libertad = globalThis.Libertad || {};
         node.setAttribute('data-libertad-hidden-chat', 'true');
         node.style.setProperty('display', 'none', 'important');
         didMutateChat = true;
+      } else {
+        node.setAttribute('data-libertad-chat-checked', 'true');
       }
     }
 
-    // 4. Only dispatch resize if we actually hid or collapsed something, and debounce it!
-    if (didMutateChat) {
+    // 4. Only dispatch resize if we actually hid or collapsed an active stream chat, and debounce it!
+    if (didMutateChat && hasPopulatedChat) {
       scheduleChatResize();
     }
   }

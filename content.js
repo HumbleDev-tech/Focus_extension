@@ -21,24 +21,24 @@
           activeTab: 'focus',
           hideHomeFeed: false,
           redirectHomeToSubscriptions: false,
-          hideSidebar: true,
-          hideComments: true,
+          hideSidebar: false,
+          hideComments: false,
           hideShorts: true,
           hideEndScreens: true,
-          hideVoiceSearch: true,
-          hideCreateButton: true,
-          hideNotifications: true,
+          hideVoiceSearch: false,
+          hideCreateButton: false,
+          hideNotifications: false,
           hideSearchSuggestions: false,
           hideFilterChips: false,
-          hideAutoplay: true,
+          hideAutoplay: false,
           hideUpNext: true,
           hideWatermark: true,
           hidePaidPromo: true,
-          hideMiniplayer: true,
+          hideMiniplayer: false,
           hideAskAi: true,
           hideDownload: true,
-          hideThanksClips: true,
-          hideJoinButton: true,
+          hideThanksClips: false,
+          hideJoinButton: false,
           hideShare: false,
           hideSave: false,
           hideLikeDislike: false,
@@ -47,10 +47,10 @@
           hideViewsDate: false,
           hideMoreActions: false,
           hideMerchShelf: true,
-          hideLiveChat: true,
-          hideExplore: true,
-          hideTrending: true,
-          hideMoreFromYoutube: true,
+          hideLiveChat: false,
+          hideExplore: false,
+          hideTrending: false,
+          hideMoreFromYoutube: false,
           showDislikes: true,
           untranslateMaster: true,
           untranslateTitles: true,
@@ -185,7 +185,7 @@
 
       for (const key in changes) {
         currentSettings[key] = changes[key].newValue;
-        if (key === 'showDislikes') {
+        if (key === 'showDislikes' || key === 'hideLikeDislike') {
           dislikesChanged = true;
         } else if (key.startsWith('untranslate')) {
           titleChanged = true;
@@ -268,6 +268,10 @@
   window.addEventListener('yt-navigate-start', (event) => {
     lastDislikeBtn = null;
     lastCheckedHref = '';
+    const flexy = document.querySelector('ytd-watch-flexy');
+    if (flexy?.hasAttribute('flexy-chat-collapsed_')) {
+      flexy.removeAttribute('flexy-chat-collapsed_');
+    }
     const targetUrl = event?.detail?.url;
     if (Libertad.redirectShortsIfActive) {
       Libertad.redirectShortsIfActive(currentSettings, targetUrl);

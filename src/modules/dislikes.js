@@ -103,7 +103,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   // Dislike restoration logic
   function updateDislikeCount(settings) {
-    if (!settings?.showDislikes) {
+    if (!settings?.showDislikes || settings?.hideLikeDislike) {
       removeDislikeBadge();
       return;
     }
