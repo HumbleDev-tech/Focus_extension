@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.0]
+- **UI Cleaner Additions:** Added dedicated controls to hide "Play on TV" (Cast) and "Subtitles" (CC toggle) from player controls and menus, expanding customizable toggles to 28.
+- **Live Chat & Replay Teaser Suppression:** Unified Live Chat cleaning to eliminate both active chat streams and companion "Live chat replay" teaser cards adjacent to the description on stream recordings (VODs), allowing descriptions to expand smoothly.
+- **Performance & Zero-Flash Engine:** Overhauled stylesheet injection and DOM observation architecture with debounced event batching and 0ms CSS-first rules, preventing layout shifts and lowering background resource usage.
+- **Multi-Language Resilience:** Hardened UI Cleaner selectors and heuristics across English, Spanish, and Portuguese to ensure consistent behavior regardless of the YouTube interface language.
+- **Preset Matrix & Profiles:** Synchronized all focus presets (Minimal, Work, Study, Zen, Off) and profile configurations to fully support the expanded cleaner suite.
+
+---
+
 ## [1.2.0]
 - **Profiles & Presets:** Profiles now save your extra tools (Dislikes and Sponsors), and the OFF mode turns everything off.
 - **UI Cleaner:** Added a cleaner for sidebar Explore, unified Live Chat to also remove Chat Replays, and corrected the Like/Dislike icon shape.
