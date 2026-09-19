@@ -224,19 +224,23 @@
         currentSettings[key] = changes[key].newValue;
         if (key === 'showDislikes' || key === 'hideLikeDislike') {
           dislikesChanged = true;
-        } else if (key.startsWith('untranslate')) {
+          stylesChanged = true;
+        }
+        if (key.startsWith('untranslate')) {
           titleChanged = true;
-        } else if (
-          key.startsWith('skipSponsors') ||
-          key.startsWith('sponsorSkip')
-        ) {
+        }
+        if (key.startsWith('skipSponsors') || key.startsWith('sponsorSkip')) {
           sponsorsChanged = true;
-        } else if (key === 'hideShorts') {
+        }
+        if (key === 'hideShorts') {
           stylesChanged = true;
           shortsChanged = true;
-        } else if (key === 'redirectHomeToSubscriptions') {
+        }
+        if (key === 'redirectHomeToSubscriptions') {
           subscriptionsChanged = true;
-        } else if (
+          stylesChanged = true;
+        }
+        if (
           key === 'preset' ||
           (typeof TOGGLE_KEYS !== 'undefined' && TOGGLE_KEYS.includes(key)) ||
           key === 'lang' ||

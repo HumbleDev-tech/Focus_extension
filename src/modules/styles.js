@@ -548,12 +548,27 @@ globalThis.Libertad = globalThis.Libertad || {};
       rules.push(`
         segmented-like-dislike-button-view-model,
         ytd-segmented-like-dislike-button-renderer,
+        #top-level-buttons-computed > segmented-like-dislike-button-view-model,
+        #top-level-buttons-computed > ytd-segmented-like-dislike-button-renderer,
         #segmented-like-button,
         #segmented-dislike-button,
         like-button-view-model,
         dislike-button-view-model,
+        #like-button,
         #dislike-button,
-        #like-button {
+        ytd-like-button-renderer,
+        ytd-toggle-button-renderer:has(#like-button),
+        ytd-toggle-button-renderer:has(#dislike-button),
+        reel-action-bar-view-model #like-button,
+        reel-action-bar-view-model #dislike-button,
+        reel-action-bar-view-model like-button-view-model,
+        reel-action-bar-view-model dislike-button-view-model,
+        ytd-reel-player-overlay-renderer #like-button,
+        ytd-reel-player-overlay-renderer #dislike-button,
+        ytd-reel-player-overlay-renderer like-button-view-model,
+        ytd-reel-player-overlay-renderer dislike-button-view-model,
+        ytm-like-button-renderer,
+        ytm-segmented-like-dislike-button-renderer {
           display: none !important;
         }
       `);
