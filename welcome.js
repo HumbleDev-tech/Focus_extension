@@ -128,8 +128,15 @@
     btn.addEventListener('click', () => {
       const chosenLang = btn.getAttribute('data-lang');
       applyTranslations(chosenLang);
-      if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
-        chrome.storage.sync.set({ lang: chosenLang });
+      if (typeof chrome !== 'undefined') {
+        if (chrome.storage?.local)
+          chrome.storage.local.set({ lang: chosenLang });
+        if (chrome.storage?.sync) {
+          chrome.storage.sync.set({ lang: chosenLang }, () => {
+            if (chrome.runtime?.lastError) {
+            }
+          });
+        }
         try {
           const raw = localStorage.getItem('libertad_popup_state');
           const current = raw ? JSON.parse(raw) : {};
@@ -153,45 +160,78 @@
       if (
         typeof PRESET_MAP !== 'undefined' &&
         PRESET_MAP[presetName] &&
-        typeof chrome !== 'undefined' &&
-        chrome.storage?.sync
+        typeof chrome !== 'undefined'
       ) {
-        chrome.storage.sync.get(null, (saved) => {
+        const applyUpdated = (saved) => {
           const updated = {
             ...(saved || {}),
             ...PRESET_MAP[presetName],
             preset: presetName,
             isOff: false,
           };
-          chrome.storage.sync.set(updated);
+          if (chrome.storage?.local) chrome.storage.local.set(updated);
+          if (chrome.storage?.sync) {
+            chrome.storage.sync.set(updated, () => {
+              if (chrome.runtime?.lastError) {
+              }
+            });
+          }
           try {
             localStorage.setItem(
               'libertad_popup_state',
               JSON.stringify(updated),
             );
           } catch (_) {}
-        });
+        };
+
+        if (chrome.storage?.local) {
+          chrome.storage.local.get(null, (localSaved) => {
+            if (localSaved && Object.keys(localSaved).length > 0) {
+              applyUpdated(localSaved);
+            } else if (chrome.storage?.sync) {
+              chrome.storage.sync.get(null, applyUpdated);
+            } else {
+              applyUpdated({});
+            }
+          });
+        } else if (chrome.storage?.sync) {
+          chrome.storage.sync.get(null, applyUpdated);
+        }
       }
     });
   });
 
   // Reconcile initial state with storage if previously configured
-  if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
-    chrome.storage.sync.get(['preset', 'lang'], (saved) => {
-      if (saved?.preset) {
-        presetButtons.forEach((b) => {
-          b.classList.toggle(
-            'selected',
-            b.getAttribute('data-preset') === saved.preset,
-          );
+  const reconcileWelcomeUI = (saved) => {
+    if (saved?.preset) {
+      presetButtons.forEach((b) => {
+        b.classList.toggle(
+          'selected',
+          b.getAttribute('data-preset') === saved.preset,
+        );
+      });
+    }
+    if (
+      saved?.lang &&
+      (saved.lang === 'en' || saved.lang === 'es' || saved.lang === 'pt')
+    ) {
+      applyTranslations(saved.lang);
+    }
+  };
+
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    chrome.storage.local.get(['preset', 'lang'], (saved) => {
+      if (saved && (saved.preset || saved.lang)) {
+        reconcileWelcomeUI(saved);
+      } else if (chrome.storage?.sync) {
+        chrome.storage.sync.get(['preset', 'lang'], (syncSaved) => {
+          reconcileWelcomeUI(syncSaved);
         });
       }
-      if (
-        saved?.lang &&
-        (saved.lang === 'en' || saved.lang === 'es' || saved.lang === 'pt')
-      ) {
-        applyTranslations(saved.lang);
-      }
+    });
+  } else if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
+    chrome.storage.sync.get(['preset', 'lang'], (saved) => {
+      reconcileWelcomeUI(saved);
     });
   }
 

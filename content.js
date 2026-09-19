@@ -196,8 +196,8 @@
     safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
   });
 
-  // Load saved settings from storage
-  chrome.storage.sync.get(null, (saved) => {
+  // Load saved settings from storage with local priority and sync fallback
+  const applyLoadedSettings = (saved) => {
     if (saved && Object.keys(saved).length > 0) {
       currentSettings = { ...currentSettings, ...saved };
       try {
@@ -208,11 +208,31 @@
       } catch (_) {}
     }
     syncAllModules();
-  });
+  };
+
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    chrome.storage.local.get(null, (localSaved) => {
+      if (localSaved && Object.keys(localSaved).length > 0) {
+        applyLoadedSettings(localSaved);
+      } else if (chrome.storage?.sync) {
+        chrome.storage.sync.get(null, (syncSaved) => {
+          applyLoadedSettings(syncSaved);
+        });
+      } else {
+        syncAllModules();
+      }
+    });
+  } else if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
+    chrome.storage.sync.get(null, (syncSaved) => {
+      applyLoadedSettings(syncSaved);
+    });
+  } else {
+    syncAllModules();
+  }
 
   // Listen for storage changes in real time with granular key diffing
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName === 'sync') {
+    if (areaName === 'local' || areaName === 'sync') {
       let stylesChanged = false;
       let dislikesChanged = false;
       let titleChanged = false;

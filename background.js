@@ -42,19 +42,55 @@ async function injectYouTubeTabs() {
   } catch (_) {}
 }
 
+chrome.runtime.onStartup.addListener(async () => {
+  // 1. Ensure local storage integrity and cross-storage migration on browser launch
+  if (chrome.storage?.local) {
+    chrome.storage.local.get(null, (localSaved) => {
+      if (!localSaved || Object.keys(localSaved).length === 0) {
+        if (chrome.storage?.sync) {
+          chrome.storage.sync.get(null, (syncSaved) => {
+            if (syncSaved && Object.keys(syncSaved).length > 0) {
+              chrome.storage.local.set(syncSaved);
+            } else {
+              chrome.storage.local.set(DEFAULT_SETTINGS);
+              chrome.storage.sync.set(DEFAULT_SETTINGS, () => {
+                if (chrome.runtime?.lastError) {
+                }
+              });
+            }
+          });
+        } else {
+          chrome.storage.local.set(DEFAULT_SETTINGS);
+        }
+      }
+    });
+  }
+
+  // 2. Programmatically inject content scripts into restored YouTube tabs
+  await injectYouTubeTabs();
+});
+
 chrome.runtime.onInstalled.addListener(async (details) => {
-  chrome.storage.sync.get(null, (saved) => {
+  const syncStorage = (saved) => {
     if (!saved || Object.keys(saved).length === 0) {
-      chrome.storage.sync.set(DEFAULT_SETTINGS);
+      if (chrome.storage?.local) chrome.storage.local.set(DEFAULT_SETTINGS);
+      if (chrome.storage?.sync) {
+        chrome.storage.sync.set(DEFAULT_SETTINGS, () => {
+          if (chrome.runtime?.lastError) {
+          }
+        });
+      }
       return;
     }
     const currentPreset = saved.preset || 'basic';
     const presetTemplate =
-      typeof PRESET_MAP !== 'undefined' && PRESET_MAP[currentPreset]
-        ? extractToggles(PRESET_MAP[currentPreset])
-        : typeof PRESET_MAP !== 'undefined' && PRESET_MAP.basic
-          ? extractToggles(PRESET_MAP.basic)
-          : {};
+      currentPreset === 'custom'
+        ? {}
+        : typeof PRESET_MAP !== 'undefined' && PRESET_MAP[currentPreset]
+          ? extractToggles(PRESET_MAP[currentPreset])
+          : typeof PRESET_MAP !== 'undefined' && PRESET_MAP.basic
+            ? extractToggles(PRESET_MAP.basic)
+            : {};
     const merged = {
       ...DEFAULT_SETTINGS,
       ...presetTemplate,
@@ -64,8 +100,32 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       ...DEFAULT_SETTINGS.profiles,
       ...(saved.profiles || {}),
     };
-    chrome.storage.sync.set(merged);
-  });
+    if (chrome.storage?.local) chrome.storage.local.set(merged);
+    if (chrome.storage?.sync) {
+      chrome.storage.sync.set(merged, () => {
+        if (chrome.runtime?.lastError) {
+        }
+      });
+    }
+  };
+
+  if (chrome.storage?.local) {
+    chrome.storage.local.get(null, (localSaved) => {
+      if (localSaved && Object.keys(localSaved).length > 0) {
+        syncStorage(localSaved);
+      } else if (chrome.storage?.sync) {
+        chrome.storage.sync.get(null, (syncSaved) => {
+          syncStorage(syncSaved);
+        });
+      } else {
+        syncStorage(null);
+      }
+    });
+  } else if (chrome.storage?.sync) {
+    chrome.storage.sync.get(null, (syncSaved) => {
+      syncStorage(syncSaved);
+    });
+  }
 
   if (details?.reason === 'install') {
     // 1. Open onboarding welcome page strictly once upon first install

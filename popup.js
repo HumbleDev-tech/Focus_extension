@@ -280,90 +280,136 @@ document.addEventListener('DOMContentLoaded', () => {
   applyThemeAndScale();
   renderUI();
 
-  // Load state from chrome.storage.sync and reconcile
-  chrome.storage.sync.get(null, (saved) => {
-    if (saved && Object.keys(saved).length > 0) {
-      const loadedProfiles = {};
-      if (saved.profiles && typeof saved.profiles === 'object') {
-        Object.keys(saved.profiles).forEach((pId) => {
-          const pData = saved.profiles[pId];
-          if (pData && typeof pData === 'object' && pData.name) {
-            loadedProfiles[pId] = {
-              id: pId,
-              name: pData.name,
-              nameKey: pData.nameKey,
-              isCustomName: pData.isCustomName !== false,
-              preset: pData.preset || 'custom',
-              toggles: { ...(pData.toggles || {}) },
-            };
-          }
-        });
-      }
-
-      const profKeys = Object.keys(loadedProfiles);
-      const activeProf =
-        saved.activeProfile && loadedProfiles[saved.activeProfile]
-          ? saved.activeProfile
-          : profKeys.length > 0
-            ? profKeys[0]
-            : null;
-
-      state = {
-        ...DEFAULT_SETTINGS,
-        ...saved,
-        activeProfile: activeProf,
-        profiles: loadedProfiles,
-      };
-
-      if (state.activeProfile && state.profiles[state.activeProfile]) {
-        const activeToggles =
-          state.profiles[state.activeProfile]?.toggles || {};
-        ALL_TOGGLE_KEYS.forEach((k) => {
-          if (activeToggles[k] !== undefined) {
-            state[k] = !!activeToggles[k];
-          } else if (saved[k] !== undefined) {
-            state[k] = !!saved[k];
-          } else if (DEFAULT_SETTINGS[k] !== undefined) {
-            state[k] = DEFAULT_SETTINGS[k];
-          }
-        });
-        state.preset = state.profiles[state.activeProfile]?.preset || 'basic';
-      } else {
-        state.preset = saved.preset || 'basic';
-        ALL_TOGGLE_KEYS.forEach((k) => {
-          if (saved[k] !== undefined) {
-            state[k] = !!saved[k];
-          } else if (PRESET_MAP[state.preset]?.[k] !== undefined) {
-            state[k] = !!PRESET_MAP[state.preset][k];
-          }
-        });
-      }
-
-      if (!state.lang) state.lang = 'auto';
-      if (!state.theme) state.theme = 'auto';
-      const VALID_SCALES = ['auto', '100', '120', '140'];
-      if (state.scale === '115') {
-        state.scale = '120';
-      } else if (state.scale === '125') {
-        state.scale = '140';
-      } else if (!VALID_SCALES.includes(state.scale)) {
-        state.scale = 'auto';
-      }
-      let savedTab = 'focus';
-      try {
-        savedTab = localStorage.getItem('libertad_active_tab') || 'focus';
-      } catch (_) {}
-      state.activeTab = savedTab;
-
-      try {
-        const snapshot = { ...state };
-        delete snapshot.activeTab;
-        localStorage.setItem('libertad_popup_state', JSON.stringify(snapshot));
-      } catch (_) {}
+  // Reconcile and apply settings from storage
+  function reconcileStateWithSaved(saved) {
+    if (!saved || Object.keys(saved).length === 0) {
+      applyThemeAndScale();
+      renderUI();
+      return;
     }
+    const loadedProfiles = {};
+    if (saved.profiles && typeof saved.profiles === 'object') {
+      Object.keys(saved.profiles).forEach((pId) => {
+        const pData = saved.profiles[pId];
+        if (pData && typeof pData === 'object' && pData.name) {
+          loadedProfiles[pId] = {
+            id: pId,
+            name: pData.name,
+            nameKey: pData.nameKey,
+            isCustomName: pData.isCustomName !== false,
+            preset: pData.preset || 'custom',
+            toggles: { ...(pData.toggles || {}) },
+          };
+        }
+      });
+    }
+
+    // Do NOT hijack activeProfile if saved.activeProfile is null or unset
+    const activeProf =
+      saved.activeProfile && loadedProfiles[saved.activeProfile]
+        ? saved.activeProfile
+        : null;
+
+    state = {
+      ...DEFAULT_SETTINGS,
+      ...saved,
+      activeProfile: activeProf,
+      profiles: loadedProfiles,
+    };
+
+    if (state.activeProfile && state.profiles[state.activeProfile]) {
+      const activeToggles = state.profiles[state.activeProfile]?.toggles || {};
+      ALL_TOGGLE_KEYS.forEach((k) => {
+        if (activeToggles[k] !== undefined) {
+          state[k] = !!activeToggles[k];
+        } else if (saved[k] !== undefined) {
+          state[k] = !!saved[k];
+        } else if (DEFAULT_SETTINGS[k] !== undefined) {
+          state[k] = DEFAULT_SETTINGS[k];
+        }
+      });
+      state.preset = state.profiles[state.activeProfile]?.preset || 'basic';
+    } else {
+      state.preset = saved.preset || 'basic';
+      ALL_TOGGLE_KEYS.forEach((k) => {
+        if (saved[k] !== undefined) {
+          state[k] = !!saved[k];
+        } else if (PRESET_MAP[state.preset]?.[k] !== undefined) {
+          state[k] = !!PRESET_MAP[state.preset][k];
+        }
+      });
+    }
+
+    if (!state.lang) state.lang = 'auto';
+    if (!state.theme) state.theme = 'auto';
+    const VALID_SCALES = ['auto', '100', '120', '140'];
+    if (state.scale === '115') {
+      state.scale = '120';
+    } else if (state.scale === '125') {
+      state.scale = '140';
+    } else if (!VALID_SCALES.includes(state.scale)) {
+      state.scale = 'auto';
+    }
+    let savedTab = 'focus';
+    try {
+      savedTab = localStorage.getItem('libertad_active_tab') || 'focus';
+    } catch (_) {}
+    state.activeTab = savedTab;
+
+    try {
+      const snapshot = { ...state };
+      delete snapshot.activeTab;
+      localStorage.setItem('libertad_popup_state', JSON.stringify(snapshot));
+    } catch (_) {}
+
     applyThemeAndScale();
     renderUI();
-  });
+  }
+
+  // Load state prioritizing local on-disk storage with sync fallback & cross-sync
+  function loadPersistedState() {
+    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+      chrome.storage.local.get(null, (localSaved) => {
+        if (localSaved && Object.keys(localSaved).length > 0) {
+          reconcileStateWithSaved(localSaved);
+          // Mirror to sync if sync is empty or missing data
+          if (chrome.storage?.sync) {
+            chrome.storage.sync.get(null, (syncSaved) => {
+              if (!syncSaved || Object.keys(syncSaved).length === 0) {
+                chrome.storage.sync.set(localSaved, () => {
+                  if (chrome.runtime?.lastError) {
+                  }
+                });
+              }
+            });
+          }
+        } else if (chrome.storage?.sync) {
+          // Fallback migration from sync
+          chrome.storage.sync.get(null, (syncSaved) => {
+            if (syncSaved && Object.keys(syncSaved).length > 0) {
+              chrome.storage.local.set(syncSaved, () => {});
+              reconcileStateWithSaved(syncSaved);
+            } else {
+              applyThemeAndScale();
+              renderUI();
+            }
+          });
+        } else {
+          applyThemeAndScale();
+          renderUI();
+        }
+      });
+    } else if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
+      chrome.storage.sync.get(null, (syncSaved) => {
+        reconcileStateWithSaved(syncSaved);
+      });
+    } else {
+      applyThemeAndScale();
+      renderUI();
+    }
+  }
+
+  loadPersistedState();
 
   // Apply visual theme and UI zoom to root
   function applyThemeAndScale() {
@@ -644,7 +690,17 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('libertad_popup_state', JSON.stringify(snapshot));
       } catch (_) {}
       renderUI();
-      chrome.storage.sync.set(partialPatch);
+      if (typeof chrome !== 'undefined') {
+        if (chrome.storage?.local) {
+          chrome.storage.local.set(partialPatch);
+        }
+        if (chrome.storage?.sync) {
+          chrome.storage.sync.set(partialPatch, () => {
+            if (chrome.runtime?.lastError) {
+            }
+          });
+        }
+      }
       return;
     }
     const syncPayload = { ...state };
@@ -653,7 +709,17 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('libertad_popup_state', JSON.stringify(syncPayload));
     } catch (_) {}
     renderUI();
-    chrome.storage.sync.set(syncPayload);
+    if (typeof chrome !== 'undefined') {
+      if (chrome.storage?.local) {
+        chrome.storage.local.set(syncPayload);
+      }
+      if (chrome.storage?.sync) {
+        chrome.storage.sync.set(syncPayload, () => {
+          if (chrome.runtime?.lastError) {
+          }
+        });
+      }
+    }
   }
 
   // Settings Drawer toggle button
@@ -757,7 +823,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (state.activeProfile && !state.profiles[state.activeProfile]) {
-      state.activeProfile = profileIds.length > 0 ? profileIds[0] : null;
+      state.activeProfile = null;
     }
 
     if (!profileTrack) return;
@@ -1534,6 +1600,28 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.tabs.create({ url: 'https://www.youtube.com' });
       } else {
         window.open('https://www.youtube.com', '_blank');
+      }
+    });
+  }
+
+  // Real-time synchronization if settings are modified by other contexts
+  if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName === 'local' || areaName === 'sync') {
+        let hasRelevantChange = false;
+        for (const [k, change] of Object.entries(changes)) {
+          if (
+            change &&
+            change.newValue !== undefined &&
+            state[k] !== change.newValue
+          ) {
+            hasRelevantChange = true;
+            break;
+          }
+        }
+        if (hasRelevantChange) {
+          loadPersistedState();
+        }
       }
     });
   }
