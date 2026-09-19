@@ -1234,6 +1234,25 @@ globalThis.Libertad = globalThis.Libertad || {};
     return rules.join('\n');
   }
 
+  let cachedStylesheetKey = '';
+  let cachedStylesheetCss = '';
+  let lastZenTargetContainer = null;
+
+  function getStylesheetKey(settings) {
+    if (!settings || typeof settings !== 'object') return '';
+    let key = `${settings.theme || 'auto'}_${settings.scale || 'auto'}_${settings.lang || 'auto'}|`;
+    const keysToTrack =
+      typeof ALL_TOGGLE_KEYS !== 'undefined' && Array.isArray(ALL_TOGGLE_KEYS)
+        ? ALL_TOGGLE_KEYS
+        : typeof TOGGLE_KEYS !== 'undefined' && Array.isArray(TOGGLE_KEYS)
+          ? TOGGLE_KEYS
+          : Object.keys(settings);
+    for (let i = 0; i < keysToTrack.length; i++) {
+      key += settings[keysToTrack[i]] ? '1' : '0';
+    }
+    return key;
+  }
+
   // Inject or update the active stylesheet (avoids re-parsing if CSS is unchanged)
   function applyStyles(settings) {
     let styleEl = document.getElementById(STYLE_ID);
@@ -1242,9 +1261,15 @@ globalThis.Libertad = globalThis.Libertad || {};
       styleEl.id = STYLE_ID;
       (document.head || document.documentElement).appendChild(styleEl);
     }
-    const newCss = buildStylesheet(settings);
-    if (styleEl.textContent !== newCss) {
-      styleEl.textContent = newCss;
+    const currentKey = getStylesheetKey(settings);
+    if (currentKey !== cachedStylesheetKey || !cachedStylesheetCss) {
+      cachedStylesheetCss = buildStylesheet(settings);
+      cachedStylesheetKey = currentKey;
+      if (styleEl.textContent !== cachedStylesheetCss) {
+        styleEl.textContent = cachedStylesheetCss;
+      }
+    } else if (styleEl.textContent !== cachedStylesheetCss) {
+      styleEl.textContent = cachedStylesheetCss;
     }
     updateZenBanner(settings);
     cleanLiveChat(settings);
@@ -1265,6 +1290,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     // If home is redirected to subscriptions, zen banner is not needed
     if (settings.redirectHomeToSubscriptions && isHomePage) {
+      lastZenTargetContainer = null;
       if (existing) existing.remove();
       return;
     }
@@ -1359,18 +1385,27 @@ globalThis.Libertad = globalThis.Libertad || {};
         </div>
       `;
 
-      const targetContainer =
-        document.querySelector(
-          'ytd-browse[page-subtype="home"]:not([hidden]) #primary',
-        ) ||
-        document.querySelector(
-          'ytd-browse[page-subtype="home"]:not([hidden])',
-        ) ||
-        document.querySelector('ytd-browse:not([hidden]) #primary') ||
-        document.querySelector('ytd-browse[page-subtype="home"] #primary') ||
-        document.querySelector('ytd-browse #primary') ||
-        document.querySelector('ytd-browse[page-subtype="home"]') ||
-        document.querySelector('ytd-browse');
+      let targetContainer = lastZenTargetContainer?.isConnected
+        ? lastZenTargetContainer
+        : null;
+
+      if (!targetContainer) {
+        targetContainer =
+          document.querySelector(
+            'ytd-browse[page-subtype="home"]:not([hidden]) #primary',
+          ) ||
+          document.querySelector(
+            'ytd-browse[page-subtype="home"]:not([hidden])',
+          ) ||
+          document.querySelector('ytd-browse:not([hidden]) #primary') ||
+          document.querySelector('ytd-browse[page-subtype="home"] #primary') ||
+          document.querySelector('ytd-browse #primary') ||
+          document.querySelector('ytd-browse[page-subtype="home"]') ||
+          document.querySelector('ytd-browse');
+        if (targetContainer) {
+          lastZenTargetContainer = targetContainer;
+        }
+      }
 
       if (!targetContainer) {
         return;
@@ -1393,6 +1428,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         targetContainer.prepend(zen);
       }
     } else {
+      lastZenTargetContainer = null;
       if (existing) {
         existing.remove();
       }

@@ -463,7 +463,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   function pruneDisconnectedObservedNodes() {
-    if (observedTitleNodesByVideoId.size < 40) return;
+    if (observedTitleNodesByVideoId.size < 20) return;
     for (const [vId, set] of observedTitleNodesByVideoId.entries()) {
       for (const node of set) {
         if (!node.isConnected) {
@@ -590,6 +590,14 @@ globalThis.Libertad = globalThis.Libertad || {};
     const titleNodes = getAllVideoTitleNodes();
     for (let i = 0; i < titleNodes.length; i++) {
       const node = titleNodes[i];
+      const appliedId = node.dataset.libertadApplied;
+      if (appliedId) {
+        const directAnchor = node.tagName === 'A' ? node : node.closest('a');
+        if (directAnchor?.href?.includes(appliedId)) {
+          continue;
+        }
+      }
+
       const videoId = extractVideoId(node);
       if (!videoId) continue;
 

@@ -245,6 +245,21 @@ document.addEventListener('DOMContentLoaded', () => {
     profiles: {},
   };
 
+  // Synchronous cache hydration from localStorage for 0ms instantaneous render
+  try {
+    const cachedPopupState = localStorage.getItem('libertad_popup_state');
+    if (cachedPopupState) {
+      const parsed = JSON.parse(cachedPopupState);
+      if (parsed && typeof parsed === 'object') {
+        state = { ...state, ...parsed };
+      }
+    }
+    const savedTab = localStorage.getItem('libertad_active_tab');
+    if (savedTab && tabPanels[savedTab]) {
+      state.activeTab = savedTab;
+    }
+  } catch (_) {}
+
   function getEffectiveLang() {
     return !state.lang || state.lang === 'auto'
       ? detectSystemLang()
@@ -259,7 +274,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return key;
   }
 
-  // Load state from chrome.storage.sync
+  // Instant zero-latency render before storage.sync finishes
+  applyThemeAndScale();
+  renderUI();
+
+  // Load state from chrome.storage.sync and reconcile
   chrome.storage.sync.get(null, (saved) => {
     if (saved && Object.keys(saved).length > 0) {
       const loadedProfiles = {};
@@ -333,6 +352,12 @@ document.addEventListener('DOMContentLoaded', () => {
         savedTab = localStorage.getItem('libertad_active_tab') || 'focus';
       } catch (_) {}
       state.activeTab = savedTab;
+
+      try {
+        const snapshot = { ...state };
+        delete snapshot.activeTab;
+        localStorage.setItem('libertad_popup_state', JSON.stringify(snapshot));
+      } catch (_) {}
     }
     applyThemeAndScale();
     renderUI();
@@ -599,19 +624,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Save current state to storage (excluding local popup UI keys)
+  // Save current state to storage (excluding local popup UI keys) with optimistic local caching
   function saveState(partialPatch) {
     if (partialPatch && typeof partialPatch === 'object') {
-      chrome.storage.sync.set(partialPatch, () => {
-        renderUI();
-      });
+      Object.assign(state, partialPatch);
+      try {
+        const snapshot = { ...state };
+        delete snapshot.activeTab;
+        localStorage.setItem('libertad_popup_state', JSON.stringify(snapshot));
+      } catch (_) {}
+      renderUI();
+      chrome.storage.sync.set(partialPatch);
       return;
     }
     const syncPayload = { ...state };
     delete syncPayload.activeTab;
-    chrome.storage.sync.set(syncPayload, () => {
-      renderUI();
-    });
+    try {
+      localStorage.setItem('libertad_popup_state', JSON.stringify(syncPayload));
+    } catch (_) {}
+    renderUI();
+    chrome.storage.sync.set(syncPayload);
   }
 
   // Settings Drawer toggle button

@@ -154,26 +154,6 @@
     );
   }
 
-  // Throttled scroll listener for feed titles
-  let scrollThrottleTimer = null;
-  window.addEventListener(
-    'scroll',
-    () => {
-      if (scrollThrottleTimer) return;
-      scrollThrottleTimer = setTimeout(() => {
-        scrollThrottleTimer = null;
-        if (
-          currentSettings.untranslateMaster !== false &&
-          currentSettings.untranslateTitles !== false &&
-          Libertad.untranslateFeed
-        ) {
-          Libertad.untranslateFeed(currentSettings);
-        }
-      }, 250);
-    },
-    { passive: true },
-  );
-
   // Initial load and DOMContentLoaded events
   document.addEventListener('DOMContentLoaded', () => {
     safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);

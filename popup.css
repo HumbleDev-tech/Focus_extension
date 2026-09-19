@@ -1121,6 +1121,7 @@ button:focus-visible {
   overflow-y: auto;
   overflow-x: hidden;
   padding: calc(8px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  contain: content;
   animation: tabFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
