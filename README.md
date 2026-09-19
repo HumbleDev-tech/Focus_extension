@@ -88,7 +88,8 @@ Whenever you fine-tune switches to your liking, save your configuration with **`
 | **Header (Voice Mic, Create, Bell)** | Shown | Shown | **Hidden** | **Hidden** |
 | **Search Suggestions & Filter Chips** | Shown | Shown | Shown | **Hidden** |
 | **Player Overlays & Watermarks** | Shown | **Hidden** | **Hidden** | **Hidden** |
-| **Autoplay & Miniplayer** | Shown | Shown | **Hidden** | **Hidden** |
+| **Autoplay, Miniplayer & Play on TV** | Shown | Shown | **Hidden** | **Hidden** |
+| **Subtitles / Closed Captions (CC)** | Shown | Shown | Shown | **Hidden** |
 | **Promotional (Ask AI, Download, Merch)** | Shown | **Hidden** | **Hidden** | **Hidden** |
 | **Monetization (Join, Thanks, Clips)** | Shown | Shown | **Hidden** | **Hidden** |
 | **Social Actions (Share, Save, 3-Dots)** | Shown | Shown | Shown | **Hidden** |
@@ -112,7 +113,7 @@ Macro blockers for YouTube's biggest time sinks:
 * **Auto-Centered Watch Player:** Hiding the recommended sidebar automatically centers the video player on your screen (`max-width: 1100px; margin: 0 auto;`), creating an immersive, cinema-like experience.
 * **Shorts Eradication & Smart Redirect:**
   * Hides Shorts carousels, navigation links, and channel tabs.
-  * **Smart Redirect Engine:** If you click or paste a `/shorts/VIDEO_ID` URL, Libertad automatically loads it inside the standard desktop player (`/watch?v=VIDEO_ID`), giving you back timeline scrubbing, speed modifiers, theater mode, and normal playback controls.
+  * **Smart Redirect Engine:** If you click or paste a `/shorts/VIDEO_ID` URL, Libertad automatically loads it inside the standard desktop player (`/watch?v=VIDEO_ID`), giving you back timeline scrubbing, speed modifiers, theater mode, and normal playback controls. Preserves timestamps (`?t=`), playlist context (`?list=`), and hash anchors (`#`).
 * **No More End-Screen Clutter:** Blocks floating video cards and pop-up teasers right as a video is ending.
 * **Comments Toggle:** Turn off the comments stream whenever you want to absorb content without getting pulled into debate sections.
 
@@ -120,13 +121,13 @@ Macro blockers for YouTube's biggest time sinks:
 
 ### 2. UI Cleaner
 
-A modular grid of 25 toggles across 4 clear categories to remove visual noise:
+A modular grid of 28 granular toggles across 5 clear categories to remove visual noise:
 
-* **Header & Search:** Hide the voice search microphone, the "+" Create button, the notifications bell, autocomplete suggestions, and feed filter topic chips.
-* **Player & Overlays:** Hide the autoplay switch, the up-next countdown overlay, channel watermarks in the bottom corner, "Includes paid promotion" banners, and the miniplayer button.
-* **Action Buttons:** Strip clutter from the action bar: hide Ask AI, Download, Thanks, Clips, Join/Membership, Share, Save to playlist, and the 3-dots overflow menu.
-* **Metrics & Social Counters:** Hide like/dislike buttons and counts, the subscribe button, channel subscriber counts, and view/date counts.
-* **Feeds & Navigation:** Hide merch and shopping carousels, live stream chat boxes, trending/explore links, and "More from YouTube" sidebar links.
+* **Header & Search:** Hide the voice search microphone, the "+" Create button, notifications bell, autocomplete suggestions, and feed filter topic chips.
+* **Player & Overlays:** Hide the autoplay switch, the up-next countdown overlay, channel watermarks, "Includes paid promotion" badges, the miniplayer button, **Play on TV** (Cast/Remote buttons and overlays), and **Subtitles** (Closed Captions / CC button and caption overlays).
+* **Action Buttons:** Strip clutter from the action bar: hide Ask AI, Download, Thanks & Clips, Join/Membership, Share, Save to playlist, and the 3-dots overflow menu.
+* **Metrics & Social Counters:** Hide the Like/Dislike button group, subscribe button, channel subscriber counts, and view/date counts.
+* **Feeds & Navigation:** Hide merch and shopping shelves, live stream chat and chat replays (with automatic Polymer player expansion), explore/trending links, and "More from YouTube" sidebar links.
 
 ---
 
@@ -134,10 +135,10 @@ A modular grid of 25 toggles across 4 clear categories to remove visual noise:
 
 Community-powered utilities built right into the extension:
 
-#### 🟢 Restore Public Dislikes
+#### Restore Public Dislikes
 Integrates with the public [Return YouTube Dislike API](https://returnyoutubedislikeapi.com) to bring back dislike counts next to the thumbs-down button, formatted cleanly for your locale (`1.2K`, `50M`).
 
-#### ⚡ Smart SponsorBlock Integration
+#### Smart SponsorBlock Integration
 Skips sponsored segments, intros, and reminders using community data from [SponsorBlock](https://sponsor.ajay.app):
 
 * **Color-Coded Timeline:** Visual markers directly on YouTube's player bar showing where segments start and end (Green for Sponsors, Yellow for Self-promo, Purple for Interaction, Cyan for Intros, Blue for Outros, Orange for Non-music segments).
@@ -146,7 +147,7 @@ Skips sponsored segments, intros, and reminders using community data from [Spons
 * **Interactive Undo Button:** Want to see what was skipped? Hit **"UNSKIP" / "DESHACER"** on the toast to jump right back.
 * **Smart Rewind Detection:** Prefer using your keyboard or mouse? If you manually scrub back into a skipped segment (using <kbd>J</kbd> or arrow keys), Libertad notices the rewind, cancels the skip, and lets you watch uninterrupted. If you rewind further back, it re-arms the skip automatically.
 
-#### 🎙️ Untranslate & Anti-AI Dubbing Suite
+#### Untranslate & Anti-AI Dubbing Suite
 Ever get annoyed when YouTube forces an unnatural synthetic AI voiceover on an international video, or translates video titles into awkward clickbait?
 
 * **Anti-AI Dubbing:** Runs an isolated agent in YouTube's page context that inspects internal player audio tracks across 15+ languages and automatically switches playback back to the creator's authentic, original voice.
@@ -208,9 +209,15 @@ flowchart TD
     Worker <-->|REST APIs| External["SponsorBlock API / Dislikes API / oEmbed"]
 ```
 
-* **Dual-Layer Caching:** Implements an in-memory L1 cache and an L2 `chrome.storage.session` cache so fetched metadata survives Service Worker suspensions in Manifest V3.
-* **In-Flight Deduplication:** If multiple cards request data for the same video simultaneously, they share a single pending Promise, preventing duplicate HTTP requests.
+* **Memoized Dynamic Stylesheet (0 ms SPA Cost):** Compiles the dynamic CSS rules into memory with hash fingerprinting (`getStylesheetKey`), reducing recalculation and re-parsing overhead during YouTube SPA navigations to strictly **0 ms**.
+* **Zero-Latency Popup Hydration (Frame 0 Render):** Synchronously hydrates popup state from `localStorage` (`libertad_popup_state`) upon opening, completely eliminating the 30-80 ms layout pop-in / flicker before reconciling with `chrome.storage.sync`, paired with optimistic UI persistence.
+* **Fault Isolation Barriers (`safeRun`):** Each module runs inside a defensive execution boundary so unexpected Polymer DOM shifts or API interruptions in one module can never crash the orchestrator or degrade other features.
+* **CSS Layout Containment (`contain: content`):** Isolates internal DOM layout and style recalculations of each popup panel, preventing unnecessary browser reflows and repaints during tab switching.
+* **Smooth 60fps Feed Processing:** Eliminates continuous scroll event listeners in favor of debounced `MutationObserver` triggers and an O(1) fast-path for processed video nodes, guaranteeing buttery-smooth scrolling without CPU thrashing.
+* **Dual-Layer Background Caching:** Implements an in-memory L1 cache and an L2 `chrome.storage.session` cache so fetched metadata survives Service Worker suspensions in Manifest V3.
+* **In-Flight Request Deduplication:** If multiple cards request data for the same video simultaneously, they share a single pending Promise, preventing duplicate HTTP requests.
 * **Anti-FOUC Startup:** Syncs settings from `sessionStorage` at `document_start` so styles apply before the browser paints, completely eliminating layout flashes.
+* **Extension Context Invalidation Resilience:** Defensive messaging barriers protect background calls against extension reload/update disconnections.
 * **Fast-Path DOM Caching:** Reuses verified DOM elements instead of repeatedly calling `querySelector`.
 
 ---
@@ -311,7 +318,7 @@ Special thanks to the open-source projects that make Libertad possible:
 
 Libertad is 100% free and open-source. If it saves you hours of distraction, helps your studies, or makes YouTube a calmer place to be, buying me a coffee is a great way to support ongoing maintenance:
 
-☕ **[Support on Ko-fi](https://ko-fi.com/humbledevtech)**
+**[Support on Ko-fi](https://ko-fi.com/humbledevtech)**
 
 ---
 
