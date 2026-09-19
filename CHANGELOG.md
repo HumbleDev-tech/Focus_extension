@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1]
+- **Preset-Aware Data Migration:** Resolved a migration flaw where existing users on Balanced or Extreme presets had newly introduced cleaner options (`hidePlayOnTv`, `hideSubtitles`) inadvertently defaulted to false; migration now correctly applies the user's active preset template.
+- **Update Tab Re-injection:** Extended instant programmatic script injection to trigger on extension updates as well as initial installs, preventing `Extension context invalidated` errors on pre-existing YouTube tabs.
+- **Robust Onboarding Language Detection:** Aligned `welcome.js` locale resolution with the popup's hierarchical detection engine (`chrome.i18n.getUILanguage()`, `navigator.languages`, and regional dialect prefixes), ensuring new users always see onboarding in their preferred language.
+- **Persistent Pause Snapshot:** Migrated `libertad_paused_snapshot` storage to `chrome.storage.local` with backward-compatible `localStorage` fallback, guaranteeing custom configurations are preserved across browser session cleanups and sync events.
+
+---
+
 ## [1.3.0]
 - **Streamlined Onboarding Experience:** Added lightweight, trilingual (ES, EN, PT) first-run setup (`welcome.html`) guiding users on pinning the extension and selecting their initial focus preset, launched cleanly only upon first install.
 - **Instant Tab Injection:** Enabled programmatic injection in `background.js` via the `scripting` API to activate content scripts immediately on pre-existing YouTube tabs upon installation, eliminating manual page reloads.
