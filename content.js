@@ -136,6 +136,7 @@
   function syncAllModules() {
     safeRun('applyStyles', Libertad.applyStyles, currentSettings);
     safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
+    safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
     safeRun(
       'redirectShortsIfActive',
       Libertad.redirectShortsIfActive,
@@ -281,6 +282,7 @@
       if (stylesChanged) {
         safeRun('applyStyles', Libertad.applyStyles, currentSettings);
         safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
+        safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
       }
       if (shortsChanged) {
         safeRun(
@@ -433,6 +435,9 @@
       const isHome = currentPath === '/' || currentPath === '';
       if (isHome) {
         safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
+      }
+      if (currentSettings.hideExplore) {
+        safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
       }
 
       if (currentPath === '/watch') {

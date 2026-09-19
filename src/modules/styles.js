@@ -771,25 +771,61 @@ globalThis.Libertad = globalThis.Libertad || {};
     // Left Drawer Explore Section
     if (settings.hideExplore) {
       rules.push(`
-        /* Full Explore Section in Navigation Drawer (Strictly guarded against Subscriptions) */
-        ytd-guide-section-renderer:has(a[href*="/feed/explore"]):not(:has(a[href*="/feed/subscriptions"])),
-        ytd-guide-section-renderer:has(a[href*="/feed/courses_destination"]):not(:has(a[href*="/feed/subscriptions"])),
-        ytd-guide-section-renderer:has(#guide-section-title[title*="Explor" i]):not(:has(a[href*="/feed/subscriptions"])),
-        ytd-guide-section-renderer:has(#guide-section-title[aria-label*="Explor" i]):not(:has(a[href*="/feed/subscriptions"])),
-        ytd-guide-section-renderer:has(#guide-section-title yt-formatted-string[title*="Explor" i]):not(:has(a[href*="/feed/subscriptions"])),
-        ytd-guide-section-renderer:has(#guide-section-title yt-formatted-string[aria-label*="Explor" i]):not(:has(a[href*="/feed/subscriptions"])),
+        /* Full Explore Section in Navigation Drawer (Language-Independent & Multi-Variant) */
+        ytd-guide-section-renderer:has(a[href*="/feed/trending"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
+        ytd-guide-section-renderer:has(a[href*="/gaming"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
+        ytd-guide-section-renderer:has(a[href*="/podcasts"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
+        ytd-guide-section-renderer:has(a[href*="/feed/storefront"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
+        ytd-guide-section-renderer:has(a[href*="/feed/courses_destination"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
+        ytd-guide-section-renderer:has(a[href*="/feed/explore"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
+        ytd-guide-section-renderer:has(a[href*="/channel/UCEgdi0XIXXZ-qJOFPf4JSKw"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
+        ytd-guide-section-renderer:has(a[href*="/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
+        ytd-guide-section-renderer:has(a[href*="/channel/UCYfdidRxbB8Qhf0Nx7ioOYw"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
+        ytd-guide-section-renderer:has(a[href*="/channel/UC1x8rV_f-2yPpzlN0JWZXIQ"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
+        ytd-guide-section-renderer:has(a[href*="/channel/UC4R8F_QCY98548AqZ6dNXGQ"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
+        ytd-guide-section-renderer:has(a[href*="/channel/UCOpNcN46UbXVtpKMrmU4Abg"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
+        ytd-guide-section-renderer[data-libertad-explore="true"],
+
+        /* Individual Explore Entries in Guide */
         ytd-guide-entry-renderer:has(a[href*="/feed/explore"]),
+        ytd-guide-entry-renderer:has(a[href*="/feed/trending"]),
+        ytd-guide-entry-renderer:has(a[href*="/gaming"]),
+        ytd-guide-entry-renderer:has(a[href*="/podcasts"]),
+        ytd-guide-entry-renderer:has(a[href*="/feed/podcasts"]),
+        ytd-guide-entry-renderer:has(a[href*="/feed/storefront"]),
         ytd-guide-entry-renderer:has(a[href*="/feed/courses_destination"]),
+        ytd-guide-entry-renderer:has(a[href*="/channel/UCEgdi0XIXXZ-qJOFPf4JSKw"]),
+        ytd-guide-entry-renderer:has(a[href*="/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ"]),
+        ytd-guide-entry-renderer:has(a[href*="/channel/UCYfdidRxbB8Qhf0Nx7ioOYw"]),
+        ytd-guide-entry-renderer:has(a[href*="/channel/UC1x8rV_f-2yPpzlN0JWZXIQ"]),
+        ytd-guide-entry-renderer:has(a[href*="/channel/UC4R8F_QCY98548AqZ6dNXGQ"]),
+        ytd-guide-entry-renderer:has(a[href*="/channel/UCOpNcN46UbXVtpKMrmU4Abg"]),
 
         /* Mini Guide Explore Entries */
         ytd-mini-guide-entry-renderer:has(a[href*="/feed/explore"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/feed/trending"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/gaming"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/podcasts"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/feed/podcasts"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/feed/storefront"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/feed/courses_destination"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/channel/UCEgdi0XIXXZ-qJOFPf4JSKw"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/channel/UCYfdidRxbB8Qhf0Nx7ioOYw"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/channel/UC1x8rV_f-2yPpzlN0JWZXIQ"]),
-        ytd-mini-guide-entry-renderer[aria-label*="Explor" i] {
+        ytd-mini-guide-entry-renderer:has(a[href*="/channel/UC4R8F_QCY98548AqZ6dNXGQ"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/channel/UCOpNcN46UbXVtpKMrmU4Abg"]),
+        ytd-mini-guide-entry-renderer[aria-label*="Explor" i],
+
+        /* Feed Filter Chip Bar & Mobile Explore Items */
+        ytd-feed-filter-chip-bar-renderer yt-chip-cloud-chip-renderer:has(a[href*="/feed/explore"]),
+        ytd-feed-filter-chip-bar-renderer yt-chip-cloud-chip-renderer:has(a[href*="/feed/trending"]),
+        ytd-feed-filter-chip-bar-renderer [aria-label*="Explore" i],
+        ytd-feed-filter-chip-bar-renderer [aria-label*="Explorar" i],
+        yt-chip-cloud-chip-renderer:has([title*="Explore" i]),
+        yt-chip-cloud-chip-renderer:has([title*="Explorar" i]),
+        ytm-pivot-bar-item-renderer:has(a[href*="/feed/explore"]),
+        ytm-pivot-bar-item-renderer:has(a[href*="/feed/trending"]) {
           display: none !important;
         }
       `);
@@ -1387,6 +1423,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
     updateZenBanner(settings);
     cleanLiveChat(settings);
+    cleanExplore(settings);
   }
 
   // Show a calm, intentional screen on YouTube home if home feed is disabled
@@ -1897,9 +1934,55 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
   }
 
+  // Resilient DOM tagger for Explore sidebar section in any language
+  function cleanExplore(settings) {
+    if (!settings?.hideExplore) return;
+    try {
+      const exploreKeywords = [
+        'explore',
+        'explorar',
+        'explorer',
+        'entdecken',
+        'esplora',
+        'verken',
+        'utforska',
+        'oppdag',
+        'odkrywaj',
+        'keşfet',
+      ];
+      const sections = document.querySelectorAll('ytd-guide-section-renderer');
+      for (let i = 0; i < sections.length; i++) {
+        const sec = sections[i];
+        if (sec.getAttribute('data-libertad-explore') === 'true') {
+          sec.style.setProperty('display', 'none', 'important');
+          continue;
+        }
+
+        // Strict guard against Home, Subscriptions, or Library
+        if (
+          sec.querySelector(
+            'a[href="/"], a[href*="/feed/subscriptions"], a[href*="/feed/you"], a[href*="premium"]',
+          )
+        ) {
+          continue;
+        }
+
+        const titleEl = sec.querySelector(
+          '#guide-section-title, yt-formatted-string#title',
+        );
+        const titleText = (titleEl?.textContent || '').trim().toLowerCase();
+        if (exploreKeywords.some((kw) => titleText.startsWith(kw))) {
+          sec.setAttribute('data-libertad-explore', 'true');
+          sec.style.setProperty('display', 'none', 'important');
+        }
+      }
+    } catch (_) {}
+  }
+
   globalThis.Libertad.buildStylesheet = buildStylesheet;
   globalThis.Libertad.applyStyles = applyStyles;
   globalThis.Libertad.updateZenBanner = updateZenBanner;
   globalThis.Libertad.cleanLiveChat = cleanLiveChat;
   globalThis.Libertad.cleanChatReplay = cleanLiveChat;
+  globalThis.Libertad.cleanExplore = cleanExplore;
 })();
