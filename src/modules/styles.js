@@ -807,12 +807,23 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (settings.hideLiveChat) {
       rules.push(`
         #chat,
+        #chat.ytd-watch-flexy,
         #chat-container,
+        #chat-container.ytd-watch-flexy,
+        ytd-watch-flexy #chat,
+        ytd-watch-flexy #chat-container,
+        ytd-watch-flexy[flexy-chat-collapsed_] #chat,
+        ytd-watch-flexy[chat-collapsed] #chat,
+        ytd-watch-flexy[flexy-chat-collapsed_] #chat-container,
+        ytd-watch-flexy[chat-collapsed] #chat-container,
         ytd-live-chat-frame,
+        ytd-live-chat-frame[collapsed],
         iframe#chatframe,
         iframe[src*="live_chat"],
         ytd-live-chat-renderer,
         yt-live-chat-renderer,
+        ytd-engagement-panel-section-list-renderer[target-id*="chat"],
+        ytd-engagement-panel-section-list-renderer[target-id="chat-container"],
         ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-live-chat"],
         ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-live-chat-replay"],
         ytd-engagement-panel-section-list-renderer[target-id*="live-chat"],
@@ -820,7 +831,9 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-engagement-panel-section-list-renderer:has(iframe[src*="live_chat"]),
         ytd-engagement-panel-section-list-renderer:has(ytd-live-chat-frame),
         ytd-engagement-panel-section-list-renderer:has(#chat),
+        ytd-engagement-panel-section-list-renderer:has(#show-hide-button),
         #panels:has(ytd-live-chat-frame),
+        #panels:has([target-id*="chat"]),
         #panels:has([target-id*="live-chat"]),
         #panels:has([target-id*="chat-replay"]),
         #panels:has(iframe[src*="live_chat"]),
@@ -834,16 +847,23 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-item-section-renderer:has(#show-hide-button),
         ytd-item-section-renderer:has(ytd-live-chat-frame),
         ytd-item-section-renderer:has(#chat),
+        ytd-item-section-renderer:has([target-id*="chat"]),
         .ytp-live-chat-button,
+        [target-id="chat-container"],
         [target-id="engagement-panel-live-chat-replay"],
         [target-id="engagement-panel-live-chat"],
         [target-id*="chat-replay"],
+        [target-id*="live-chat"],
+        ytd-button-renderer[target-id*="chat"],
         ytd-button-renderer[target-id*="live-chat"],
         ytd-button-renderer[target-id*="chat-replay"],
+        ytd-button-renderer:has([target-id*="chat"]),
         ytd-button-renderer:has([target-id*="live-chat"]),
         ytd-button-renderer:has([target-id*="chat-replay"]),
+        yt-button-shape:has([target-id*="chat"]),
         yt-button-shape:has([target-id*="live-chat"]),
         yt-button-shape:has([target-id*="chat-replay"]),
+        yt-button-view-model:has([target-id*="chat"]),
         yt-button-view-model:has([target-id*="live-chat"]),
         yt-button-view-model:has([target-id*="chat-replay"]),
         button[aria-label*="live chat" i],
@@ -889,8 +909,57 @@ globalThis.Libertad = globalThis.Libertad || {};
         yt-tab-shape:has([aria-label*="chat replay" i]),
         yt-tab-shape:has([aria-label*="repetición del chat" i]),
         yt-tab-shape:has([aria-label*="chat en vivo" i]),
-        yt-tab-shape:has([aria-label*="chat ao vivo" i]) {
+        yt-tab-shape:has([aria-label*="chat ao vivo" i]),
+
+        /* Live Chat Replay Teaser / Companion Box beside video description */
+        #teaser-carousel:has(yt-text-carousel-item-view-model),
+        #teaser-carousel:has([aria-label*="chat" i]),
+        #teaser-carousel:has([aria-label*="repetición" i]),
+        #teaser-carousel:has([aria-label*="reprise" i]),
+        #teaser-carousel:has(button[aria-label*="chat" i]),
+        #teaser-carousel:has([class*="ytTextCarouselItemViewModel"]),
+        ytd-watch-metadata #teaser-carousel:has(yt-text-carousel-item-view-model),
+        ytd-watch-metadata #teaser-carousel:has([aria-label*="chat" i]),
+        ytd-watch-metadata #teaser-carousel:has([aria-label*="repetición" i]),
+        ytd-watch-metadata #teaser-carousel:has([aria-label*="reprise" i]),
+        watch-metadata-view-model #teaser-carousel:has(yt-text-carousel-item-view-model),
+        watch-metadata-view-model #teaser-carousel:has([aria-label*="chat" i]),
+        watch-metadata-view-model #teaser-carousel:has([aria-label*="repetición" i]),
+        watch-metadata-view-model #teaser-carousel:has([aria-label*="reprise" i]),
+        yt-video-metadata-carousel-view-model[aria-label*="chat" i],
+        yt-video-metadata-carousel-view-model[aria-label*="repetición" i],
+        yt-video-metadata-carousel-view-model[aria-label*="reprise" i],
+        yt-video-metadata-carousel-view-model:has(yt-text-carousel-item-view-model),
+        yt-video-metadata-carousel-view-model:has([aria-label*="chat" i]),
+        yt-video-metadata-carousel-view-model:has([aria-label*="repetición" i]),
+        yt-video-metadata-carousel-view-model:has([aria-label*="reprise" i]),
+        yt-video-metadata-carousel-view-model:has([class*="ytTextCarouselItemViewModel"]),
+        .ytVideoMetadataCarouselViewModelHost[aria-label*="chat" i],
+        .ytVideoMetadataCarouselViewModelHost[aria-label*="repetición" i],
+        .ytVideoMetadataCarouselViewModelHost[aria-label*="reprise" i],
+        .ytVideoMetadataCarouselViewModelHost:has(yt-text-carousel-item-view-model),
+        .ytVideoMetadataCarouselViewModelHost:has([class*="ytTextCarouselItemViewModel"]),
+        yt-carousel-item-view-model:has(yt-text-carousel-item-view-model),
+        yt-carousel-item-view-model:has([aria-label*="chat" i]),
+        yt-carousel-item-view-model:has([aria-label*="repetición" i]),
+        yt-carousel-item-view-model:has([aria-label*="reprise" i]),
+        yt-carousel-item-view-model:has([class*="ytTextCarouselItemViewModel"]),
+        yt-text-carousel-item-view-model,
+        .ytTextCarouselItemViewModelHost {
           display: none !important;
+          height: 0 !important;
+          min-height: 0 !important;
+          max-height: 0 !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          border: none !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+        }
+
+        ytd-watch-flexy:not([theater]) {
+          --ytd-watch-flexy-chat-width: 0px !important;
+          --ytd-watch-flexy-chat-max-height: 0px !important;
         }
 
         /* Auto-expand theater player when live chat is suppressed to eliminate black bars/crop */
@@ -1495,6 +1564,13 @@ globalThis.Libertad = globalThis.Libertad || {};
       for (let i = 0; i < hiddenElements.length; i++) {
         hiddenElements[i].removeAttribute('data-libertad-hidden-chat');
         hiddenElements[i].style.removeProperty('display');
+        hiddenElements[i].style.removeProperty('height');
+        hiddenElements[i].style.removeProperty('min-height');
+        hiddenElements[i].style.removeProperty('max-height');
+        hiddenElements[i].style.removeProperty('margin');
+        hiddenElements[i].style.removeProperty('padding');
+        hiddenElements[i].style.removeProperty('border');
+        hiddenElements[i].style.removeProperty('visibility');
       }
       const checkedElements = document.querySelectorAll(
         '[data-libertad-chat-checked="true"]',
@@ -1523,7 +1599,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       hasPopulatedChat ||
       Boolean(
         document.querySelector(
-          '[target-id*="live-chat"], [target-id*="chat-replay"], .ytp-live-chat-button, ytd-button-renderer[target-id*="chat"], yt-button-view-model:has(button[aria-label*="chat" i])',
+          '[target-id*="live-chat"], [target-id*="chat-replay"], .ytp-live-chat-button, ytd-button-renderer[target-id*="chat"], yt-button-view-model:has(button[aria-label*="chat" i]), #teaser-carousel, yt-video-metadata-carousel-view-model, yt-text-carousel-item-view-model',
         ),
       );
 
@@ -1592,22 +1668,52 @@ globalThis.Libertad = globalThis.Libertad || {};
     // 2. Direct container cleanup
     const directSelectors = [
       '#chat',
+      '#chat.ytd-watch-flexy',
       '#chat-container',
+      '#chat-container.ytd-watch-flexy',
+      'ytd-watch-flexy #chat',
+      'ytd-watch-flexy #chat-container',
+      'ytd-watch-flexy[flexy-chat-collapsed_] #chat',
+      'ytd-watch-flexy[chat-collapsed] #chat',
       'ytd-live-chat-frame',
+      'ytd-live-chat-frame[collapsed]',
       'iframe#chatframe',
+      'iframe[src*="live_chat"]',
       '#show-hide-button',
       'ytd-live-chat-frame #show-hide-button',
       'ytd-button-renderer#show-hide-button',
       'ytd-toggle-button-renderer#show-hide-button',
       '.ytp-live-chat-button',
+      'ytd-item-section-renderer:has(#chat)',
+      'ytd-item-section-renderer:has(ytd-live-chat-frame)',
+      'ytd-item-section-renderer:has(#show-hide-button)',
+      'ytd-item-section-renderer:has([target-id*="chat"])',
+      'ytd-engagement-panel-section-list-renderer[target-id*="chat"]',
+      'ytd-engagement-panel-section-list-renderer[target-id="chat-container"]',
       'ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-live-chat"]',
       'ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-live-chat-replay"]',
       'ytd-engagement-panel-section-list-renderer[target-id*="live-chat"]',
       'ytd-engagement-panel-section-list-renderer[target-id*="chat-replay"]',
+      'ytd-engagement-panel-section-list-renderer:has(#chat)',
+      'ytd-engagement-panel-section-list-renderer:has(ytd-live-chat-frame)',
+      'ytd-engagement-panel-section-list-renderer:has(#show-hide-button)',
+      'ytd-engagement-panel-section-list-renderer:has(iframe[src*="live_chat"])',
+      '[target-id*="chat"]',
+      '[target-id="chat-container"]',
       '[target-id="engagement-panel-live-chat"]',
       '[target-id="engagement-panel-live-chat-replay"]',
       '[target-id*="chat-replay"]',
       '[target-id*="live-chat"]',
+      '#teaser-carousel:has(yt-text-carousel-item-view-model)',
+      '#teaser-carousel:has([aria-label*="chat" i])',
+      '#teaser-carousel:has([aria-label*="repetición" i])',
+      '#teaser-carousel:has([aria-label*="reprise" i])',
+      'yt-video-metadata-carousel-view-model:has(yt-text-carousel-item-view-model)',
+      'yt-video-metadata-carousel-view-model[aria-label*="chat" i]',
+      'yt-video-metadata-carousel-view-model[aria-label*="repetición" i]',
+      'yt-video-metadata-carousel-view-model[aria-label*="reprise" i]',
+      'yt-text-carousel-item-view-model',
+      '.ytTextCarouselItemViewModelHost',
     ];
 
     const directNodes = document.querySelectorAll(directSelectors.join(','));
@@ -1616,6 +1722,56 @@ globalThis.Libertad = globalThis.Libertad || {};
       if (node.getAttribute('data-libertad-hidden-chat') !== 'true') {
         node.setAttribute('data-libertad-hidden-chat', 'true');
         node.style.setProperty('display', 'none', 'important');
+        node.style.setProperty('height', '0px', 'important');
+        node.style.setProperty('min-height', '0px', 'important');
+        node.style.setProperty('max-height', '0px', 'important');
+        node.style.setProperty('margin', '0px', 'important');
+        node.style.setProperty('padding', '0px', 'important');
+        node.style.setProperty('border', 'none', 'important');
+        node.style.setProperty('visibility', 'hidden', 'important');
+        didMutateChat = true;
+      }
+    }
+
+    // 2.1 Teaser and companion carousel cleanup beside video description
+    const teaserCards = document.querySelectorAll(
+      '#teaser-carousel, yt-video-metadata-carousel-view-model, yt-carousel-item-view-model, .ytVideoMetadataCarouselViewModelHost',
+    );
+    for (let i = 0; i < teaserCards.length; i++) {
+      const card = teaserCards[i];
+      if (card.getAttribute('data-libertad-hidden-chat') === 'true') {
+        continue;
+      }
+      const cardText = (card.textContent || '').toLowerCase();
+      const cardAria = (card.getAttribute('aria-label') || '').toLowerCase();
+      const isChatTeaser =
+        Boolean(card.querySelector('yt-text-carousel-item-view-model')) ||
+        cardText.includes('chat replay') ||
+        cardText.includes('repetición del chat') ||
+        cardText.includes('reprise do chat') ||
+        cardText.includes('live chat') ||
+        cardText.includes('see what others said') ||
+        cardText.includes('mira lo que dijeron') ||
+        cardText.includes('veja o que as pessoas disseram') ||
+        cardAria.includes('chat') ||
+        cardAria.includes('repetición') ||
+        cardAria.includes('reprise');
+
+      if (isChatTeaser) {
+        card.setAttribute('data-libertad-hidden-chat', 'true');
+        card.style.setProperty('display', 'none', 'important');
+        card.style.setProperty('height', '0px', 'important');
+        card.style.setProperty('visibility', 'hidden', 'important');
+        const parentCarousel = card.closest('#teaser-carousel');
+        if (
+          parentCarousel &&
+          parentCarousel.getAttribute('data-libertad-hidden-chat') !== 'true'
+        ) {
+          parentCarousel.setAttribute('data-libertad-hidden-chat', 'true');
+          parentCarousel.style.setProperty('display', 'none', 'important');
+          parentCarousel.style.setProperty('height', '0px', 'important');
+          parentCarousel.style.setProperty('visibility', 'hidden', 'important');
+        }
         didMutateChat = true;
       }
     }
