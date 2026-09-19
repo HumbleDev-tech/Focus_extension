@@ -369,24 +369,19 @@
         <h2 class="step-title" id="t_step2Title">Choose your starting focus level</h2>
       </div>
       <div class="preset-grid">
-        <button type="button" class="preset-choice" data-preset="minimal">
-          <span class="preset-name">MINIMAL</span>
-          <span class="preset-summary" id="t_presetMinimal">Essential cleanup. Removes Shorts, end screens, and intrusive clutter.</span>
+        <button type="button" class="preset-choice selected" data-preset="basic">
+          <span class="preset-name">BASIC</span>
+          <span class="preset-summary" id="t_presetBasic">Essential cleanup. Suppresses Shorts, promotional overlays, and end screens.</span>
         </button>
 
-        <button type="button" class="preset-choice selected" data-preset="work">
-          <span class="preset-name">WORK</span>
-          <span class="preset-summary" id="t_presetWork">Balanced focus. Removes home feed, Shorts, and distracting sidebar teasers.</span>
+        <button type="button" class="preset-choice" data-preset="balanced">
+          <span class="preset-name">BALANCED</span>
+          <span class="preset-summary" id="t_presetBalanced">Balanced focus. Suppresses sidebar suggestions, autoplay, and clutter. Comments kept.</span>
         </button>
 
-        <button type="button" class="preset-choice" data-preset="study">
-          <span class="preset-name">STUDY</span>
-          <span class="preset-summary" id="t_presetStudy">Strict discipline. Blocks comments, recommendations, and live chat.</span>
-        </button>
-
-        <button type="button" class="preset-choice" data-preset="zen">
-          <span class="preset-name">ZEN</span>
-          <span class="preset-summary" id="t_presetZen">Pure playback. Complete zero-distraction view centered on the video player.</span>
+        <button type="button" class="preset-choice" data-preset="extreme">
+          <span class="preset-name">EXTREME</span>
+          <span class="preset-summary" id="t_presetExtreme">Zero clutter. Zen home screen, centered player, no comments, live chat, or metrics.</span>
         </button>
       </div>
     </div>
@@ -419,10 +414,9 @@
           pinStep2: '2. Click the Pin Icon',
           pinStep2Desc: 'Find Libertad in the list and click the pin icon so it stays always accessible.',
           step2Title: 'Choose your starting focus level',
-          presetMinimal: 'Essential cleanup. Removes Shorts, end screens, and intrusive clutter.',
-          presetWork: 'Balanced focus. Removes home feed, Shorts, and distracting sidebar teasers.',
-          presetStudy: 'Strict discipline. Blocks comments, recommendations, and live chat.',
-          presetZen: 'Pure playback. Complete zero-distraction view centered on the video player.',
+          presetBasic: 'Essential cleanup. Suppresses Shorts, promotional overlays, and end screens.',
+          presetBalanced: 'Balanced focus. Suppresses sidebar suggestions, autoplay, and clutter. Comments kept.',
+          presetExtreme: 'Zero clutter. Zen home screen, centered player, no comments, live chat, or metrics.',
           launchText: 'Open YouTube',
           footerNote: '100% PRIVATE • ZERO TELEMETRY • MANIFEST V3'
         },
@@ -436,10 +430,9 @@
           pinStep2: '2. Haz clic en el botón de fijar',
           pinStep2Desc: 'Encuentra Libertad en la lista y presiona el icono de fijar para tenerla siempre visible.',
           step2Title: 'Elige tu nivel de enfoque inicial',
-          presetMinimal: 'Limpieza esencial. Oculta Shorts, pantallas finales y elementos invasivos.',
-          presetWork: 'Enfoque balanceado. Oculta feed principal, Shorts y recomendaciones laterales.',
-          presetStudy: 'Disciplina estricta. Bloquea comentarios, recomendaciones y chat en vivo.',
-          presetZen: 'Reproducción pura. Modo ultra limpio enfocado únicamente en el reproductor.',
+          presetBasic: 'Limpieza esencial. Oculta Shorts, anuncios emergentes y pantallas finales.',
+          presetBalanced: 'Enfoque balanceado. Oculta sugerencias laterales, reproducción automática y clutter.',
+          presetExtreme: 'Cero distracciones. Modo Zen en inicio, reproductor centrado, sin comentarios ni métricas.',
           launchText: 'Abrir YouTube',
           footerNote: '100% PRIVADO • CERO TELEMETRÍA • MANIFEST V3'
         },
@@ -453,10 +446,9 @@
           pinStep2: '2. Clique no ícone de fixar',
           pinStep2Desc: 'Encontre o Libertad na lista e fixe-o para tê-lo sempre acessível.',
           step2Title: 'Escolha seu nível de foco inicial',
-          presetMinimal: 'Limpeza essencial. Remove Shorts, telas finais e elementos invasivos.',
-          presetWork: 'Foco equilibrado. Remove feed inicial, Shorts e distrações laterais.',
-          presetStudy: 'Disciplina rigorosa. Bloqueia comentários, recomendações e chat ao vivo.',
-          presetZen: 'Reprodução pura. Visualização limpa centralizada apenas no reprodutor.',
+          presetBasic: 'Limpeza essencial. Oculta Shorts, sobreposições promocionais e telas finais.',
+          presetBalanced: 'Foco equilibrado. Oculta recomendações laterais, reprodução automática e distrações.',
+          presetExtreme: 'Zero distrações. Modo Zen no início, reprodutor centralizado, sem comentários nem métricas.',
           launchText: 'Abrir o YouTube',
           footerNote: '100% PRIVADO • ZERO TELEMETRIA • MANIFEST V3'
         }
@@ -481,9 +473,19 @@
 
       applyTranslations(currentLang);
 
-      document.querySelectorAll('.lang-btn').forEach(btn => {
+      document.querySelectorAll('.lang-btn').forEach((btn) => {
         btn.addEventListener('click', () => {
-          applyTranslations(btn.getAttribute('data-lang'));
+          const chosenLang = btn.getAttribute('data-lang');
+          applyTranslations(chosenLang);
+          if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
+            chrome.storage.sync.set({ lang: chosenLang });
+            try {
+              const raw = localStorage.getItem('libertad_popup_state');
+              const current = raw ? JSON.parse(raw) : {};
+              current.lang = chosenLang;
+              localStorage.setItem('libertad_popup_state', JSON.stringify(current));
+            } catch (_) {}
+          }
         });
       });
 
@@ -497,19 +499,50 @@
           });
           btn.classList.add('selected');
 
-          if (typeof PRESETS !== 'undefined' && PRESETS[presetName] && chrome.storage?.sync) {
+          if (
+            typeof PRESET_MAP !== 'undefined' &&
+            PRESET_MAP[presetName] &&
+            typeof chrome !== 'undefined' &&
+            chrome.storage?.sync
+          ) {
             chrome.storage.sync.get(null, (saved) => {
               const updated = {
-                ...saved,
-                ...PRESETS[presetName],
+                ...(saved || {}),
+                ...PRESET_MAP[presetName],
                 preset: presetName,
-                isOff: false
+                isOff: false,
               };
               chrome.storage.sync.set(updated);
+              try {
+                localStorage.setItem(
+                  'libertad_popup_state',
+                  JSON.stringify(updated),
+                );
+              } catch (_) {}
             });
           }
         });
       });
+
+      // Reconcile initial state with storage if previously configured
+      if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
+        chrome.storage.sync.get(['preset', 'lang'], (saved) => {
+          if (saved?.preset) {
+            presetButtons.forEach((b) => {
+              b.classList.toggle(
+                'selected',
+                b.getAttribute('data-preset') === saved.preset,
+              );
+            });
+          }
+          if (
+            saved?.lang &&
+            (saved.lang === 'en' || saved.lang === 'es' || saved.lang === 'pt')
+          ) {
+            applyTranslations(saved.lang);
+          }
+        });
+      }
 
       // Launch YouTube
       document.getElementById('launchBtn').addEventListener('click', () => {

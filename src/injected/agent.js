@@ -38,6 +38,27 @@
     untranslateCaptions: true,
   };
 
+  // Synchronous cache hydration from sessionStorage for frame 0 state accuracy
+  try {
+    const cached = sessionStorage.getItem('libertad_settings');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && typeof parsed === 'object') {
+        agentSettings.isOff = Boolean(parsed.isOff || parsed.preset === 'off');
+        if (parsed.untranslateMaster !== undefined) {
+          agentSettings.untranslateMaster = parsed.untranslateMaster !== false;
+        }
+        if (parsed.untranslateAudio !== undefined) {
+          agentSettings.untranslateAudio = parsed.untranslateAudio !== false;
+        }
+        if (parsed.untranslateCaptions !== undefined) {
+          agentSettings.untranslateCaptions =
+            parsed.untranslateCaptions !== false;
+        }
+      }
+    }
+  } catch (_) {}
+
   // Synchronize settings from Libertad content script
   window.addEventListener('libertad-agent-settings', (event) => {
     const detail = event?.detail;
@@ -57,6 +78,11 @@
       }
     }
   });
+
+  // Request fresh settings handshake in case content script initialized first
+  try {
+    window.dispatchEvent(new CustomEvent('libertad-agent-ready'));
+  } catch (_) {}
 
   function getPlayer() {
     return (

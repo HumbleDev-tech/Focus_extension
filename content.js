@@ -94,6 +94,11 @@
   }
   broadcastAgentSettings();
 
+  // Listen for agent readiness event from main world
+  window.addEventListener('libertad-agent-ready', () => {
+    broadcastAgentSettings();
+  });
+
   // Resilient execution wrapper: prevents any single module failure from breaking the pipeline
   function safeRun(moduleName, fn, ...args) {
     if (typeof fn !== 'function') return undefined;
@@ -178,6 +183,10 @@
   }
 
   // Initial load and DOMContentLoaded events
+  if (document.readyState !== 'loading') {
+    safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
+    safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
+  }
   document.addEventListener('DOMContentLoaded', () => {
     safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
     safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
