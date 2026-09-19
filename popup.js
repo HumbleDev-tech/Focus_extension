@@ -742,10 +742,7 @@ document.addEventListener('DOMContentLoaded', () => {
         presetTagLabel.setAttribute('data-i18n', 'quickModeLabel');
         presetTagLabel.textContent = t('quickModeLabel');
       }
-      if (saveProfileBtn) {
-        saveProfileBtn.style.display =
-          state.preset === 'custom' ? 'inline-flex' : 'none';
-      }
+      if (saveProfileBtn) saveProfileBtn.style.display = 'inline-flex';
       state.activeProfile = null;
       return;
     }
@@ -756,8 +753,7 @@ document.addEventListener('DOMContentLoaded', () => {
       presetTagLabel.textContent = t('basePresetsLabel');
     }
     if (saveProfileBtn) {
-      saveProfileBtn.style.display =
-        state.preset === 'custom' && count < 3 ? 'inline-flex' : 'none';
+      saveProfileBtn.style.display = 'none';
     }
 
     if (state.activeProfile && !state.profiles[state.activeProfile]) {
