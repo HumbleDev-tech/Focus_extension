@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.3.1]
+## [1.4.0]
 - **Decisive Initial Preset UX:** Set `BALANCED` as the default and clearly badged `RECOMMENDED` (`RECOMENDADO`) in both the welcome onboarding flow and default configuration, ensuring new users immediately experience distraction removal.
 - **Switch Cannibalization Transparency:** When `Direct to Subscriptions` (`redirectHomeSubscriptions`) is active, the `Home Feed` card is visually attenuated and tagged with `[OVERRIDDEN BY REDIRECT]` / `[ANULADO POR REDIRECCIÓN]` to clarify functional priority.
 - **Account Avatar / Profile Picture Removal:** Added a dedicated micro-toggle (`hideAccountAvatar` / `chipAccountAvatar`) under Header & Search to hide the user profile photo button (`#avatar-btn`) from the YouTube top masthead, active in the Extreme preset for complete anonymous Zen mode, restoring the UI Cleaner suite to 28 micro-toggles and 48 total extension controls.
