@@ -12,10 +12,15 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   });
 
   if (details?.reason === 'install') {
-    // 1. Open onboarding welcome page
-    try {
-      chrome.tabs.create({ url: 'welcome.html' });
-    } catch (_) {}
+    // 1. Open onboarding welcome page strictly once
+    chrome.storage.local.get(['hasSeenWelcome'], (res) => {
+      if (!res?.hasSeenWelcome) {
+        chrome.storage.local.set({ hasSeenWelcome: true });
+        try {
+          chrome.tabs.create({ url: 'welcome.html' });
+        } catch (_) {}
+      }
+    });
 
     // 2. Programmatically inject content scripts into already open YouTube tabs
     if (chrome.scripting && chrome.tabs) {
