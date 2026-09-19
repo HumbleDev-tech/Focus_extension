@@ -24,6 +24,11 @@
       launchText: 'Open YouTube',
       footerNote: '100% PRIVATE • ZERO TELEMETRY • MANIFEST V3',
       badgeRecommended: 'RECOMMENDED',
+      linkGithub: 'GitHub',
+      linkIssues: 'Issues',
+      linkChangelog: 'Changelog',
+      linkPrivacy: 'Privacy',
+      linkDonate: 'Support',
     },
     es: {
       welcomeTag: 'INSTALACIÓN COMPLETADA',
@@ -47,6 +52,11 @@
       launchText: 'Abrir YouTube',
       footerNote: '100% PRIVADO • CERO TELEMETRÍA • MANIFEST V3',
       badgeRecommended: 'RECOMENDADO',
+      linkGithub: 'GitHub',
+      linkIssues: 'Reportar Problema',
+      linkChangelog: 'Registro de Cambios',
+      linkPrivacy: 'Privacidad',
+      linkDonate: 'Apoyar',
     },
     pt: {
       welcomeTag: 'CONFIGURAÇÃO CONCLUÍDA',
@@ -70,6 +80,11 @@
       launchText: 'Abrir o YouTube',
       footerNote: '100% PRIVADO • ZERO TELEMETRIA • MANIFEST V3',
       badgeRecommended: 'RECOMENDADO',
+      linkGithub: 'GitHub',
+      linkIssues: 'Relatar Problema',
+      linkChangelog: 'Notas da Versão',
+      linkPrivacy: 'Privacidade',
+      linkDonate: 'Apoiar',
     },
   };
 

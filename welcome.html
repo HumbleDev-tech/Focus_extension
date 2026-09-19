@@ -326,6 +326,50 @@
       color: var(--text-secondary);
       font-family: var(--font-mono);
     }
+
+    /* Welcome Footer Links */
+    .welcome-footer {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-subtle);
+      margin-top: 8px;
+    }
+
+    .welcome-links {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .welcome-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      transition: color 0.15s ease, transform 0.15s ease;
+    }
+
+    .welcome-link:hover {
+      color: var(--accent-primary);
+      transform: translateY(-1px);
+    }
+
+    .welcome-link-sep {
+      color: var(--border-strong);
+      font-size: 10px;
+    }
+
+    .welcome-link-support:hover {
+      color: #f43f5e;
+    }
   </style>
 </head>
 <body>
@@ -421,6 +465,56 @@
       </button>
       <span class="footer-note" id="t_footerNote">100% PRIVATE • ZERO TELEMETRY • MANIFEST V3</span>
     </div>
+
+    <!-- Quick Reference & Community Links -->
+    <footer class="welcome-footer">
+      <div class="welcome-links">
+        <a href="https://github.com/HumbleDev-tech/Focus_extension" target="_blank" rel="noopener noreferrer" class="welcome-link" title="GitHub Repository">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"></path>
+          </svg>
+          <span id="t_linkGithub">GitHub</span>
+        </a>
+        <span class="welcome-link-sep">•</span>
+        <a href="https://github.com/HumbleDev-tech/Focus_extension/issues" target="_blank" rel="noopener noreferrer" class="welcome-link" title="Issues & Bug Reports">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span id="t_linkIssues">Issues</span>
+        </a>
+        <span class="welcome-link-sep">•</span>
+        <a href="https://github.com/HumbleDev-tech/Focus_extension/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" class="welcome-link" title="Changelog & Version Notes">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span id="t_linkChangelog">Changelog</span>
+        </a>
+        <span class="welcome-link-sep">•</span>
+        <a href="https://github.com/HumbleDev-tech/Focus_extension/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer" class="welcome-link" title="Privacy Policy">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <span id="t_linkPrivacy">Privacy</span>
+        </a>
+        <span class="welcome-link-sep">•</span>
+        <a href="https://ko-fi.com/humbledevtech" target="_blank" rel="noopener noreferrer" class="welcome-link welcome-link-support" title="Support on Ko-fi">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+            <line x1="6" y1="1" x2="6" y2="4"></line>
+            <line x1="10" y1="1" x2="10" y2="4"></line>
+            <line x1="14" y1="1" x2="14" y2="4"></line>
+          </svg>
+          <span id="t_linkDonate">Support</span>
+        </a>
+      </div>
+    </footer>
   </main>
 
   <script src="constants.js"></script>
