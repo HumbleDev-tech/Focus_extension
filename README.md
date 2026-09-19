@@ -86,7 +86,7 @@ Whenever you fine-tune switches to your liking, save your configuration with **`
 | **End Screen Cards & Teasers** | Shown | **Hidden** | **Hidden** | **Hidden** |
 | **Comments Stream & Panels** | Shown | Shown | Shown | **Hidden** |
 | **Header (Voice Mic, Create, Bell)** | Shown | Shown | **Hidden** | **Hidden** |
-| **Search Suggestions & Filter Chips** | Shown | Shown | Shown | **Hidden** |
+| **Feed Filter Chips** | Shown | Shown | Shown | **Hidden** |
 | **Player Overlays & Watermarks** | Shown | **Hidden** | **Hidden** | **Hidden** |
 | **Autoplay, Miniplayer & Play on TV** | Shown | Shown | **Hidden** | **Hidden** |
 | **Subtitles / Closed Captions (CC)** | Shown | Shown | Shown | **Hidden** |
@@ -121,9 +121,9 @@ Macro blockers for YouTube's biggest time sinks:
 
 ### 2. UI Cleaner
 
-A modular grid of 28 granular toggles across 5 clear categories to remove visual noise:
+A modular grid of 27 granular toggles across 5 clear categories to remove visual noise:
 
-* **Header & Search:** Hide the voice search microphone, the "+" Create button, notifications bell, autocomplete suggestions, and feed filter topic chips.
+* **Header & Search:** Hide the voice search microphone, the "+" Create button, notifications bell, and feed filter topic chips.
 * **Player & Overlays:** Hide the autoplay switch, the up-next countdown overlay, channel watermarks, "Includes paid promotion" badges, the miniplayer button, **Play on TV** (Cast/Remote buttons and overlays), and **Subtitles** (Closed Captions / CC button and caption overlays).
 * **Action Buttons:** Strip clutter from the action bar: hide Ask AI, Download, Thanks & Clips, Join/Membership, Share, Save to playlist, and the 3-dots overflow menu.
 * **Metrics & Social Counters:** Hide the Like/Dislike button group, subscribe button, channel subscriber counts, and view/date counts.
@@ -249,7 +249,7 @@ Works on any Chromium-based browser (Chrome, Brave, Edge, Opera, Vivaldi, Arc):
 Code formatting, linting, and quality testing:
 
 ```bash
-# Run automated pre-flight parity test suite (48 toggles, 127 i18n keys)
+# Run automated pre-flight parity test suite (47 toggles, 126 i18n keys)
 npm test
 
 # Check formatting and linting

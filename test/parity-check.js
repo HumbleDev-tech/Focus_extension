@@ -23,8 +23,8 @@ function assert(condition, message) {
 console.log('=== RUNNING LIBERTAD PRE-FLIGHT PARITY CHECK ===\n');
 
 // 1. Check Toggle Keys definitions
-assert(Array.isArray(ALL_TOGGLE_KEYS) && ALL_TOGGLE_KEYS.length === 48,
-  `ALL_TOGGLE_KEYS count is 48 (got ${ALL_TOGGLE_KEYS.length})`);
+assert(Array.isArray(ALL_TOGGLE_KEYS) && ALL_TOGGLE_KEYS.length === 47,
+  `ALL_TOGGLE_KEYS count is 47 (got ${ALL_TOGGLE_KEYS.length})`);
 
 // 2. Read Popup HTML and JS
 const popupHtml = fs.readFileSync(path.join(__dirname, '../popup.html'), 'utf8');

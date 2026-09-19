@@ -611,19 +611,6 @@ globalThis.Libertad = globalThis.Libertad || {};
       `);
     }
 
-    // Search Box Autocomplete Suggestions
-    if (settings.hideSearchSuggestions) {
-      rules.push(`
-        .sbdd_b,
-        .sbsb_a,
-        yt-searchbox-suggestions,
-        .gstl_50,
-        ytd-searchbox .sbdd_a {
-          display: none !important;
-        }
-      `);
-    }
-
     // Search and Feed Filter Chips
     if (settings.hideFilterChips) {
       rules.push(`

@@ -98,6 +98,14 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       ...presetTemplate,
       ...saved,
     };
+    // Purge obsolete settings remnants from storage
+    if ('hideSearchSuggestions' in merged) {
+      delete merged.hideSearchSuggestions;
+      if (chrome.storage?.sync)
+        chrome.storage.sync.remove('hideSearchSuggestions');
+      if (chrome.storage?.local)
+        chrome.storage.local.remove('hideSearchSuggestions');
+    }
     merged.profiles = {
       ...DEFAULT_SETTINGS.profiles,
       ...(saved.profiles || {}),
