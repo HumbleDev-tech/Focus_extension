@@ -778,6 +778,17 @@ button:focus-visible {
   border-radius: 4px;
   padding: 2px;
   align-items: stretch;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.profile-track::-webkit-scrollbar {
+  height: 3px;
+}
+
+.profile-track::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 2px;
 }
 
 .profile-btn {
@@ -875,7 +886,9 @@ button:focus-visible {
 }
 
 .profile-btn.active .profile-edit-btn,
-.profile-btn.active .profile-delete-btn {
+.profile-btn.active .profile-delete-btn,
+.profile-btn:hover .profile-edit-btn,
+.profile-btn:hover .profile-delete-btn {
   display: inline-flex;
 }
 

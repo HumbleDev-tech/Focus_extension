@@ -809,12 +809,14 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   }
 
+  const MAX_PROFILES = 6;
+
   function renderProfiles() {
     const profileIds = Object.keys(state.profiles || {});
     const count = profileIds.length;
 
     if (profileCountTag) {
-      profileCountTag.textContent = `${count}/3`;
+      profileCountTag.textContent = `${count}/${MAX_PROFILES}`;
     }
 
     if (count === 0) {
@@ -871,6 +873,10 @@ document.addEventListener('DOMContentLoaded', () => {
       editBtn.type = 'button';
       editBtn.className = 'profile-edit-btn';
       editBtn.setAttribute('title', t('renameTooltip') || 'Rename');
+      editBtn.setAttribute(
+        'aria-label',
+        `${t('renameTooltip') || 'Rename'} ${displayName}`,
+      );
       editBtn.innerHTML = `
         <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
@@ -881,6 +887,10 @@ document.addEventListener('DOMContentLoaded', () => {
       deleteBtn.type = 'button';
       deleteBtn.className = 'profile-delete-btn';
       deleteBtn.setAttribute('title', t('deleteProfileTooltip') || 'Delete');
+      deleteBtn.setAttribute(
+        'aria-label',
+        `${t('deleteProfileTooltip') || 'Delete'} ${displayName}`,
+      );
       deleteBtn.innerHTML = `
         <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -896,7 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
       profileTrack.appendChild(btn);
     });
 
-    if (count < 3) {
+    if (count < MAX_PROFILES) {
       const addBtn = document.createElement('button');
       addBtn.type = 'button';
       addBtn.className = 'add-profile-btn';
@@ -965,13 +975,20 @@ document.addEventListener('DOMContentLoaded', () => {
       switchProfile(state.activeProfile);
     } else {
       state.activeProfile = null;
+      state.preset = 'basic';
+      const config = PRESET_MAP.basic;
+      ALL_TOGGLE_KEYS.forEach((key) => {
+        if (config[key] !== undefined) {
+          state[key] = config[key];
+        }
+      });
       saveState();
     }
   }
 
   function toggleCreateProfilePanel() {
     const existingCount = Object.keys(state.profiles || {}).length;
-    if (existingCount >= 3) return;
+    if (existingCount >= MAX_PROFILES) return;
     if (!profileCreatePanel || !profileCreateInput) return;
     if (profileCreatePanel.style.display !== 'none') {
       hideCreateProfilePanel();
@@ -1011,7 +1028,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/\s+/g, ' ');
 
     const existingCount = Object.keys(state.profiles || {}).length;
-    if (existingCount >= 3) {
+    if (existingCount >= MAX_PROFILES) {
       hideCreateProfilePanel();
       return;
     }
@@ -1022,10 +1039,14 @@ document.addEventListener('DOMContentLoaded', () => {
         : `${t('profileHeader') || 'Profile'} ${existingCount + 1}`;
 
     let newSlotId = 'profile1';
-    if (state.profiles?.profile1) {
-      if (!state.profiles.profile2) newSlotId = 'profile2';
-      else if (!state.profiles.profile3) newSlotId = 'profile3';
-      else newSlotId = `profile_${Date.now()}`;
+    for (let i = 1; i <= MAX_PROFILES; i++) {
+      if (!state.profiles?.[`profile${i}`]) {
+        newSlotId = `profile${i}`;
+        break;
+      }
+    }
+    if (state.profiles?.[newSlotId]) {
+      newSlotId = `profile_${Date.now()}`;
     }
 
     const currentToggles = {};
@@ -1225,7 +1246,7 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener('blur', () => {
       setTimeout(() => {
         if (!committed) {
-          finishRename(false);
+          finishRename(true);
         }
       }, 120);
     });
@@ -1237,6 +1258,13 @@ document.addEventListener('DOMContentLoaded', () => {
     resetDeleteConfirm();
     cancelProfileRename();
     state.activeProfile = profileId;
+    state.isOff = false;
+
+    // Purge pause snapshot to prevent stale state restoration
+    try {
+      chrome.storage?.local?.remove('libertad_paused_snapshot');
+      localStorage.removeItem('libertad_paused_snapshot');
+    } catch (_) {}
     const profile = state.profiles[profileId];
 
     if (profile.toggles) {
@@ -1290,21 +1318,15 @@ document.addEventListener('DOMContentLoaded', () => {
       switchProfile(profId);
     });
 
-    btn.addEventListener('dblclick', (e) => {
+    btn.addEventListener('keydown', (e) => {
       if (
         e.target.closest('.profile-name-input') ||
-        e.target.closest('.profile-action-btn') ||
         e.target.closest('.profile-edit-btn') ||
-        e.target.closest('.profile-delete-btn')
+        e.target.closest('.profile-delete-btn') ||
+        e.target.closest('.profile-action-btn')
       ) {
         return;
       }
-      e.preventDefault();
-      startProfileRename(profId);
-    });
-
-    btn.addEventListener('keydown', (e) => {
-      if (e.target.closest('.profile-name-input')) return;
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         if (activeRenamingProfile) {
@@ -1329,6 +1351,12 @@ document.addEventListener('DOMContentLoaded', () => {
         state.isOff = chosenPreset === 'off';
         // Deactivate active profile, keeping its saved memory 100% intact
         state.activeProfile = null;
+
+        // Purge pause snapshot
+        try {
+          chrome.storage?.local?.remove('libertad_paused_snapshot');
+          localStorage.removeItem('libertad_paused_snapshot');
+        } catch (_) {}
         const config = PRESET_MAP[chosenPreset];
         ALL_TOGGLE_KEYS.forEach((key) => {
           if (config[key] !== undefined) {
@@ -1547,7 +1575,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lang: 'auto',
       scale: 'auto',
       activeProfile: null,
-      profiles: {},
+      profiles: { ...(state.profiles || {}) },
       preset: 'basic',
     };
     applyThemeAndScale();
