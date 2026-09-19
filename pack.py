@@ -23,6 +23,7 @@ FILES_TO_INCLUDE = [
     "popup.js",
     "i18n.js",
     "theme-init.js",
+    "welcome.html",
 ]
 DIRS_TO_INCLUDE = [
     "icons",
@@ -35,7 +36,7 @@ def run_preflight_checks():
 
     # 1. Check version consistency between manifest.json and package.json
     if not os.path.exists("manifest.json") or not os.path.exists("package.json"):
-        print("❌ Error: manifest.json or package.json missing!")
+        print("[ERROR] manifest.json or package.json missing!")
         sys.exit(1)
 
     with open("manifest.json", "r", encoding="utf-8") as f:
@@ -47,11 +48,11 @@ def run_preflight_checks():
     pkg_ver = pkg_data.get("version", "").strip()
 
     if not manifest_ver:
-        print("❌ Error: 'version' not found in manifest.json")
+        print("[ERROR] 'version' not found in manifest.json")
         sys.exit(1)
 
     if manifest_ver != pkg_ver:
-        print(f"❌ Error: Version mismatch! manifest.json is '{manifest_ver}', but package.json is '{pkg_ver}'.")
+        print(f"[ERROR] Version mismatch! manifest.json is '{manifest_ver}', but package.json is '{pkg_ver}'.")
         sys.exit(1)
 
     # 2. Check version synchronization in UI & documentation files
@@ -61,7 +62,7 @@ def run_preflight_checks():
         m_html = re.search(r'id=[\"\']footerVersion[\"\']>v?([^<]+)<', html_content)
         if not m_html or m_html.group(1).strip() != manifest_ver:
             found_v = m_html.group(1).strip() if m_html else "not found"
-            print(f"❌ Error: Version mismatch in popup.html! Expected 'v{manifest_ver}', but found '{found_v}'.")
+            print(f"[ERROR] Version mismatch in popup.html! Expected 'v{manifest_ver}', but found '{found_v}'.")
             sys.exit(1)
 
     if os.path.exists("popup.js"):
@@ -70,7 +71,7 @@ def run_preflight_checks():
         m_js = re.search(r'let\s+manifestVersion\s*=\s*[\"\']([^\'\"]+)[\"\']', js_content)
         if not m_js or m_js.group(1).strip() != manifest_ver:
             found_v = m_js.group(1).strip() if m_js else "not found"
-            print(f"❌ Error: Version mismatch in popup.js! Expected '{manifest_ver}', but found '{found_v}'.")
+            print(f"[ERROR] Version mismatch in popup.js! Expected '{manifest_ver}', but found '{found_v}'.")
             sys.exit(1)
 
     if os.path.exists("README.md"):
@@ -79,12 +80,12 @@ def run_preflight_checks():
         m_readme = re.search(r'img\.shields\.io/badge/Version-([^\-\s]+)-blue\.svg', readme_content)
         if not m_readme or m_readme.group(1).strip() != manifest_ver:
             found_v = m_readme.group(1).strip() if m_readme else "not found"
-            print(f"❌ Error: Version mismatch in README.md! Expected '{manifest_ver}', but found '{found_v}'.")
+            print(f"[ERROR] Version mismatch in README.md! Expected '{manifest_ver}', but found '{found_v}'.")
             sys.exit(1)
 
     # 3. Check CHANGELOG.md entry
     if not os.path.exists("CHANGELOG.md"):
-        print("❌ Error: CHANGELOG.md is missing from repository root!")
+        print("[ERROR] CHANGELOG.md is missing from repository root!")
         sys.exit(1)
 
     with open("CHANGELOG.md", "r", encoding="utf-8") as f:
@@ -92,7 +93,7 @@ def run_preflight_checks():
 
     expected_section = f"## [{manifest_ver}]"
     if expected_section not in changelog_content:
-        print(f"❌ Error: Version {manifest_ver} is not documented in CHANGELOG.md!")
+        print(f"[ERROR] Version {manifest_ver} is not documented in CHANGELOG.md!")
         print(f"   Please add a section '{expected_section}' detailing changes before packaging.")
         sys.exit(1)
 
@@ -101,12 +102,12 @@ def run_preflight_checks():
     try:
         res = subprocess.run(["npm", "run", "check"], capture_output=True, text=True)
         if res.returncode != 0:
-            print(f"❌ Error: Biome check failed!\n{res.stdout}\n{res.stderr}")
+            print(f"[ERROR] Biome check failed!\n{res.stdout}\n{res.stderr}")
             sys.exit(1)
     except FileNotFoundError:
         pass
 
-    print(f"✅ All pre-flight checks passed! (Version {manifest_ver} verified)\n")
+    print(f"[OK] All pre-flight checks passed! (Version {manifest_ver} verified)\n")
     return manifest_ver
 
 def create_package():

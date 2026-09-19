@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Libertad</title>
+  <style>
+    :root {
+      --bg-canvas: #090d12;
+      --bg-surface: #0d1117;
+      --bg-card: #161b22;
+      --bg-card-hover: #1f242c;
+      --border-subtle: #21262d;
+      --border-strong: #30363d;
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --accent-primary: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.15);
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 64px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .header-bar {
+      width: 100%;
+      max-width: 760px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 32px;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+    }
+
+    .brand-title {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 0.12em;
+      color: var(--text-primary);
+    }
+
+    .lang-selector {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 2px;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .lang-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .lang-btn.active {
+      background: var(--border-strong);
+      color: var(--accent-primary);
+    }
+
+    .main-container {
+      width: 100%;
+      max-width: 760px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .intro-section {
+      text-align: left;
+    }
+
+    .intro-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--accent-primary);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+
+    .intro-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    .intro-desc {
+      color: var(--text-secondary);
+      font-size: 15px;
+      max-width: 620px;
+    }
+
+    /* Cards */
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: border-color 0.2s ease;
+    }
+
+    .step-card:hover {
+      border-color: var(--border-strong);
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .step-badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+
+    .step-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Step 1 Diagram */
+    .pin-guide {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .guide-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .guide-icon-wrap {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-primary);
+      flex-shrink: 0;
+    }
+
+    .guide-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .guide-text strong {
+      color: var(--text-primary);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* Step 2 Presets */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .preset-choice {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+
+    .preset-choice:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-strong);
+    }
+
+    .preset-choice.selected {
+      border-color: var(--accent-primary);
+      background: var(--accent-glow);
+    }
+
+    .preset-name {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 0.05em;
+    }
+
+    .preset-choice.selected .preset-name {
+      color: var(--accent-primary);
+    }
+
+    .preset-summary {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* Step 3 Action */
+    .action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .launch-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--accent-primary);
+      color: #04090e;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .launch-btn:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+
+    .footer-note {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+  </style>
+</head>
+<body>
+  <header class="header-bar">
+    <div class="brand-wrap">
+      <img src="icons/icon48.png" alt="Libertad" class="brand-icon">
+      <span class="brand-title">LIBERTAD</span>
+    </div>
+    <div class="lang-selector" id="langSelector">
+      <button type="button" class="lang-btn" data-lang="en">EN</button>
+      <button type="button" class="lang-btn" data-lang="es">ES</button>
+      <button type="button" class="lang-btn" data-lang="pt">PT</button>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <section class="intro-section">
+      <span class="intro-tag" id="t_welcomeTag">SETUP COMPLETE</span>
+      <h1 class="intro-title" id="t_welcomeTitle">Libertad is now active</h1>
+      <p class="intro-desc" id="t_welcomeDesc">
+        Your distraction-free YouTube workspace is configured. Follow these 2 quick steps to ensure maximum comfort and full control.
+      </p>
+    </section>
+
+    <!-- Step 1: Pin Extension -->
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-badge">1</span>
+        <h2 class="step-title" id="t_step1Title">Pin Libertad to your Chrome toolbar</h2>
+      </div>
+      <div class="pin-guide">
+        <div class="guide-item">
+          <div class="guide-icon-wrap">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20.5 11H19V7a2 2 0 0 0-2-2h-4V3.5a2.5 2.5 0 0 0-5 0V5H4a2 2 0 0 0-2 2v3.8h1.5a2.5 2.5 0 0 1 0 5H2V20a2 2 0 0 0 2 2h3.8v-1.5a2.5 2.5 0 0 1 5 0V22H17a2 2 0 0 0 2-2v-4h1.5a2.5 2.5 0 0 0 0-5z"></path>
+            </svg>
+          </div>
+          <div class="guide-text">
+            <strong id="t_pinStep1">1. Open Puzzle Menu</strong>
+            <span id="t_pinStep1Desc">Click the Extensions puzzle icon in the top right corner of Chrome.</span>
+          </div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-icon-wrap">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="17" x2="12" y2="22"></line>
+              <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path>
+            </svg>
+          </div>
+          <div class="guide-text">
+            <strong id="t_pinStep2">2. Click the Pin Icon</strong>
+            <span id="t_pinStep2Desc">Find Libertad in the list and click the pin icon so it stays always accessible.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Choose Focus Level -->
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-badge">2</span>
+        <h2 class="step-title" id="t_step2Title">Choose your starting focus level</h2>
+      </div>
+      <div class="preset-grid">
+        <button type="button" class="preset-choice" data-preset="minimal">
+          <span class="preset-name">MINIMAL</span>
+          <span class="preset-summary" id="t_presetMinimal">Essential cleanup. Removes Shorts, end screens, and intrusive clutter.</span>
+        </button>
+
+        <button type="button" class="preset-choice selected" data-preset="work">
+          <span class="preset-name">WORK</span>
+          <span class="preset-summary" id="t_presetWork">Balanced focus. Removes home feed, Shorts, and distracting sidebar teasers.</span>
+        </button>
+
+        <button type="button" class="preset-choice" data-preset="study">
+          <span class="preset-name">STUDY</span>
+          <span class="preset-summary" id="t_presetStudy">Strict discipline. Blocks comments, recommendations, and live chat.</span>
+        </button>
+
+        <button type="button" class="preset-choice" data-preset="zen">
+          <span class="preset-name">ZEN</span>
+          <span class="preset-summary" id="t_presetZen">Pure playback. Complete zero-distraction view centered on the video player.</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Launch Action -->
+    <div class="action-row">
+      <button type="button" class="launch-btn" id="launchBtn">
+        <span id="t_launchText">Open YouTube</span>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+      </button>
+      <span class="footer-note" id="t_footerNote">100% PRIVATE • ZERO TELEMETRY • MANIFEST V3</span>
+    </div>
+  </main>
+
+  <script src="constants.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      const I18N = {
+        en: {
+          welcomeTag: 'SETUP COMPLETE',
+          welcomeTitle: 'Libertad is now active',
+          welcomeDesc: 'Your distraction-free YouTube workspace is configured. Follow these 2 quick steps to ensure maximum comfort and full control.',
+          step1Title: 'Pin Libertad to your Chrome toolbar',
+          pinStep1: '1. Open Puzzle Menu',
+          pinStep1Desc: 'Click the Extensions puzzle icon in the top right corner of Chrome.',
+          pinStep2: '2. Click the Pin Icon',
+          pinStep2Desc: 'Find Libertad in the list and click the pin icon so it stays always accessible.',
+          step2Title: 'Choose your starting focus level',
+          presetMinimal: 'Essential cleanup. Removes Shorts, end screens, and intrusive clutter.',
+          presetWork: 'Balanced focus. Removes home feed, Shorts, and distracting sidebar teasers.',
+          presetStudy: 'Strict discipline. Blocks comments, recommendations, and live chat.',
+          presetZen: 'Pure playback. Complete zero-distraction view centered on the video player.',
+          launchText: 'Open YouTube',
+          footerNote: '100% PRIVATE • ZERO TELEMETRY • MANIFEST V3'
+        },
+        es: {
+          welcomeTag: 'INSTALACIÓN COMPLETADA',
+          welcomeTitle: 'Libertad ya está activa',
+          welcomeDesc: 'Tu entorno de YouTube libre de distracciones está configurado. Sigue estos 2 rápidos pasos para tener control total de inmediato.',
+          step1Title: 'Fija Libertad en la barra de herramientas',
+          pinStep1: '1. Abre el menú de extensiones',
+          pinStep1Desc: 'Haz clic en el icono del rompecabezas en la esquina superior derecha de Chrome.',
+          pinStep2: '2. Haz clic en el botón de fijar',
+          pinStep2Desc: 'Encuentra Libertad en la lista y presiona el icono de fijar para tenerla siempre visible.',
+          step2Title: 'Elige tu nivel de enfoque inicial',
+          presetMinimal: 'Limpieza esencial. Oculta Shorts, pantallas finales y elementos invasivos.',
+          presetWork: 'Enfoque balanceado. Oculta feed principal, Shorts y recomendaciones laterales.',
+          presetStudy: 'Disciplina estricta. Bloquea comentarios, recomendaciones y chat en vivo.',
+          presetZen: 'Reproducción pura. Modo ultra limpio enfocado únicamente en el reproductor.',
+          launchText: 'Abrir YouTube',
+          footerNote: '100% PRIVADO • CERO TELEMETRÍA • MANIFEST V3'
+        },
+        pt: {
+          welcomeTag: 'CONFIGURAÇÃO CONCLUÍDA',
+          welcomeTitle: 'O Libertad está ativo',
+          welcomeDesc: 'Seu espaço do YouTube sem distrações está pronto. Siga estes 2 passos rápidos para ter controle total imediatamente.',
+          step1Title: 'Fixe o Libertad na barra de ferramentas',
+          pinStep1: '1. Abra o menu de extensões',
+          pinStep1Desc: 'Clique no ícone de quebra-cabeça no canto superior direito do Chrome.',
+          pinStep2: '2. Clique no ícone de fixar',
+          pinStep2Desc: 'Encontre o Libertad na lista e fixe-o para tê-lo sempre acessível.',
+          step2Title: 'Escolha seu nível de foco inicial',
+          presetMinimal: 'Limpeza essencial. Remove Shorts, telas finais e elementos invasivos.',
+          presetWork: 'Foco equilibrado. Remove feed inicial, Shorts e distrações laterais.',
+          presetStudy: 'Disciplina rigorosa. Bloqueia comentários, recomendações e chat ao vivo.',
+          presetZen: 'Reprodução pura. Visualização limpa centralizada apenas no reprodutor.',
+          launchText: 'Abrir o YouTube',
+          footerNote: '100% PRIVADO • ZERO TELEMETRIA • MANIFEST V3'
+        }
+      };
+
+      let currentLang = 'en';
+      const userLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+      if (userLang.startsWith('es')) currentLang = 'es';
+      else if (userLang.startsWith('pt')) currentLang = 'pt';
+
+      function applyTranslations(lang) {
+        currentLang = lang;
+        const dict = I18N[lang] || I18N.en;
+        for (const key in dict) {
+          const el = document.getElementById('t_' + key);
+          if (el) el.textContent = dict[key];
+        }
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+        });
+      }
+
+      applyTranslations(currentLang);
+
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          applyTranslations(btn.getAttribute('data-lang'));
+        });
+      });
+
+      // Handle Preset Selection
+      const presetButtons = document.querySelectorAll('.preset-choice');
+      presetButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const presetName = btn.getAttribute('data-preset');
+          presetButtons.forEach((b) => {
+            b.classList.remove('selected');
+          });
+          btn.classList.add('selected');
+
+          if (typeof PRESETS !== 'undefined' && PRESETS[presetName] && chrome.storage?.sync) {
+            chrome.storage.sync.get(null, (saved) => {
+              const updated = {
+                ...saved,
+                ...PRESETS[presetName],
+                preset: presetName,
+                isOff: false
+              };
+              chrome.storage.sync.set(updated);
+            });
+          }
+        });
+      });
+
+      // Launch YouTube
+      document.getElementById('launchBtn').addEventListener('click', () => {
+        if (typeof chrome !== 'undefined' && chrome.tabs?.create) {
+          chrome.tabs.create({ url: 'https://www.youtube.com' });
+        } else {
+          window.open('https://www.youtube.com', '_blank');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

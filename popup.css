@@ -274,6 +274,22 @@ button:focus-visible {
   letter-spacing: 0.6px;
   color: var(--status-active-text);
   transition: var(--transition-fast);
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+
+.status-indicator:hover {
+  filter: brightness(1.2);
+  border-color: var(--accent-primary);
+}
+
+.status-indicator:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.status-indicator:active {
+  transform: scale(0.97);
 }
 
 .status-label {
@@ -640,6 +656,61 @@ button:focus-visible {
     border-color: rgba(239, 68, 68, 0.95);
     box-shadow: 0 0 8px rgba(239, 68, 68, 0.45);
   }
+}
+
+/* Non-YouTube Tab Context Banner */
+.non-yt-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(8px * var(--ui-scale));
+  background: var(--surface-card);
+  border: 1px solid var(--border-hairline);
+  border-left: 2px solid var(--accent);
+  border-radius: 4px;
+  padding: calc(5px * var(--ui-scale)) calc(8px * var(--ui-scale));
+  margin: calc(6px * var(--ui-scale)) calc(8px * var(--ui-scale)) 0;
+  flex-shrink: 0;
+}
+
+.non-yt-content {
+  display: flex;
+  align-items: center;
+  gap: calc(6px * var(--ui-scale));
+  min-width: 0;
+}
+
+.non-yt-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.non-yt-text {
+  font-family: var(--font-sans);
+  font-size: calc(8.5px * var(--ui-scale));
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.non-yt-action-btn {
+  background: var(--accent-soft-bg);
+  border: 1px solid var(--border-active);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: calc(8px * var(--ui-scale));
+  font-weight: 700;
+  padding: calc(3px * var(--ui-scale)) calc(6px * var(--ui-scale));
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-fast);
+}
+
+.non-yt-action-btn:hover {
+  background: var(--accent);
+  color: #04090e;
 }
 
 /* ==========================================================================
@@ -1345,6 +1416,32 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   margin-bottom: calc(4px * var(--ui-scale));
+}
+
+/* Cleaner Polarity Banner */
+.cleaner-polarity-banner {
+  display: flex;
+  align-items: center;
+  gap: calc(6px * var(--ui-scale));
+  background: var(--surface-card);
+  border: 1px solid var(--border-hairline);
+  border-left: 2px solid var(--accent-primary);
+  border-radius: 3px;
+  padding: calc(5px * var(--ui-scale)) calc(8px * var(--ui-scale));
+  margin-bottom: calc(8px * var(--ui-scale));
+}
+
+.cleaner-polarity-icon {
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.cleaner-polarity-text {
+  font-family: var(--font-sans);
+  font-size: calc(8.5px * var(--ui-scale));
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--text-secondary);
 }
 
 .chip-grid {

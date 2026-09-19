@@ -7,6 +7,9 @@
 (function () {
   'use strict';
 
+  if (window.__LIBERTAD_CONTENT_INITIALIZED) return;
+  window.__LIBERTAD_CONTENT_INITIALIZED = true;
+
   const Libertad = globalThis.Libertad || {};
 
   // Fallback defaults from single source of truth
@@ -73,6 +76,23 @@
       }
     }
   } catch (_) {}
+
+  // Broadcast settings to main world player agent (agent.js)
+  function broadcastAgentSettings() {
+    window.dispatchEvent(
+      new CustomEvent('libertad-agent-settings', {
+        detail: {
+          isOff: Boolean(
+            currentSettings.isOff || currentSettings.preset === 'off',
+          ),
+          untranslateMaster: currentSettings.untranslateMaster !== false,
+          untranslateAudio: currentSettings.untranslateAudio !== false,
+          untranslateCaptions: currentSettings.untranslateCaptions !== false,
+        },
+      }),
+    );
+  }
+  broadcastAgentSettings();
 
   // Resilient execution wrapper: prevents any single module failure from breaking the pipeline
   function safeRun(moduleName, fn, ...args) {
@@ -154,6 +174,7 @@
       Libertad.bindVideoSponsorListener,
       currentSettings,
     );
+    broadcastAgentSettings();
   }
 
   // Initial load and DOMContentLoaded events
@@ -242,6 +263,8 @@
           currentSettings,
         );
       }
+
+      broadcastAgentSettings();
       if (dislikesChanged) {
         safeRun(
           'updateDislikeCount',

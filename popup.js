@@ -601,14 +601,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Status pill
     const hasActiveToggle = ALL_TOGGLE_KEYS.some((k) => !!state[k]);
-    const isOff = state.preset === 'off' || !hasActiveToggle;
+    const isOff = state.isOff || state.preset === 'off' || !hasActiveToggle;
     const effectivePreset = isOff ? 'off' : state.preset;
     statusPill.setAttribute('data-preset', effectivePreset);
     if (isOff) {
       statusPill.classList.add('is-off');
-      statusText.textContent = t('statusOff');
+      statusPill.setAttribute(
+        'title',
+        t('statusTitleResume') || 'Click to resume Libertad',
+      );
+      statusText.textContent = t('statusPaused') || t('statusOff') || 'PAUSED';
     } else {
       statusPill.classList.remove('is-off');
+      statusPill.setAttribute(
+        'title',
+        t('statusTitlePause') || 'Click to pause Libertad',
+      );
       if (state.activeProfile && state.profiles[state.activeProfile]) {
         const profName = getProfileDisplayName(state.activeProfile);
         statusText.textContent = profName.toUpperCase();
@@ -734,7 +742,10 @@ document.addEventListener('DOMContentLoaded', () => {
         presetTagLabel.setAttribute('data-i18n', 'quickModeLabel');
         presetTagLabel.textContent = t('quickModeLabel');
       }
-      if (saveProfileBtn) saveProfileBtn.style.display = 'inline-flex';
+      if (saveProfileBtn) {
+        saveProfileBtn.style.display =
+          state.preset === 'custom' ? 'inline-flex' : 'none';
+      }
       state.activeProfile = null;
       return;
     }
@@ -745,7 +756,8 @@ document.addEventListener('DOMContentLoaded', () => {
       presetTagLabel.textContent = t('basePresetsLabel');
     }
     if (saveProfileBtn) {
-      saveProfileBtn.style.display = 'none';
+      saveProfileBtn.style.display =
+        state.preset === 'custom' && count < 3 ? 'inline-flex' : 'none';
     }
 
     if (state.activeProfile && !state.profiles[state.activeProfile]) {
@@ -1237,6 +1249,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resetDeleteConfirm();
         cancelProfileRename();
         state.preset = chosenPreset;
+        state.isOff = chosenPreset === 'off';
         // Deactivate active profile, keeping its saved memory 100% intact
         state.activeProfile = null;
         const config = PRESET_MAP[chosenPreset];
@@ -1250,10 +1263,80 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Master Status Pill click listener: Quick Pause / Resume with snapshot persistence
+  statusPill?.addEventListener('click', () => {
+    const hasActiveToggle = ALL_TOGGLE_KEYS.some((k) => !!state[k]);
+    const isCurrentlyOff =
+      state.isOff || state.preset === 'off' || !hasActiveToggle;
+
+    if (!isCurrentlyOff) {
+      // PAUSE: Snapshot current configuration
+      const snapshot = {
+        preset: state.preset,
+        activeProfile: state.activeProfile,
+        toggles: {},
+      };
+      ALL_TOGGLE_KEYS.forEach((k) => {
+        snapshot.toggles[k] = Boolean(state[k]);
+      });
+      try {
+        localStorage.setItem(
+          'libertad_paused_snapshot',
+          JSON.stringify(snapshot),
+        );
+      } catch (_) {}
+
+      state.isOff = true;
+      state.preset = 'off';
+      state.activeProfile = null;
+      ALL_TOGGLE_KEYS.forEach((k) => {
+        state[k] = false;
+      });
+      saveState();
+    } else {
+      // RESUME: Restore from snapshot if available
+      let snapshot = null;
+      try {
+        const raw = localStorage.getItem('libertad_paused_snapshot');
+        if (raw) snapshot = JSON.parse(raw);
+      } catch (_) {}
+
+      if (snapshot && typeof snapshot === 'object' && snapshot.preset) {
+        state.isOff = false;
+        state.preset = snapshot.preset;
+        state.activeProfile = snapshot.activeProfile || null;
+        if (snapshot.toggles) {
+          ALL_TOGGLE_KEYS.forEach((k) => {
+            if (snapshot.toggles[k] !== undefined) {
+              state[k] = snapshot.toggles[k];
+            }
+          });
+        }
+        try {
+          localStorage.removeItem('libertad_paused_snapshot');
+        } catch (_) {}
+        saveState();
+      } else {
+        // Fallback to basic preset if no snapshot exists
+        state.isOff = false;
+        state.preset = 'basic';
+        state.activeProfile = null;
+        const config = PRESET_MAP.basic;
+        ALL_TOGGLE_KEYS.forEach((key) => {
+          if (config[key] !== undefined) {
+            state[key] = config[key];
+          }
+        });
+        saveState();
+      }
+    }
+  });
+
   // Universal toggle change handler for Profile and Base modes
   function handleToggleChange(key, checked) {
     state[key] = checked;
     state.preset = 'custom';
+    state.isOff = false;
     if (state.activeProfile && state.profiles?.[state.activeProfile]) {
       state.profiles[state.activeProfile].preset = 'custom';
       if (!state.profiles[state.activeProfile].toggles) {
@@ -1264,6 +1347,7 @@ document.addEventListener('DOMContentLoaded', () => {
     saveState({
       [key]: state[key],
       preset: state.preset,
+      isOff: false,
       profiles: state.profiles,
       activeProfile: state.activeProfile,
     });
@@ -1409,4 +1493,32 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  // Non-YouTube tab awareness & quick launch
+  const nonYtBanner = document.getElementById('nonYtBanner');
+  const openYtBtn = document.getElementById('openYtBtn');
+
+  if (typeof chrome !== 'undefined' && chrome.tabs?.query) {
+    try {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const activeTab = tabs?.[0];
+        const tabUrl = activeTab?.url || '';
+        const isYouTube =
+          tabUrl.includes('youtube.com') || tabUrl.includes('youtu.be');
+        if (!isYouTube && nonYtBanner) {
+          nonYtBanner.style.display = 'flex';
+        }
+      });
+    } catch (_) {}
+  }
+
+  if (openYtBtn) {
+    openYtBtn.addEventListener('click', () => {
+      if (typeof chrome !== 'undefined' && chrome.tabs?.create) {
+        chrome.tabs.create({ url: 'https://www.youtube.com' });
+      } else {
+        window.open('https://www.youtube.com', '_blank');
+      }
+    });
+  }
 });

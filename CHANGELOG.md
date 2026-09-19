@@ -1,6 +1,12 @@
 # Changelog
 
 ## [1.3.0]
+- **Streamlined Onboarding Experience:** Added lightweight, trilingual (ES, EN, PT) first-run setup (`welcome.html`) guiding users on pinning the extension and selecting their initial focus preset, launched cleanly only upon first install.
+- **Instant Tab Injection:** Enabled programmatic injection in `background.js` via the `scripting` API to activate content scripts immediately on pre-existing YouTube tabs upon installation, eliminating manual page reloads.
+- **Interactive Master Status Pill:** Converted header status indicator into an accessible quick Pause/Resume toggle that snapshots custom configurations (`libertad_paused_snapshot`) upon pause and restores them cleanly upon resume without resetting preset state.
+- **Contextual Non-YouTube Banner:** Added proactive detection in popup with a direct launch action when opened outside YouTube tabs.
+- **UI Cleaner Polarity Clarity:** Added localized explanatory subheaders across EN, ES, and PT in the Cleaner view clarifying that active chips hide interface elements.
+- **Agent Guard Rails:** Strengthened `src/injected/agent.js` with settings-aware abort guards, ensuring original audio and caption logic cleanly halt when the extension is paused or untranslate options are turned off.
 - **UI Cleaner Additions:** Added dedicated controls to hide "Play on TV" (Cast) and "Subtitles" (CC toggle) from player controls and menus, expanding customizable toggles to 28.
 - **Live Chat & Replay Teaser Suppression:** Unified Live Chat cleaning to eliminate both active chat streams and companion "Live chat replay" teaser cards adjacent to the description on stream recordings (VODs), allowing descriptions to expand smoothly.
 - **Performance & Zero-Flash Engine:** Overhauled stylesheet injection and DOM observation architecture with debounced event batching and 0ms CSS-first rules, preventing layout shifts and lowering background resource usage.

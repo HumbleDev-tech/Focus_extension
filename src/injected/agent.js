@@ -31,6 +31,33 @@
 
   let retryTimer = null;
 
+  let agentSettings = {
+    isOff: false,
+    untranslateMaster: true,
+    untranslateAudio: true,
+    untranslateCaptions: true,
+  };
+
+  // Synchronize settings from Libertad content script
+  window.addEventListener('libertad-agent-settings', (event) => {
+    const detail = event?.detail;
+    if (!detail || typeof detail !== 'object') return;
+    agentSettings = {
+      ...agentSettings,
+      ...detail,
+    };
+    if (
+      agentSettings.isOff ||
+      !agentSettings.untranslateMaster ||
+      (!agentSettings.untranslateAudio && !agentSettings.untranslateCaptions)
+    ) {
+      if (retryTimer) {
+        clearInterval(retryTimer);
+        retryTimer = null;
+      }
+    }
+  });
+
   function getPlayer() {
     return (
       document.getElementById('movie_player') ||
@@ -193,6 +220,13 @@
 
   // Enforce the creator's true original audio track (Anti AI-Dubbing)
   function enforceOriginalAudio(force = false) {
+    if (
+      agentSettings.isOff ||
+      !agentSettings.untranslateMaster ||
+      !agentSettings.untranslateAudio
+    ) {
+      return false;
+    }
     const videoId = getCurrentVideoId();
     if (!videoId) return false;
     if (!force && lastEnforcedVideoId === videoId) return true;
@@ -288,6 +322,13 @@
 
   // Clear algorithmic auto-translated subtitles
   function neutralizeAutoCaptions() {
+    if (
+      agentSettings.isOff ||
+      !agentSettings.untranslateMaster ||
+      !agentSettings.untranslateCaptions
+    ) {
+      return false;
+    }
     const player = getPlayer();
     if (!player || typeof player.getOption !== 'function') return false;
 
@@ -362,9 +403,11 @@
       player.addEventListener('onStateChange', (state) => {
         // State 1: PLAYING. Only enforce once playback actively starts, NEVER on BUFFERING (state 3)
         if (state === 1) {
-          enforceOriginalAudio(true);
-          neutralizeAutoCaptions();
-          broadcastMetadata();
+          if (!agentSettings.isOff && agentSettings.untranslateMaster) {
+            if (agentSettings.untranslateAudio) enforceOriginalAudio(true);
+            if (agentSettings.untranslateCaptions) neutralizeAutoCaptions();
+            broadcastMetadata();
+          }
         }
       });
       playerBound = true;
@@ -376,9 +419,11 @@
     if (video && !video.__libertadEventsBound) {
       video.__libertadEventsBound = true;
       video.addEventListener('playing', () => {
-        enforceOriginalAudio(true);
-        neutralizeAutoCaptions();
-        broadcastMetadata();
+        if (!agentSettings.isOff && agentSettings.untranslateMaster) {
+          if (agentSettings.untranslateAudio) enforceOriginalAudio(true);
+          if (agentSettings.untranslateCaptions) neutralizeAutoCaptions();
+          broadcastMetadata();
+        }
       });
       videoBound = true;
     } else if (video?.__libertadEventsBound) {
@@ -392,6 +437,14 @@
     if (retryTimer) {
       clearInterval(retryTimer);
       retryTimer = null;
+    }
+
+    if (
+      agentSettings.isOff ||
+      !agentSettings.untranslateMaster ||
+      (!agentSettings.untranslateAudio && !agentSettings.untranslateCaptions)
+    ) {
+      return;
     }
 
     const currentVid = getCurrentVideoId();

@@ -137,6 +137,13 @@ const LIBERTAD_I18N = {
     statusEngineActive: 'ENGINE ACTIVE',
     statusSponsorBlock: 'SPONSORBLOCK',
     footerMeta: 'DISTRACTION-FREE SYSTEM',
+    cleanerPolarityHint: 'Select elements to HIDE from the interface',
+    nonYtBannerText: 'YouTube is not active on this tab',
+    nonYtAction: 'OPEN YOUTUBE',
+    statusPaused: 'PAUSED',
+    statusActive: 'ACTIVE',
+    statusTitlePause: 'Click to pause Libertad',
+    statusTitleResume: 'Click to resume Libertad',
   },
   es: {
     statusOff: 'OFF',
@@ -269,6 +276,14 @@ const LIBERTAD_I18N = {
     statusEngineActive: 'MOTOR ACTIVO',
     statusSponsorBlock: 'SPONSORBLOCK',
     footerMeta: 'SISTEMA LIBRE DE DISTRACCIONES',
+    cleanerPolarityHint:
+      'Selecciona los elementos que deseas OCULTAR de la interfaz',
+    nonYtBannerText: 'YouTube no está activo en esta pestaña',
+    nonYtAction: 'ABRIR YOUTUBE',
+    statusPaused: 'PAUSADO',
+    statusActive: 'ACTIVO',
+    statusTitlePause: 'Clic para pausar Libertad',
+    statusTitleResume: 'Clic para reanudar Libertad',
   },
   pt: {
     statusOff: 'OFF',
@@ -401,6 +416,14 @@ const LIBERTAD_I18N = {
     statusEngineActive: 'MOTOR ATIVO',
     statusSponsorBlock: 'SPONSORBLOCK',
     footerMeta: 'SISTEMA LIVRE DE DISTRAÇÕES',
+    cleanerPolarityHint:
+      'Selecione os elementos que deseja OCULTAR da interface',
+    nonYtBannerText: 'O YouTube não está ativo nesta aba',
+    nonYtAction: 'ABRIR YOUTUBE',
+    statusPaused: 'PAUSADO',
+    statusActive: 'ATIVO',
+    statusTitlePause: 'Clique para pausar o Libertad',
+    statusTitleResume: 'Clique para retomar o Libertad',
   },
 };
 

@@ -16,10 +16,11 @@
       <div class="brand-group">
         <img class="brand-icon" src="icons/icon48.png" alt="Libertad Logo" />
         <span class="brand-title">LIBERTAD</span>
-        <div class="status-indicator" id="statusPill">
+        <button type="button" class="status-indicator" id="statusPill"
+          aria-label="Toggle Protection" title="Pause / Resume Libertad">
           <span class="status-dot"></span>
           <span class="status-label" id="statusText">ACTIVE</span>
-        </div>
+        </button>
       </div>
       <button type="button" class="settings-toggle-btn" id="settingsToggleBtn" title="Preferences"
         aria-label="Preferences">
@@ -106,6 +107,21 @@
         </div>
         <button type="button" class="reset-action-btn" id="resetBtn" data-i18n="resetBtn">RESET CONFIG</button>
       </div>
+    </div>
+
+    <!-- Non-YouTube Tab Context Banner -->
+    <div class="non-yt-banner" id="nonYtBanner" style="display: none;">
+      <div class="non-yt-content">
+        <svg class="non-yt-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span class="non-yt-text" id="nonYtText" data-i18n="nonYtBannerText">YouTube is not active on this tab</span>
+      </div>
+      <button type="button" class="non-yt-action-btn" id="openYtBtn" data-i18n="nonYtAction">
+        OPEN YOUTUBE
+      </button>
     </div>
 
     <!-- Master Profile & Base Preset Section (Progressive Disclosure) -->
@@ -303,6 +319,14 @@
 
     <!-- TAB 2: UI CLEANER (Micro-De-Bloat Matrix) -->
     <div class="tab-panel" id="tabPanelCleaner">
+      <div class="cleaner-polarity-banner">
+        <svg class="cleaner-polarity-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+          <line x1="1" y1="1" x2="23" y2="23"></line>
+        </svg>
+        <span class="cleaner-polarity-text" data-i18n="cleanerPolarityHint">Select elements to HIDE from the interface</span>
+      </div>
+
       <!-- Section A: Header & Search Clutter -->
       <section class="cleaner-group">
         <div class="cleaner-group-header">
