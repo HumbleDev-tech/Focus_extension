@@ -136,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hideVoiceSearch: document.getElementById('toggleVoiceSearch'),
     hideCreateButton: document.getElementById('toggleCreateButton'),
     hideNotifications: document.getElementById('toggleNotifications'),
+    hideAccountAvatar: document.getElementById('toggleAccountAvatar'),
     hideFilterChips: document.getElementById('toggleFilterChips'),
     // Cleaner: Player & Overlays
     hideAutoplay: document.getElementById('toggleAutoplay'),

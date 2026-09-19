@@ -234,6 +234,22 @@ globalThis.Libertad = globalThis.Libertad || {};
       `);
     }
 
+    // Google Account Avatar / Profile Picture in Masthead
+    if (settings.hideAccountAvatar) {
+      rules.push(`
+        ytd-masthead #avatar-btn,
+        ytd-masthead button#avatar-btn,
+        ytd-masthead ytd-topbar-menu-button-renderer:has(#avatar-btn),
+        ytd-masthead ytd-topbar-menu-button-renderer:has(yt-img-shadow#avatar),
+        ytd-masthead ytd-topbar-menu-button-renderer:has(yt-avatar-shape),
+        ytd-masthead yt-img-shadow#avatar,
+        ytd-masthead yt-avatar-shape,
+        ytd-masthead #end #buttons > :last-child:has(yt-img-shadow#avatar) {
+          display: none !important;
+        }
+      `);
+    }
+
     // Ask AI Assistant Button (Scoped strictly to watch metadata and conversational AI elements)
     if (settings.hideAskAi) {
       rules.push(`
