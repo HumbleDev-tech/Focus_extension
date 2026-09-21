@@ -10,7 +10,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Manifest-V3-blue.svg?style=flat-square" alt="Manifest V3" />
-  <img src="https://img.shields.io/badge/Version-1.4.0-blue.svg?style=flat-square" alt="Version 1.4.0" />
+  <img src="https://img.shields.io/badge/Version-1.4.1-blue.svg?style=flat-square" alt="Version 1.4.1" />
   <img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="MIT License" />
   <img src="https://img.shields.io/badge/Telemetry-Zero-brightgreen.svg?style=flat-square" alt="Zero Telemetry" />
   <img src="https://img.shields.io/badge/Dependencies-Vanilla%20JS-orange.svg?style=flat-square" alt="Vanilla JS" />
@@ -225,6 +225,9 @@ flowchart TD
 * **Anti-FOUC Startup:** Syncs settings from `sessionStorage` at `document_start` so styles apply before the browser paints, completely eliminating layout flashes.
 * **Extension Context Invalidation Resilience:** Defensive messaging barriers protect background calls against extension reload/update disconnections.
 * **Fast-Path DOM Caching:** Reuses verified DOM elements instead of repeatedly calling `querySelector`.
+* **Ad-Safe Playback Heartbeat:** Native in-stream ad detection (`.ad-showing`, `.ad-interrupting`) automatically suspends timeline skip evaluations during ads, eliminating player state corruption.
+* **Blink DOM Memory Recycling:** Explicitly calls `IntersectionObserver.unobserve()` when video title elements leave the DOM or resolve, allowing Chromium's garbage collector to immediately free detached feed nodes.
+* **Serialized Session Cache & Negative Caching:** Sequential promise mutex prevents race collisions during concurrent session storage writes while caching 404 responses for deleted or private videos.
 
 ---
 

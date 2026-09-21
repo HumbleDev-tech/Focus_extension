@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.4.1]
+- **Ad-Safe SponsorBlock Playback:** Added native in-stream ad detection (`.ad-showing`, `.ad-interrupting`) to prevent timeline skips during ads, eliminating player state desynchronization and unexpected skipping on advertisements.
+- **Zero-Overhead Playback Heartbeat:** Optimized `sponsors.js` playback engine to cache the active video ID in memory and throttle DOM checks, eliminating redundant lookups (`getElementById`, `querySelector`, regex) on every 250ms `timeupdate` tick.
+- **Blink DOM Memory Recycling:** Eradicated detached DOM node retention in `untranslate.js` by explicitly invoking `feedIntersectionObserver.unobserve(node)` when elements disconnect or resolve during infinite scrolling, unblocking Blink's C++ garbage collector.
+- **Scoped Live Chat Mutation Scans:** Restricted button candidate queries in `cleanLiveChat` strictly to active action bars and side panels (`#secondary`, `#panels`, `#chat`, `#teaser-carousel`), eliminating V8 Long Tasks caused by querying the full document on comment mutations.
+- **Clean Browser Startup Lifecycle:** Removed redundant programmatic tab injection in `chrome.runtime.onStartup`, allowing Chromium's native declarative manifest loader to handle restored tabs cleanly without double script parsing.
+- **Service Worker Cache Serialization & Negative Caching:** Prevented concurrent write collisions in `recordSessionKey` via an asynchronous promise queue and added negative caching for 404 responses in Dislikes and oEmbed endpoints to reduce external network traffic.
+
+---
+
 ## [1.4.0]
 - **Decisive Initial Preset UX:** Set `BALANCED` as the default and clearly badged `RECOMMENDED` (`RECOMENDADO`) in both the welcome onboarding flow and default configuration, ensuring new users immediately experience distraction removal.
 - **Switch Cannibalization Transparency:** When `Direct to Subscriptions` (`redirectHomeSubscriptions`) is active, the `Home Feed` card is visually attenuated and tagged with `[OVERRIDDEN BY REDIRECT]` / `[ANULADO POR REDIRECCIÓN]` to clarify functional priority.
