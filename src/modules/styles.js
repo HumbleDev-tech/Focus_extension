@@ -1298,6 +1298,8 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   // Show a calm, intentional screen on YouTube home if home feed is disabled
   function updateZenBanner(settings) {
+    if (!settings || typeof settings !== 'object') return;
+
     function applyZenAttributes(el, theme, scale, lang) {
       if (!el) return;
       el.dataset.theme = theme;

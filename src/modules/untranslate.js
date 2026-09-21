@@ -812,13 +812,15 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     if (chapters.length === 0) return;
 
-    const chapterElements = document.querySelectorAll(
-      'ytd-macro-markers-list-item-renderer #details #title, ytd-macro-markers-list-item-renderer h4',
+    const chapterItems = document.querySelectorAll(
+      'ytd-macro-markers-list-item-renderer',
     );
-    if (chapterElements.length > 0) {
-      chapterElements.forEach((el, index) => {
-        if (chapters[index] && el.textContent.trim() !== chapters[index]) {
-          el.textContent = chapters[index];
+    if (chapterItems.length > 0) {
+      chapterItems.forEach((item, index) => {
+        if (!chapters[index]) return;
+        const titleEl = item.querySelector('#details #title, h4');
+        if (titleEl && titleEl.textContent.trim() !== chapters[index]) {
+          titleEl.textContent = chapters[index];
         }
       });
       lastRestoredChaptersVideoId = videoId;

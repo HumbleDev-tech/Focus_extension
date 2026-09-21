@@ -16,8 +16,8 @@
   let currentSettings =
     typeof DEFAULT_SETTINGS !== 'undefined'
       ? { ...DEFAULT_SETTINGS }
-      : typeof PRESET_MAP !== 'undefined' && PRESET_MAP.basic
-        ? { preset: 'basic', ...extractToggles(PRESET_MAP.basic) }
+      : typeof PRESET_MAP !== 'undefined' && PRESET_MAP.balanced
+        ? { preset: 'balanced', ...extractToggles(PRESET_MAP.balanced) }
         : {};
 
   // Synchronous cache hydration to completely eliminate reverse FOUC at document_start

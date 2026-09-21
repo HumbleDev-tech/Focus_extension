@@ -81,14 +81,14 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       }
       return;
     }
-    const currentPreset = saved.preset || 'basic';
+    const currentPreset = saved.preset || 'balanced';
     const presetTemplate =
       currentPreset === 'custom'
         ? {}
         : typeof PRESET_MAP !== 'undefined' && PRESET_MAP[currentPreset]
           ? extractToggles(PRESET_MAP[currentPreset])
-          : typeof PRESET_MAP !== 'undefined' && PRESET_MAP.basic
-            ? extractToggles(PRESET_MAP.basic)
+          : typeof PRESET_MAP !== 'undefined' && PRESET_MAP.balanced
+            ? extractToggles(PRESET_MAP.balanced)
             : {};
     const merged = {
       ...DEFAULT_SETTINGS,
@@ -164,15 +164,10 @@ const inFlightDislikes = new Map();
 const inFlightTitles = new Map();
 const inFlightSponsors = new Map();
 
-function setBoundedCache(cache, key, value, prefix) {
+function setBoundedCache(cache, key, value) {
   if (cache.size >= MAX_SW_CACHE_SIZE) {
     const oldestKey = cache.keys().next().value;
     cache.delete(oldestKey);
-    if (prefix && chrome.storage?.session) {
-      try {
-        chrome.storage.session.remove(`${prefix}_${oldestKey}`);
-      } catch (_) {}
-    }
   }
   cache.set(key, value);
 }
@@ -229,7 +224,7 @@ async function getFromCache(cacheMap, prefix, key) {
       const storageKey = `${prefix}_${key}`;
       const res = await chrome.storage.session.get(storageKey);
       if (res && res[storageKey] !== undefined) {
-        setBoundedCache(cacheMap, key, res[storageKey], prefix);
+        setBoundedCache(cacheMap, key, res[storageKey]);
         return res[storageKey];
       }
     } catch (_) {}
@@ -238,7 +233,7 @@ async function getFromCache(cacheMap, prefix, key) {
 }
 
 async function setToCache(cacheMap, prefix, key, value) {
-  setBoundedCache(cacheMap, key, value, prefix);
+  setBoundedCache(cacheMap, key, value);
   if (chrome.storage?.session) {
     try {
       const storageKey = `${prefix}_${key}`;

@@ -339,9 +339,9 @@ document.addEventListener('DOMContentLoaded', () => {
           state[k] = DEFAULT_SETTINGS[k];
         }
       });
-      state.preset = state.profiles[state.activeProfile]?.preset || 'basic';
+      state.preset = state.profiles[state.activeProfile]?.preset || 'balanced';
     } else {
-      state.preset = saved.preset || 'basic';
+      state.preset = saved.preset || 'balanced';
       ALL_TOGGLE_KEYS.forEach((k) => {
         if (saved[k] !== undefined) {
           state[k] = !!saved[k];
@@ -1010,8 +1010,8 @@ document.addEventListener('DOMContentLoaded', () => {
       switchProfile(state.activeProfile);
     } else {
       state.activeProfile = null;
-      state.preset = 'basic';
-      const config = PRESET_MAP.basic;
+      state.preset = 'balanced';
+      const config = PRESET_MAP.balanced;
       ALL_TOGGLE_KEYS.forEach((key) => {
         if (config[key] !== undefined) {
           state[key] = config[key];
@@ -1093,7 +1093,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.profiles[newSlotId] = {
       id: newSlotId,
       name: finalName,
-      preset: state.preset || 'basic',
+      preset: state.preset || 'balanced',
       toggles: currentToggles,
       isCustomName: true,
     };
@@ -1457,11 +1457,11 @@ document.addEventListener('DOMContentLoaded', () => {
           } catch (_) {}
           saveState();
         } else {
-          // Fallback to basic preset if no snapshot exists
+          // Fallback to balanced preset if no snapshot exists
           state.isOff = false;
-          state.preset = 'basic';
+          state.preset = 'balanced';
           state.activeProfile = null;
-          const config = PRESET_MAP.basic;
+          const config = PRESET_MAP.balanced;
           ALL_TOGGLE_KEYS.forEach((key) => {
             if (config[key] !== undefined) {
               state[key] = config[key];
@@ -1612,7 +1612,7 @@ document.addEventListener('DOMContentLoaded', () => {
       scale: 'auto',
       activeProfile: null,
       profiles: { ...(state.profiles || {}) },
-      preset: 'basic',
+      preset: 'balanced',
     };
     applyThemeAndScale();
     saveState();

@@ -86,9 +86,22 @@ const sponsorsJs = fs.readFileSync(path.join(__dirname, '../src/modules/sponsors
 assert(!agentJs.includes('console.log('), 'agent.js has zero debug console.log statements');
 assert(!sponsorsJs.includes('console.log('), 'sponsors.js has zero debug console.log statements');
 
+// 9. Verify preset default is balanced and no legacy basic fallbacks exist
+assert(DEFAULT_SETTINGS.preset === 'balanced', 'DEFAULT_SETTINGS.preset is canonically balanced');
+const backgroundJs = fs.readFileSync(path.join(__dirname, '../background.js'), 'utf8');
+const contentJs = fs.readFileSync(path.join(__dirname, '../content.js'), 'utf8');
+assert(!popupJs.includes("|| 'basic'"), 'popup.js has zero legacy basic fallbacks');
+assert(!backgroundJs.includes("|| 'basic'"), 'background.js has zero legacy basic fallbacks');
+assert(!contentJs.includes("preset: 'basic'"), 'content.js has zero legacy basic fallbacks');
+
+// 10. Verify CHANGELOG has no broken redirectHomeSubscriptions key
+const changelogMd = fs.readFileSync(path.join(__dirname, '../CHANGELOG.md'), 'utf8');
+assert(!changelogMd.includes('`redirectHomeSubscriptions`'), 'CHANGELOG.md uses canonical redirectHomeToSubscriptions key');
+
 console.log(`\n=== PARITY AUDIT COMPLETE: ${failures} FAILURES ===`);
 if (failures > 0) {
   process.exit(1);
 } else {
   console.log('[ALL PRE-FLIGHT PARITY CHECKS PASSED: 100% OPERATIONAL]\n');
 }
+
