@@ -463,10 +463,12 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   function pruneDisconnectedObservedNodes() {
-    if (observedTitleNodesByVideoId.size < 20) return;
     for (const [vId, set] of observedTitleNodesByVideoId.entries()) {
       for (const node of set) {
         if (!node.isConnected) {
+          if (feedIntersectionObserver) {
+            feedIntersectionObserver.unobserve(node);
+          }
           set.delete(node);
         }
       }
@@ -482,6 +484,9 @@ globalThis.Libertad = globalThis.Libertad || {};
     const observedNodes = observedTitleNodesByVideoId.get(videoId);
     if (observedNodes) {
       observedNodes.forEach((node) => {
+        if (feedIntersectionObserver) {
+          feedIntersectionObserver.unobserve(node);
+        }
         if (node.isConnected) {
           applyTitleToNode(node, origTitle, videoId);
         }
@@ -514,12 +519,24 @@ globalThis.Libertad = globalThis.Libertad || {};
         if (origTitle) {
           updateFeedElementsForVideoId(videoId, origTitle);
         } else {
+          const observedNodes = observedTitleNodesByVideoId.get(videoId);
+          if (observedNodes && feedIntersectionObserver) {
+            observedNodes.forEach((node) => {
+              feedIntersectionObserver.unobserve(node);
+            });
+          }
           observedTitleNodesByVideoId.delete(videoId);
         }
         processFeedFetchQueue();
       })
       .catch(() => {
         activeFeedFetches--;
+        const observedNodes = observedTitleNodesByVideoId.get(videoId);
+        if (observedNodes && feedIntersectionObserver) {
+          observedNodes.forEach((node) => {
+            feedIntersectionObserver.unobserve(node);
+          });
+        }
         observedTitleNodesByVideoId.delete(videoId);
         processFeedFetchQueue();
       });

@@ -66,9 +66,6 @@ chrome.runtime.onStartup.addListener(async () => {
       }
     });
   }
-
-  // 2. Programmatically inject content scripts into restored YouTube tabs
-  await injectYouTubeTabs();
 });
 
 chrome.runtime.onInstalled.addListener(async (details) => {
@@ -195,20 +192,29 @@ async function pruneSessionStorage(prefix) {
   } catch (_) {}
 }
 
-async function recordSessionKey(prefix, storageKey) {
-  if (!chrome.storage?.session) return;
-  try {
-    const indexKey = `${prefix}__keys_index`;
-    const res = await chrome.storage.session.get(indexKey);
-    const keys = Array.isArray(res?.[indexKey]) ? res[indexKey] : [];
-    if (!keys.includes(storageKey)) {
-      keys.push(storageKey);
-      await chrome.storage.session.set({ [indexKey]: keys });
-    }
-    if (keys.length > MAX_SW_CACHE_SIZE + 10) {
-      await pruneSessionStorage(prefix);
-    }
-  } catch (_) {}
+const sessionKeyQueues = new Map();
+
+function recordSessionKey(prefix, storageKey) {
+  if (!chrome.storage?.session) return Promise.resolve();
+  const prevPromise = sessionKeyQueues.get(prefix) || Promise.resolve();
+  const nextPromise = prevPromise
+    .catch(() => {})
+    .then(async () => {
+      try {
+        const indexKey = `${prefix}__keys_index`;
+        const res = await chrome.storage.session.get(indexKey);
+        const keys = Array.isArray(res?.[indexKey]) ? res[indexKey] : [];
+        if (!keys.includes(storageKey)) {
+          keys.push(storageKey);
+          await chrome.storage.session.set({ [indexKey]: keys });
+        }
+        if (keys.length > MAX_SW_CACHE_SIZE + 10) {
+          await pruneSessionStorage(prefix);
+        }
+      } catch (_) {}
+    });
+  sessionKeyQueues.set(prefix, nextPromise);
+  return nextPromise;
 }
 
 async function getFromCache(cacheMap, prefix, key) {
@@ -237,7 +243,7 @@ async function setToCache(cacheMap, prefix, key, value) {
     try {
       const storageKey = `${prefix}_${key}`;
       await chrome.storage.session.set({ [storageKey]: value });
-      recordSessionKey(prefix, storageKey);
+      await recordSessionKey(prefix, storageKey);
     } catch (_) {}
   }
 }
@@ -253,6 +259,10 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     (async () => {
       const cached = await getFromCache(dislikesCache, 'dislikes', videoId);
       if (cached) {
+        if (cached.notFound) {
+          sendResponse({ success: false, notFound: true, error: 'Not Found' });
+          return;
+        }
         sendResponse({ success: true, data: cached });
         return;
       }
@@ -273,6 +283,16 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
             { signal: controller.signal },
           );
           clearTimeout(timeoutId);
+          if (res.status === 404) {
+            const notFoundPayload = { notFound: true, ts: Date.now() };
+            await setToCache(
+              dislikesCache,
+              'dislikes',
+              videoId,
+              notFoundPayload,
+            );
+            return { success: false, notFound: true, error: 'Not Found' };
+          }
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json();
           await setToCache(dislikesCache, 'dislikes', videoId, data);
@@ -322,6 +342,16 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
           const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`;
           const res = await fetch(oembedUrl, { signal: controller.signal });
           clearTimeout(timeoutId);
+          if (res.status === 404) {
+            const notFoundPayload = {
+              success: false,
+              notFound: true,
+              error: 'Not Found',
+              ts: Date.now(),
+            };
+            await setToCache(titlesCache, 'titles', videoId, notFoundPayload);
+            return notFoundPayload;
+          }
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json();
           const payload = {

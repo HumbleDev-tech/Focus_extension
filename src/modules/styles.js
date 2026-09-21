@@ -1698,10 +1698,33 @@ globalThis.Libertad = globalThis.Libertad || {};
       }
     }
 
-    // 3. Scan candidate buttons, chips, tabs, and action items across action bar & sidebars
-    const candidates = document.querySelectorAll(
-      'ytd-button-renderer, yt-button-shape, yt-button-view-model, yt-chip-cloud-chip-renderer, tp-yt-paper-tab, yt-tab-shape',
+    // 3. Scan candidate buttons, chips, tabs, and action items scoped strictly to action bars & sidebars
+    const chatContainerScope = document.querySelectorAll(
+      '#secondary, #panels, #chat, #chat-container, ytd-watch-metadata #actions, #teaser-carousel, ytd-engagement-panel-section-list-renderer[target-id*="chat"]',
     );
+    const candidates = [];
+    if (chatContainerScope.length > 0) {
+      const candidateTagSelector =
+        'ytd-button-renderer, yt-button-shape, yt-button-view-model, yt-chip-cloud-chip-renderer, tp-yt-paper-tab, yt-tab-shape';
+      const seenNodes = new Set();
+      for (let c = 0; c < chatContainerScope.length; c++) {
+        const container = chatContainerScope[c];
+        if (container.matches?.(candidateTagSelector)) {
+          if (!seenNodes.has(container)) {
+            seenNodes.add(container);
+            candidates.push(container);
+          }
+        }
+        const scopedElements = container.querySelectorAll(candidateTagSelector);
+        for (let s = 0; s < scopedElements.length; s++) {
+          const el = scopedElements[s];
+          if (!seenNodes.has(el)) {
+            seenNodes.add(el);
+            candidates.push(el);
+          }
+        }
+      }
+    }
 
     const chatKeywords = [
       'chat replay',

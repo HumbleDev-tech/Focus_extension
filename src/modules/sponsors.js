@@ -79,6 +79,14 @@ globalThis.Libertad = globalThis.Libertad || {};
     renderSponsorProgressBar();
   }
 
+  function isAdPlaying() {
+    const moviePlayer = document.getElementById('movie_player');
+    return Boolean(
+      moviePlayer?.classList?.contains('ad-showing') ||
+        moviePlayer?.classList?.contains('ad-interrupting'),
+    );
+  }
+
   function getActiveVideoId() {
     const moviePlayer = document.getElementById('movie_player');
     if (moviePlayer && typeof moviePlayer.getVideoData === 'function') {
@@ -105,6 +113,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   function seekVideoPlayer(video, targetTime) {
     if (video && Number.isFinite(targetTime)) {
+      if (isAdPlaying()) return;
       const activeVid = getActiveVideoId();
       if (
         activeVid &&
@@ -460,14 +469,15 @@ globalThis.Libertad = globalThis.Libertad || {};
     return settings.sponsorSkipSponsors !== false;
   }
 
-  function checkVideoSponsors(video, settings) {
+  function checkVideoSponsors(video, settings, knownActiveVid) {
     const conf = settings || activeSponsorSettings;
     if (!conf?.skipSponsors || !currentSponsorSegments.length || !video) {
       return;
     }
+    if (isAdPlaying()) return;
 
     // Strict Guard: Never evaluate segments unless they verifiably match the active video
-    const activeVid = getActiveVideoId();
+    const activeVid = knownActiveVid || getActiveVideoId();
     if (
       !activeVid ||
       !currentSponsorVideoId ||
@@ -496,7 +506,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   function handleVideoSeek(video) {
-    if (!video || isProgrammaticSkip) return;
+    if (!video || isProgrammaticSkip || isAdPlaying()) return;
     const activeVid = getActiveVideoId();
     if (
       !activeVid ||
@@ -551,21 +561,30 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (!video.dataset.libertadSponsorBound) {
       video.dataset.libertadSponsorBound = 'true';
       lastKnownPlaybackTime = video.currentTime || 0;
+      let lastHeartbeatCheck = 0;
+      let cachedActiveVid = null;
 
       const onTimeUpdate = () => {
         lastKnownPlaybackTime = video.currentTime;
-        const activeVid = getActiveVideoId();
-        if (
-          activeVid &&
-          currentSponsorVideoId &&
-          activeVid !== currentSponsorVideoId
-        ) {
-          // Transition between videos detected in media playback heartbeat
-          resetSponsorNavigation();
-          updateSponsorSegments(activeSponsorSettings);
-          return;
+        if (isAdPlaying()) return;
+
+        const now = Date.now();
+        if (!cachedActiveVid || now - lastHeartbeatCheck > 2000) {
+          lastHeartbeatCheck = now;
+          cachedActiveVid = getActiveVideoId();
+          if (
+            cachedActiveVid &&
+            currentSponsorVideoId &&
+            cachedActiveVid !== currentSponsorVideoId
+          ) {
+            // Transition between videos detected in media playback heartbeat
+            resetSponsorNavigation();
+            updateSponsorSegments(activeSponsorSettings);
+            return;
+          }
         }
-        checkVideoSponsors(video, activeSponsorSettings);
+
+        checkVideoSponsors(video, activeSponsorSettings, cachedActiveVid);
         if (
           currentSponsorSegments.length > 0 &&
           !activeSponsorContainer?.isConnected
@@ -588,17 +607,20 @@ globalThis.Libertad = globalThis.Libertad || {};
           lastKnownPlaybackTime = video.currentTime;
           return;
         }
+        cachedActiveVid = getActiveVideoId();
+        lastHeartbeatCheck = Date.now();
         handleVideoSeek(video);
         lastKnownPlaybackTime = video.currentTime;
         onTimeUpdate();
       };
 
       const onMediaTransition = () => {
-        const activeVid = getActiveVideoId();
+        cachedActiveVid = getActiveVideoId();
+        lastHeartbeatCheck = Date.now();
         if (
-          activeVid &&
+          cachedActiveVid &&
           currentSponsorVideoId &&
-          activeVid !== currentSponsorVideoId
+          cachedActiveVid !== currentSponsorVideoId
         ) {
           resetSponsorNavigation();
           updateSponsorSegments(activeSponsorSettings);
