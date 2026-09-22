@@ -103,12 +103,18 @@
     try {
       const player = getPlayer();
       if (player) {
+        let suppressed = false;
         if (typeof player.getAutonav === 'function') {
           if (player.getAutonav() === true) {
             player.setAutonav(false);
           }
+          suppressed = true;
         } else if (typeof player.setAutonav === 'function') {
           player.setAutonav(false);
+          suppressed = true;
+        }
+        if (suppressed && document.documentElement) {
+          document.documentElement.dataset.libertadAutonav = 'suppressed';
         }
       }
     } catch (_) {}
@@ -567,6 +573,9 @@
     lastBroadcastMetadataKey = null;
     cachedPlayerResponse = null;
     cachedPlayerResponseVideoId = null;
+    if (document.documentElement?.dataset) {
+      delete document.documentElement.dataset.libertadAutonav;
+    }
     if (retryTimer) {
       clearTimeout(retryTimer);
       clearInterval(retryTimer);
@@ -582,6 +591,9 @@
     lastBroadcastMetadataKey = null;
     cachedPlayerResponse = null;
     cachedPlayerResponseVideoId = null;
+    if (document.documentElement?.dataset) {
+      delete document.documentElement.dataset.libertadAutonav;
+    }
     if (retryTimer) {
       clearTimeout(retryTimer);
       clearInterval(retryTimer);

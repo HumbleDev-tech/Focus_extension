@@ -338,12 +338,14 @@
     safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
     safeRun('resetSponsorNavigation', Libertad.resetSponsorNavigation);
     safeRun('resetUntranslateNavigation', Libertad.resetUntranslateNavigation);
+    safeRun('resetStylesNavigation', Libertad.resetStylesNavigation);
   });
 
   window.addEventListener('yt-navigate-finish', () => {
     lastDislikeBtn = null;
     lastCheckedHref = window.location.href;
     lastFlexySyncedHref = window.location.href;
+    safeRun('resetStylesNavigation', Libertad.resetStylesNavigation);
     syncAllModules();
   });
 
@@ -351,6 +353,7 @@
     lastDislikeBtn = null;
     lastCheckedHref = window.location.href;
     lastFlexySyncedHref = null;
+    safeRun('resetStylesNavigation', Libertad.resetStylesNavigation);
     safeRun(
       'redirectShortsIfActive',
       Libertad.redirectShortsIfActive,
@@ -427,7 +430,16 @@
         const activeHref = window.location.href;
 
         if (currentSettings.hideExplore) {
-          safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
+          const isWatch =
+            activePath === '/watch' || activePath.startsWith('/live');
+          const isGuideOpen = Boolean(
+            document.querySelector(
+              'ytd-app[guide-persistent-and-visible], ytd-guide-renderer[opened]',
+            ),
+          );
+          if (!isWatch || isGuideOpen) {
+            safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
+          }
         }
 
         if (activePath === '/watch') {

@@ -469,12 +469,12 @@ globalThis.Libertad = globalThis.Libertad || {};
     return settings.sponsorSkipSponsors !== false;
   }
 
-  function checkVideoSponsors(video, settings, knownActiveVid) {
+  function checkVideoSponsors(video, settings, knownActiveVid, isKnownNotAd) {
     const conf = settings || activeSponsorSettings;
     if (!conf?.skipSponsors || !currentSponsorSegments.length || !video) {
       return;
     }
-    if (isAdPlaying()) return;
+    if (!isKnownNotAd && isAdPlaying()) return;
 
     // Strict Guard: Never evaluate segments unless they verifiably match the active video
     const activeVid = knownActiveVid || getActiveVideoId();
@@ -585,7 +585,7 @@ globalThis.Libertad = globalThis.Libertad || {};
           }
         }
 
-        checkVideoSponsors(video, activeSponsorSettings, cachedActiveVid);
+        checkVideoSponsors(video, activeSponsorSettings, cachedActiveVid, true);
         if (
           currentSponsorSegments.length > 0 &&
           !activeSponsorContainer?.isConnected &&

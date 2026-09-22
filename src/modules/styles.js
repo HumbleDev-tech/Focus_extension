@@ -38,8 +38,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         /* Strictly ensure inactive or hidden browse pages never force display or disrupt watch view */
         ytd-browse[hidden],
         ytd-browse[page-subtype="home"][hidden],
-        ytd-page-manager:has(ytd-watch-flexy:not([hidden])) ytd-browse,
-        ytd-page-manager:has(ytd-watch-flexy) ytd-browse[hidden] {
+        #page-manager > ytd-browse[hidden] {
           display: none !important;
         }
 
@@ -1487,6 +1486,14 @@ globalThis.Libertad = globalThis.Libertad || {};
     }, 80);
   }
 
+  let lastNonChatWatchUrl = null;
+  let lastAutoplayHandledUrl = null;
+
+  function resetStylesNavigation() {
+    lastNonChatWatchUrl = null;
+    lastAutoplayHandledUrl = null;
+  }
+
   // Dynamic DOM cleaner for Live Chat & Replay elements (handles Shadow DOM, dynamic Lit/Polymer elements, and localized button text)
   function cleanLiveChat(settings) {
     const isWatch =
@@ -1496,6 +1503,17 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     if (!isWatch) {
       return;
+    }
+
+    if (lastNonChatWatchUrl === window.location.href) {
+      const quickChat = document.querySelector('ytd-live-chat-frame, #chat');
+      if (
+        !quickChat ||
+        (quickChat.id === 'chat' && quickChat.childElementCount === 0)
+      ) {
+        return;
+      }
+      lastNonChatWatchUrl = null;
     }
 
     const flexy = document.querySelector('ytd-watch-flexy');
@@ -1544,11 +1562,12 @@ globalThis.Libertad = globalThis.Libertad || {};
       hasPopulatedChat ||
       Boolean(
         document.querySelector(
-          '[target-id*="live-chat"], [target-id*="chat-replay"], .ytp-live-chat-button, ytd-button-renderer[target-id*="chat"], yt-button-view-model:has(button[aria-label*="chat" i]), #teaser-carousel, yt-video-metadata-carousel-view-model, yt-text-carousel-item-view-model',
+          '[target-id*="live-chat"], [target-id*="chat-replay"], .ytp-live-chat-button, ytd-button-renderer[target-id*="chat"], yt-button-view-model:has(button[aria-label*="chat" i]), #teaser-carousel, yt-text-carousel-item-view-model, .ytTextCarouselItemViewModelHost, yt-video-metadata-carousel-view-model[aria-label*="chat" i], yt-video-metadata-carousel-view-model[aria-label*="repetición" i], yt-video-metadata-carousel-view-model[aria-label*="reprise" i]',
         ),
       );
 
     if (!hasChatTriggers) {
+      lastNonChatWatchUrl = window.location.href;
       return;
     }
 
@@ -1629,20 +1648,6 @@ globalThis.Libertad = globalThis.Libertad || {};
       'ytd-button-renderer#show-hide-button',
       'ytd-toggle-button-renderer#show-hide-button',
       '.ytp-live-chat-button',
-      'ytd-item-section-renderer:has(#chat)',
-      'ytd-item-section-renderer:has(ytd-live-chat-frame)',
-      'ytd-item-section-renderer:has(#show-hide-button)',
-      'ytd-item-section-renderer:has([target-id*="chat"])',
-      'ytd-engagement-panel-section-list-renderer[target-id*="chat"]',
-      'ytd-engagement-panel-section-list-renderer[target-id="chat-container"]',
-      'ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-live-chat"]',
-      'ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-live-chat-replay"]',
-      'ytd-engagement-panel-section-list-renderer[target-id*="live-chat"]',
-      'ytd-engagement-panel-section-list-renderer[target-id*="chat-replay"]',
-      'ytd-engagement-panel-section-list-renderer:has(#chat)',
-      'ytd-engagement-panel-section-list-renderer:has(ytd-live-chat-frame)',
-      'ytd-engagement-panel-section-list-renderer:has(#show-hide-button)',
-      'ytd-engagement-panel-section-list-renderer:has(iframe[src*="live_chat"])',
       '[target-id*="chat"]',
       '[target-id="chat-container"]',
       '[target-id="engagement-panel-live-chat"]',
@@ -1667,6 +1672,16 @@ globalThis.Libertad = globalThis.Libertad || {};
       if (node.getAttribute('data-libertad-hidden-chat') !== 'true') {
         node.setAttribute('data-libertad-hidden-chat', 'true');
         node.classList.add('libertad-force-hide');
+        const parentPanel = node.closest(
+          'ytd-item-section-renderer, ytd-engagement-panel-section-list-renderer',
+        );
+        if (
+          parentPanel &&
+          parentPanel.getAttribute('data-libertad-hidden-chat') !== 'true'
+        ) {
+          parentPanel.setAttribute('data-libertad-hidden-chat', 'true');
+          parentPanel.classList.add('libertad-force-hide');
+        }
         didMutateChat = true;
       }
     }
@@ -1843,7 +1858,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   function cleanExplore(settings) {
     if (!settings?.hideExplore) {
       const hiddenExplore = document.querySelectorAll(
-        '[data-libertad-explore="true"]',
+        '[data-libertad-explore]',
       );
       for (let i = 0; i < hiddenExplore.length; i++) {
         hiddenExplore[i].removeAttribute('data-libertad-explore');
@@ -1852,7 +1867,29 @@ globalThis.Libertad = globalThis.Libertad || {};
       }
       return;
     }
+
+    const isWatch =
+      window.location.pathname.startsWith('/watch') ||
+      window.location.pathname.startsWith('/live');
+    if (isWatch) {
+      const isGuideOpen = Boolean(
+        document.querySelector(
+          'ytd-app[guide-persistent-and-visible], ytd-guide-renderer[opened]',
+        ),
+      );
+      if (!isGuideOpen) {
+        return;
+      }
+    }
+
     try {
+      const untreatedSections = document.querySelectorAll(
+        'ytd-guide-section-renderer:not([data-libertad-explore])',
+      );
+      if (untreatedSections.length === 0) {
+        return;
+      }
+
       const exploreKeywords = [
         'explore',
         'explorar',
@@ -1865,13 +1902,8 @@ globalThis.Libertad = globalThis.Libertad || {};
         'odkrywaj',
         'keşfet',
       ];
-      const sections = document.querySelectorAll('ytd-guide-section-renderer');
-      for (let i = 0; i < sections.length; i++) {
-        const sec = sections[i];
-        if (sec.getAttribute('data-libertad-explore') === 'true') {
-          sec.classList.add('libertad-force-hide');
-          continue;
-        }
+      for (let i = 0; i < untreatedSections.length; i++) {
+        const sec = untreatedSections[i];
 
         // Strict guard against Home, Subscriptions, or Library
         if (
@@ -1879,6 +1911,7 @@ globalThis.Libertad = globalThis.Libertad || {};
             'a[href="/"], a[href*="/feed/subscriptions"], a[href*="/feed/you"], a[href*="premium"]',
           )
         ) {
+          sec.setAttribute('data-libertad-explore', 'preserved');
           continue;
         }
 
@@ -1889,6 +1922,8 @@ globalThis.Libertad = globalThis.Libertad || {};
         if (exploreKeywords.some((kw) => titleText.startsWith(kw))) {
           sec.setAttribute('data-libertad-explore', 'true');
           sec.classList.add('libertad-force-hide');
+        } else {
+          sec.setAttribute('data-libertad-explore', 'checked');
         }
       }
     } catch (_) {}
@@ -1903,12 +1938,21 @@ globalThis.Libertad = globalThis.Libertad || {};
     ) {
       return;
     }
+    const currentUrl = window.location.href;
+    if (lastAutoplayHandledUrl === currentUrl) {
+      return;
+    }
+    if (document.documentElement?.dataset?.libertadAutonav === 'suppressed') {
+      lastAutoplayHandledUrl = currentUrl;
+      return;
+    }
     try {
-      const autonavBtn = document.querySelector(
-        '.ytp-autonav-toggle-button[aria-checked="true"]',
-      );
+      const autonavBtn = document.querySelector('.ytp-autonav-toggle-button');
       if (autonavBtn) {
-        autonavBtn.click();
+        if (autonavBtn.getAttribute('aria-checked') === 'true') {
+          autonavBtn.click();
+        }
+        lastAutoplayHandledUrl = currentUrl;
       }
     } catch (_) {}
   }
@@ -1947,4 +1991,5 @@ globalThis.Libertad = globalThis.Libertad || {};
   globalThis.Libertad.cleanExplore = cleanExplore;
   globalThis.Libertad.cleanAutoplay = cleanAutoplay;
   globalThis.Libertad.cleanSidebar = cleanSidebar;
+  globalThis.Libertad.resetStylesNavigation = resetStylesNavigation;
 })();
