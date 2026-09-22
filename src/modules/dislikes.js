@@ -31,22 +31,18 @@ globalThis.Libertad = globalThis.Libertad || {};
   const dislikeCache = new BoundedCache(200);
   const inFlightDislikes = new Set();
 
-  // Find modern YouTube dislike button
+  // Find modern YouTube dislike button in a single C++ selector pass
   function findDislikeButton() {
-    return (
-      document.querySelector(
-        'ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button',
-      ) ||
-      document.querySelector(
-        'segmented-like-dislike-button-view-model dislike-button-view-model button',
-      ) ||
-      document.querySelector('dislike-button-view-model button') ||
-      document.querySelector('#segmented-dislike-button button') ||
-      document.querySelector(
-        'like-button-view-model + dislike-button-view-model button',
-      ) ||
-      document.querySelector('#dislike-button button')
+    const btn = document.querySelector(
+      'segmented-like-dislike-button-view-model dislike-button-view-model button, dislike-button-view-model button, ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button, #segmented-dislike-button button, like-button-view-model + dislike-button-view-model button, #top-level-buttons-computed #dislike-button button',
     );
+    if (
+      btn &&
+      !btn.closest('#comments, ytd-comments, ytd-comment-thread-renderer')
+    ) {
+      return btn;
+    }
+    return null;
   }
 
   // Inject or update the dislike badge

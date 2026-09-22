@@ -121,12 +121,30 @@
     );
   }
 
+  let cachedPlayerResponse = null;
+  let cachedPlayerResponseVideoId = null;
+
   function getPlayerResponse() {
+    const currentVid = getCurrentVideoId();
+    if (
+      currentVid &&
+      currentVid === cachedPlayerResponseVideoId &&
+      cachedPlayerResponse
+    ) {
+      return cachedPlayerResponse;
+    }
+
     try {
       const player = getPlayer();
       if (player && typeof player.getPlayerResponse === 'function') {
         const resp = player.getPlayerResponse();
-        if (resp) return resp;
+        if (resp) {
+          if (currentVid && resp.videoDetails) {
+            cachedPlayerResponse = resp;
+            cachedPlayerResponseVideoId = currentVid;
+          }
+          return resp;
+        }
       }
     } catch (_) {}
 
@@ -478,6 +496,7 @@
 
   function startEnforcementRoutine() {
     if (retryTimer) {
+      clearTimeout(retryTimer);
       clearInterval(retryTimer);
       retryTimer = null;
     }
@@ -496,9 +515,6 @@
       return;
     }
 
-    let attempts = 0;
-    const maxAttempts = 10;
-
     bindPlayerEvents();
     const audioDone = enforceOriginalAudio();
     neutralizeAutoCaptions();
@@ -506,18 +522,27 @@
 
     if (audioDone) return;
 
-    retryTimer = setInterval(() => {
-      attempts++;
-      bindPlayerEvents();
-      const done = enforceOriginalAudio();
-      neutralizeAutoCaptions();
-      broadcastMetadata();
+    // Exponential backoff instead of continuous blind 500ms polling
+    let attempts = 0;
+    const backoffDelays = [400, 1000, 2000];
 
-      if (done || attempts >= maxAttempts) {
-        clearInterval(retryTimer);
+    function scheduleNextAttempt() {
+      if (attempts >= backoffDelays.length) {
         retryTimer = null;
+        return;
       }
-    }, 500);
+      const delay = backoffDelays[attempts++];
+      retryTimer = setTimeout(() => {
+        retryTimer = null;
+        bindPlayerEvents();
+        const done = enforceOriginalAudio();
+        neutralizeAutoCaptions();
+        if (!done) {
+          scheduleNextAttempt();
+        }
+      }, delay);
+    }
+    scheduleNextAttempt();
   }
 
   // Listen for targeted execution commands from Libertad Content Script
@@ -540,9 +565,28 @@
   window.addEventListener('yt-navigate-finish', () => {
     lastEnforcedVideoId = null;
     lastBroadcastMetadataKey = null;
+    cachedPlayerResponse = null;
+    cachedPlayerResponseVideoId = null;
+    if (retryTimer) {
+      clearTimeout(retryTimer);
+      clearInterval(retryTimer);
+      retryTimer = null;
+    }
     bindPlayerEvents();
     enforceAutoplaySuppression();
     setTimeout(startEnforcementRoutine, 400);
+  });
+
+  window.addEventListener('popstate', () => {
+    lastEnforcedVideoId = null;
+    lastBroadcastMetadataKey = null;
+    cachedPlayerResponse = null;
+    cachedPlayerResponseVideoId = null;
+    if (retryTimer) {
+      clearTimeout(retryTimer);
+      clearInterval(retryTimer);
+      retryTimer = null;
+    }
   });
 
   // Initial startup hook

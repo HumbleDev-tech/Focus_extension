@@ -363,6 +363,21 @@
     );
   });
 
+  // High-performance cooperative background scheduler: keeps non-urgent DOM passes off the render frame budget
+  let isIdleScheduled = false;
+  const scheduleIdleTask = (callback) => {
+    if (isIdleScheduled) return;
+    isIdleScheduled = true;
+    const runTask = () => {
+      isIdleScheduled = false;
+      callback();
+    };
+    if (typeof window.requestIdleCallback === 'function') {
+      return window.requestIdleCallback(runTask, { timeout: 150 });
+    }
+    return setTimeout(runTask, 30);
+  };
+
   // Throttled MutationObserver with node-addition filtering and memoized lookups
   let isCheckingMutation = false;
 
@@ -379,6 +394,7 @@
     if (isCheckingMutation) return;
     isCheckingMutation = true;
 
+    // Immediate Frame Phase: strictly for critical navigation redirects and fast route tracking
     window.requestAnimationFrame(() => {
       isCheckingMutation = false;
 
@@ -404,128 +420,136 @@
       if (isHome) {
         safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
       }
-      if (currentSettings.hideExplore) {
-        safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
-      }
 
-      if (currentPath === '/watch') {
-        if (
-          lastFlexySyncedHref !== currentHref &&
-          document.querySelector('ytd-watch-flexy')
-        ) {
-          lastFlexySyncedHref = currentHref;
-          safeRun('cleanSidebar', Libertad.cleanSidebar, currentSettings);
+      // Deferred Idle Phase: non-blocking execution of heavier DOM cleaners and feed analyzers
+      scheduleIdleTask(() => {
+        const activePath = window.location.pathname;
+        const activeHref = window.location.href;
+
+        if (currentSettings.hideExplore) {
+          safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
         }
-        if (currentSettings.hideAutoplay) {
-          safeRun('cleanAutoplay', Libertad.cleanAutoplay, currentSettings);
-        }
-        if (currentSettings.hideLiveChat) {
-          safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
-        }
-        if (currentSettings.showDislikes && Libertad.findDislikeButton) {
-          const hasBadge =
-            lastDislikeBtn?.isConnected &&
-            lastDislikeBtn.querySelector('.libertad-dislike-badge');
-          if (!hasBadge) {
-            const dislikeBtn = safeRun(
-              'findDislikeButton',
-              Libertad.findDislikeButton,
-            );
-            if (dislikeBtn) {
-              lastDislikeBtn = dislikeBtn;
-              if (!dislikeBtn.querySelector('.libertad-dislike-badge')) {
-                safeRun(
-                  'updateDislikeCount',
-                  Libertad.updateDislikeCount,
-                  currentSettings,
-                );
+
+        if (activePath === '/watch') {
+          if (
+            lastFlexySyncedHref !== activeHref &&
+            document.querySelector('ytd-watch-flexy')
+          ) {
+            lastFlexySyncedHref = activeHref;
+            safeRun('cleanSidebar', Libertad.cleanSidebar, currentSettings);
+          }
+          if (currentSettings.hideAutoplay) {
+            safeRun('cleanAutoplay', Libertad.cleanAutoplay, currentSettings);
+          }
+          if (currentSettings.hideLiveChat) {
+            safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
+          }
+          if (currentSettings.showDislikes && Libertad.findDislikeButton) {
+            const hasBadge =
+              lastDislikeBtn?.isConnected &&
+              lastDislikeBtn.querySelector('.libertad-dislike-badge');
+            if (!hasBadge) {
+              const dislikeBtn = safeRun(
+                'findDislikeButton',
+                Libertad.findDislikeButton,
+              );
+              if (dislikeBtn) {
+                lastDislikeBtn = dislikeBtn;
+                if (!dislikeBtn.querySelector('.libertad-dislike-badge')) {
+                  safeRun(
+                    'updateDislikeCount',
+                    Libertad.updateDislikeCount,
+                    currentSettings,
+                  );
+                }
               }
             }
           }
+          if (
+            currentSettings.untranslateMaster !== false &&
+            currentSettings.untranslateTitles !== false
+          ) {
+            safeRun(
+              'updateWatchTitle',
+              Libertad.updateWatchTitle,
+              currentSettings,
+            );
+          }
+          if (
+            currentSettings.untranslateMaster !== false &&
+            currentSettings.untranslateDescription !== false
+          ) {
+            safeRun(
+              'restoreOriginalDescription',
+              Libertad.restoreOriginalDescription,
+              currentSettings,
+            );
+          }
+          if (
+            currentSettings.untranslateMaster !== false &&
+            currentSettings.untranslateChapters !== false
+          ) {
+            safeRun(
+              'restoreOriginalChapters',
+              Libertad.restoreOriginalChapters,
+              currentSettings,
+            );
+          }
+          if (currentSettings.skipSponsors && Libertad.getActiveVideoId) {
+            const activeVid = safeRun(
+              'getActiveVideoId',
+              Libertad.getActiveVideoId,
+            );
+            const currentSponsorVid =
+              typeof Libertad.getCurrentSponsorVideoId === 'function'
+                ? Libertad.getCurrentSponsorVideoId()
+                : null;
+            if (activeVid && activeVid !== currentSponsorVid) {
+              safeRun(
+                'updateSponsorSegments',
+                Libertad.updateSponsorSegments,
+                currentSettings,
+              );
+            }
+            safeRun(
+              'bindVideoSponsorListener',
+              Libertad.bindVideoSponsorListener,
+              currentSettings,
+            );
+            const segments =
+              typeof Libertad.getCurrentSponsorSegments === 'function'
+                ? Libertad.getCurrentSponsorSegments()
+                : [];
+            const hasContainer = Libertad.hasActiveSponsorContainer
+              ? Libertad.hasActiveSponsorContainer()
+              : false;
+            if (segments.length > 0 && !hasContainer) {
+              safeRun(
+                'renderSponsorProgressBar',
+                Libertad.renderSponsorProgressBar,
+              );
+            }
+          }
         }
+
         if (
           currentSettings.untranslateMaster !== false &&
           currentSettings.untranslateTitles !== false
         ) {
-          safeRun(
-            'updateWatchTitle',
-            Libertad.updateWatchTitle,
-            currentSettings,
-          );
-        }
-        if (
-          currentSettings.untranslateMaster !== false &&
-          currentSettings.untranslateDescription !== false
-        ) {
-          safeRun(
-            'restoreOriginalDescription',
-            Libertad.restoreOriginalDescription,
-            currentSettings,
-          );
-        }
-        if (
-          currentSettings.untranslateMaster !== false &&
-          currentSettings.untranslateChapters !== false
-        ) {
-          safeRun(
-            'restoreOriginalChapters',
-            Libertad.restoreOriginalChapters,
-            currentSettings,
-          );
-        }
-        if (currentSettings.skipSponsors && Libertad.getActiveVideoId) {
-          const activeVid = safeRun(
-            'getActiveVideoId',
-            Libertad.getActiveVideoId,
-          );
-          const currentSponsorVid =
-            typeof Libertad.getCurrentSponsorVideoId === 'function'
-              ? Libertad.getCurrentSponsorVideoId()
-              : null;
-          if (activeVid && activeVid !== currentSponsorVid) {
+          const isWatch = activePath === '/watch';
+          const isHome = activePath === '/' || activePath === '';
+          if (
+            (!isHome || !currentSettings.hideHomeFeed) &&
+            (!isWatch || !currentSettings.hideSidebar)
+          ) {
             safeRun(
-              'updateSponsorSegments',
-              Libertad.updateSponsorSegments,
+              'debouncedUntranslateFeed',
+              Libertad.debouncedUntranslateFeed,
               currentSettings,
             );
           }
-          safeRun(
-            'bindVideoSponsorListener',
-            Libertad.bindVideoSponsorListener,
-            currentSettings,
-          );
-          const segments =
-            typeof Libertad.getCurrentSponsorSegments === 'function'
-              ? Libertad.getCurrentSponsorSegments()
-              : [];
-          const hasContainer = Libertad.hasActiveSponsorContainer
-            ? Libertad.hasActiveSponsorContainer()
-            : false;
-          if (segments.length > 0 && !hasContainer) {
-            safeRun(
-              'renderSponsorProgressBar',
-              Libertad.renderSponsorProgressBar,
-            );
-          }
         }
-      }
-
-      if (
-        currentSettings.untranslateMaster !== false &&
-        currentSettings.untranslateTitles !== false
-      ) {
-        const isWatch = currentPath === '/watch';
-        if (
-          (!isHome || !currentSettings.hideHomeFeed) &&
-          (!isWatch || !currentSettings.hideSidebar)
-        ) {
-          safeRun(
-            'debouncedUntranslateFeed',
-            Libertad.debouncedUntranslateFeed,
-            currentSettings,
-          );
-        }
-      }
+      });
     });
   });
 

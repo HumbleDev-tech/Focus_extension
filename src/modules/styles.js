@@ -15,6 +15,13 @@ globalThis.Libertad = globalThis.Libertad || {};
   function buildStylesheet(settings) {
     const rules = [];
 
+    // Base utility rules for zero-overhead, declarative DOM hiding
+    rules.push(`
+      .libertad-force-hide {
+        display: none !important;
+      }
+    `);
+
     // Home feed
     if (settings.hideHomeFeed) {
       rules.push(`
@@ -152,21 +159,15 @@ globalThis.Libertad = globalThis.Libertad || {};
         yt-list-item-view-model:has(a[href*="/shorts"]),
         a[title="Shorts"],
 
-        /* Modern Shorts Lockup & Feeds/Search/Channel Grid Cards (Strictly scoped to video targets) */
+        /* Modern Shorts Lockup & Feeds/Search/Channel Grid Cards (Consolidated single-pass :has matching) */
         ytm-shorts-lockup-view-model,
         ytm-shorts-lockup-view-model-v2,
-        ytd-rich-item-renderer:has(ytm-shorts-lockup-view-model),
-        ytd-rich-item-renderer:has(ytm-shorts-lockup-view-model-v2),
-        ytd-rich-item-renderer:has(a#thumbnail[href*="/shorts/"]),
-        ytd-rich-item-renderer:has(a#video-title-link[href*="/shorts/"]),
-        ytd-video-renderer:has(a#thumbnail[href*="/shorts/"]),
-        ytd-video-renderer:has(a#video-title-link[href*="/shorts/"]),
-        ytd-video-renderer:has(a#video-title[href*="/shorts/"]),
-        ytd-grid-video-renderer:has(a#thumbnail[href*="/shorts/"]),
-        ytd-grid-video-renderer:has(a#video-title[href*="/shorts/"]),
+        ytd-rich-item-renderer:has(ytm-shorts-lockup-view-model, ytm-shorts-lockup-view-model-v2),
+        ytd-rich-item-renderer:has(a[href*="/shorts/"]:is(#thumbnail, #video-title-link)),
+        ytd-video-renderer:has(a[href*="/shorts/"]:is(#thumbnail, #video-title-link, #video-title)),
+        ytd-grid-video-renderer:has(a[href*="/shorts/"]:is(#thumbnail, #video-title)),
         ytd-compact-video-renderer:has(a#thumbnail[href*="/shorts/"]),
-        yt-lockup-view-model:has(a[href*="/shorts/"][class*="thumbnail"]),
-        yt-lockup-view-model:has(a.yt-lockup-metadata-view-model-wiz__title[href*="/shorts/"]),
+        yt-lockup-view-model:has(a[href*="/shorts/"]),
         ytd-reel-item-renderer,
 
         /* Standalone Player */
@@ -665,20 +666,10 @@ globalThis.Libertad = globalThis.Libertad || {};
     // Left Drawer Explore Section
     if (settings.hideExplore) {
       rules.push(`
-        /* Full Explore Section in Navigation Drawer (Language-Independent & Multi-Variant) */
-        ytd-guide-section-renderer:has(a[href*="/feed/trending"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
-        ytd-guide-section-renderer:has(a[href*="/gaming"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
-        ytd-guide-section-renderer:has(a[href*="/podcasts"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
-        ytd-guide-section-renderer:has(a[href*="/feed/storefront"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
-        ytd-guide-section-renderer:has(a[href*="/feed/courses_destination"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
-        ytd-guide-section-renderer:has(a[href*="/feed/explore"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
-        ytd-guide-section-renderer:has(a[href*="/channel/UCEgdi0XIXXZ-qJOFPf4JSKw"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
-        ytd-guide-section-renderer:has(a[href*="/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
-        ytd-guide-section-renderer:has(a[href*="/channel/UCYfdidRxbB8Qhf0Nx7ioOYw"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
-        ytd-guide-section-renderer:has(a[href*="/channel/UC1x8rV_f-2yPpzlN0JWZXIQ"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
-        ytd-guide-section-renderer:has(a[href*="/channel/UC4R8F_QCY98548AqZ6dNXGQ"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
-        ytd-guide-section-renderer:has(a[href*="/channel/UCOpNcN46UbXVtpKMrmU4Abg"]):not(:has(a[href="/"])):not(:has(a[href*="/feed/subscriptions"])):not(:has(a[href*="/feed/you"])):not(:has(a[href*="premium"])),
+        /* Full Explore Section in Navigation Drawer (Language-Independent & Tagged) */
         ytd-guide-section-renderer[data-libertad-explore="true"],
+        ytd-guide-section-renderer:has(#guide-section-title [href*="/feed/explore"]),
+        ytd-guide-section-renderer:has(#guide-section-title [href*="/feed/trending"]),
 
         /* Individual Explore Entries in Guide */
         ytd-guide-entry-renderer:has(a[href*="/feed/explore"]),
@@ -751,6 +742,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     // Live Chat & Chat Replay (Full Stream & Replay Suppression)
     if (settings.hideLiveChat) {
       rules.push(`
+        [data-libertad-hidden-chat="true"],
         #chat,
         #chat.ytd-watch-flexy,
         #chat-container,
@@ -1316,9 +1308,6 @@ globalThis.Libertad = globalThis.Libertad || {};
       styleEl.textContent = cachedStylesheetCss;
     }
     updateZenBanner(settings);
-    cleanLiveChat(settings);
-    cleanExplore(settings);
-    cleanSidebar(settings);
   }
 
   // Show a calm, intentional screen on YouTube home if home feed is disabled
@@ -1488,7 +1477,13 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (chatResizeTimer) clearTimeout(chatResizeTimer);
     chatResizeTimer = setTimeout(() => {
       chatResizeTimer = null;
-      window.dispatchEvent(new Event('resize'));
+      const flexy = document.querySelector('ytd-watch-flexy');
+      if (flexy) {
+        try {
+          if (typeof flexy.handleResize_ === 'function') flexy.handleResize_();
+          if (typeof flexy.notifyResize === 'function') flexy.notifyResize();
+        } catch (_) {}
+      }
     }, 80);
   }
 
@@ -1512,6 +1507,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       );
       for (let i = 0; i < hiddenElements.length; i++) {
         hiddenElements[i].removeAttribute('data-libertad-hidden-chat');
+        hiddenElements[i].classList.remove('libertad-force-hide');
         hiddenElements[i].style.removeProperty('display');
         hiddenElements[i].style.removeProperty('height');
         hiddenElements[i].style.removeProperty('min-height');
@@ -1670,14 +1666,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       const node = directNodes[i];
       if (node.getAttribute('data-libertad-hidden-chat') !== 'true') {
         node.setAttribute('data-libertad-hidden-chat', 'true');
-        node.style.setProperty('display', 'none', 'important');
-        node.style.setProperty('height', '0px', 'important');
-        node.style.setProperty('min-height', '0px', 'important');
-        node.style.setProperty('max-height', '0px', 'important');
-        node.style.setProperty('margin', '0px', 'important');
-        node.style.setProperty('padding', '0px', 'important');
-        node.style.setProperty('border', 'none', 'important');
-        node.style.setProperty('visibility', 'hidden', 'important');
+        node.classList.add('libertad-force-hide');
         didMutateChat = true;
       }
     }
@@ -1708,18 +1697,14 @@ globalThis.Libertad = globalThis.Libertad || {};
 
       if (isChatTeaser) {
         card.setAttribute('data-libertad-hidden-chat', 'true');
-        card.style.setProperty('display', 'none', 'important');
-        card.style.setProperty('height', '0px', 'important');
-        card.style.setProperty('visibility', 'hidden', 'important');
+        card.classList.add('libertad-force-hide');
         const parentCarousel = card.closest('#teaser-carousel');
         if (
           parentCarousel &&
           parentCarousel.getAttribute('data-libertad-hidden-chat') !== 'true'
         ) {
           parentCarousel.setAttribute('data-libertad-hidden-chat', 'true');
-          parentCarousel.style.setProperty('display', 'none', 'important');
-          parentCarousel.style.setProperty('height', '0px', 'important');
-          parentCarousel.style.setProperty('visibility', 'hidden', 'important');
+          parentCarousel.classList.add('libertad-force-hide');
         }
         didMutateChat = true;
       }
@@ -1799,7 +1784,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       const targetId = (node.getAttribute('target-id') || '').toLowerCase();
       if (targetId.includes('live-chat') || targetId.includes('chat-replay')) {
         node.setAttribute('data-libertad-hidden-chat', 'true');
-        node.style.setProperty('display', 'none', 'important');
+        node.classList.add('libertad-force-hide');
         didMutateChat = true;
         continue;
       }
@@ -1841,7 +1826,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
       if (match) {
         node.setAttribute('data-libertad-hidden-chat', 'true');
-        node.style.setProperty('display', 'none', 'important');
+        node.classList.add('libertad-force-hide');
         didMutateChat = true;
       } else {
         node.setAttribute('data-libertad-chat-checked', 'true');
@@ -1856,7 +1841,17 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   // Resilient DOM tagger for Explore sidebar section in any language
   function cleanExplore(settings) {
-    if (!settings?.hideExplore) return;
+    if (!settings?.hideExplore) {
+      const hiddenExplore = document.querySelectorAll(
+        '[data-libertad-explore="true"]',
+      );
+      for (let i = 0; i < hiddenExplore.length; i++) {
+        hiddenExplore[i].removeAttribute('data-libertad-explore');
+        hiddenExplore[i].classList.remove('libertad-force-hide');
+        hiddenExplore[i].style.removeProperty('display');
+      }
+      return;
+    }
     try {
       const exploreKeywords = [
         'explore',
@@ -1874,7 +1869,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       for (let i = 0; i < sections.length; i++) {
         const sec = sections[i];
         if (sec.getAttribute('data-libertad-explore') === 'true') {
-          sec.style.setProperty('display', 'none', 'important');
+          sec.classList.add('libertad-force-hide');
           continue;
         }
 
@@ -1893,7 +1888,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         const titleText = (titleEl?.textContent || '').trim().toLowerCase();
         if (exploreKeywords.some((kw) => titleText.startsWith(kw))) {
           sec.setAttribute('data-libertad-explore', 'true');
-          sec.style.setProperty('display', 'none', 'important');
+          sec.classList.add('libertad-force-hide');
         }
       }
     } catch (_) {}
@@ -1923,11 +1918,14 @@ globalThis.Libertad = globalThis.Libertad || {};
   function schedulePlayerResize() {
     if (playerResizeTimer) clearTimeout(playerResizeTimer);
     playerResizeTimer = setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-      setTimeout(() => {
-        window.dispatchEvent(new Event('resize'));
-        playerResizeTimer = null;
-      }, 180);
+      playerResizeTimer = null;
+      const flexy = document.querySelector('ytd-watch-flexy');
+      if (flexy) {
+        try {
+          if (typeof flexy.handleResize_ === 'function') flexy.handleResize_();
+          if (typeof flexy.notifyResize === 'function') flexy.notifyResize();
+        } catch (_) {}
+      }
     }, 40);
   }
 

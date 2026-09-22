@@ -133,6 +133,10 @@ globalThis.Libertad = globalThis.Libertad || {};
     feedFetchQueue.length = 0;
     pendingFeedVideoIds.clear();
     observedTitleNodesByVideoId.clear();
+    if (pruneTimer) {
+      clearTimeout(pruneTimer);
+      pruneTimer = null;
+    }
     if (feedIntersectionObserver) {
       feedIntersectionObserver.disconnect();
     }
@@ -462,6 +466,15 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
   }
 
+  let pruneTimer = null;
+  function schedulePruneDisconnectedNodes() {
+    if (pruneTimer) return;
+    pruneTimer = setTimeout(() => {
+      pruneTimer = null;
+      pruneDisconnectedObservedNodes();
+    }, 2000);
+  }
+
   function pruneDisconnectedObservedNodes() {
     for (const [vId, set] of observedTitleNodesByVideoId.entries()) {
       for (const node of set) {
@@ -493,7 +506,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       });
       observedTitleNodesByVideoId.delete(videoId);
     }
-    pruneDisconnectedObservedNodes();
+    schedulePruneDisconnectedNodes();
   }
 
   function processFeedFetchQueue() {
@@ -551,7 +564,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       observedTitleNodesByVideoId.set(videoId, nodeList);
     }
     nodeList.add(node);
-    pruneDisconnectedObservedNodes();
+    schedulePruneDisconnectedNodes();
 
     if (!feedIntersectionObserver) {
       feedIntersectionObserver = new IntersectionObserver(
@@ -613,6 +626,16 @@ globalThis.Libertad = globalThis.Libertad || {};
         if (directAnchor?.href?.includes(appliedId)) {
           continue;
         }
+      }
+
+      // Fast bailout: if node is already scheduled with an active pending observation, skip expensive DOM traversal
+      const pendingId = node.dataset.libertadPendingId;
+      if (pendingId) {
+        const directAnchor = node.tagName === 'A' ? node : node.closest('a');
+        if (directAnchor?.href?.includes(pendingId)) {
+          continue;
+        }
+        delete node.dataset.libertadPendingId;
       }
 
       const videoId = extractVideoId(node);

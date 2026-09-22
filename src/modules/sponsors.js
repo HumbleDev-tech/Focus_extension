@@ -563,6 +563,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       lastKnownPlaybackTime = video.currentTime || 0;
       let lastHeartbeatCheck = 0;
       let cachedActiveVid = null;
+      let lastProgressBarCheck = 0;
 
       const onTimeUpdate = () => {
         lastKnownPlaybackTime = video.currentTime;
@@ -587,8 +588,10 @@ globalThis.Libertad = globalThis.Libertad || {};
         checkVideoSponsors(video, activeSponsorSettings, cachedActiveVid);
         if (
           currentSponsorSegments.length > 0 &&
-          !activeSponsorContainer?.isConnected
+          !activeSponsorContainer?.isConnected &&
+          now - lastProgressBarCheck > 1000
         ) {
+          lastProgressBarCheck = now;
           renderSponsorProgressBar();
         }
       };
