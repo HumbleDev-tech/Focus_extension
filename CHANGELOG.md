@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.2]
+- **HTML5 Player & Flexy Dimensions Calibration:** Fixed player container and HTML5 `<video>` element desynchronization when hiding the sidebar (`hideSidebar`), enforcing Polymer flexy CSS variable resets (`--ytd-watch-flexy-sidebar-width: 0px !important;`, etc.) and centered 1100px layouts strictly scoped to `:not([theater]):not([fullscreen])` to prevent letterboxing and regressions in Theater or Fullscreen modes.
+- **Reactive Native Player Resizing:** Added debounced staggered player recalibration (`schedulePlayerResize` / `cleanSidebar` via native `window.dispatchEvent`) on SPA navigations, watch page mounting, and storage toggle changes, recalculating video canvas dimensions smoothly without layout thrashing.
+- **Isolated Mutation Guard:** Protected `/watch` page DOM observation with single-sync URL tracking (`lastFlexySyncedHref`), eliminating redundant resize event loops and layout thrashing across video playback.
+
+---
+
 ## [1.4.1]
 - **Ad-Safe SponsorBlock Playback:** Added native in-stream ad detection (`.ad-showing`, `.ad-interrupting`) to prevent timeline skips during ads, eliminating player state desynchronization and unexpected skipping on advertisements.
 - **Zero-Overhead Playback Heartbeat:** Optimized `sponsors.js` playback engine to cache the active video ID in memory and throttle DOM checks, eliminating redundant lookups (`getElementById`, `querySelector`, regex) on every 250ms `timeupdate` tick.

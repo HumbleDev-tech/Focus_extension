@@ -81,9 +81,33 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-watch-next-secondary-results-renderer {
           display: none !important;
         }
-        ytd-watch-flexy:not([theater]):not([fullscreen]) #primary.ytd-watch-flexy {
+
+        ytd-watch-flexy:not([theater]):not([fullscreen]) {
+          --ytd-watch-flexy-sidebar-width: 0px !important;
+          --ytd-watch-flexy-sidebar-min-width: 0px !important;
+          --ytd-watch-flexy-fixed-side-menu-width: 0px !important;
+          --ytd-watch-flexy-side-menu-margin: 0px !important;
+          --ytd-watch-flexy-space-between-player-and-sidebar: 0px !important;
+        }
+
+        ytd-watch-flexy:not([theater]):not([fullscreen]) #columns.ytd-watch-flexy {
+          width: 100% !important;
           max-width: 1100px !important;
           margin: 0 auto !important;
+          justify-content: center !important;
+        }
+
+        ytd-watch-flexy:not([theater]):not([fullscreen]) #primary.ytd-watch-flexy {
+          max-width: 1100px !important;
+          width: 100% !important;
+          margin: 0 auto !important;
+          padding-right: 0 !important;
+        }
+
+        ytd-watch-flexy:not([theater]):not([fullscreen]) #player-container-outer.ytd-watch-flexy,
+        ytd-watch-flexy:not([theater]):not([fullscreen]) #player-container.ytd-watch-flexy {
+          max-width: 100% !important;
+          min-width: 0 !important;
         }
       `);
     }
@@ -1294,6 +1318,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     updateZenBanner(settings);
     cleanLiveChat(settings);
     cleanExplore(settings);
+    cleanSidebar(settings);
   }
 
   // Show a calm, intentional screen on YouTube home if home feed is disabled
@@ -1893,10 +1918,35 @@ globalThis.Libertad = globalThis.Libertad || {};
     } catch (_) {}
   }
 
+  // Dynamic player dimension calibrator when toggling or navigating with hideSidebar
+  let playerResizeTimer = null;
+  function schedulePlayerResize() {
+    if (playerResizeTimer) clearTimeout(playerResizeTimer);
+    playerResizeTimer = setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+      setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+        playerResizeTimer = null;
+      }, 180);
+    }, 40);
+  }
+
+  function cleanSidebar(_settings) {
+    const isWatch =
+      window.location.pathname.startsWith('/watch') ||
+      window.location.pathname.startsWith('/live') ||
+      Boolean(document.querySelector('ytd-watch-flexy'));
+
+    if (!isWatch) return;
+
+    schedulePlayerResize();
+  }
+
   globalThis.Libertad.buildStylesheet = buildStylesheet;
   globalThis.Libertad.applyStyles = applyStyles;
   globalThis.Libertad.updateZenBanner = updateZenBanner;
   globalThis.Libertad.cleanLiveChat = cleanLiveChat;
   globalThis.Libertad.cleanExplore = cleanExplore;
   globalThis.Libertad.cleanAutoplay = cleanAutoplay;
+  globalThis.Libertad.cleanSidebar = cleanSidebar;
 })();

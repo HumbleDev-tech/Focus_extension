@@ -97,6 +97,7 @@
     safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
     safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
     safeRun('cleanAutoplay', Libertad.cleanAutoplay, currentSettings);
+    safeRun('cleanSidebar', Libertad.cleanSidebar, currentSettings);
     safeRun(
       'redirectShortsIfActive',
       Libertad.redirectShortsIfActive,
@@ -246,6 +247,7 @@
       safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
       safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
       safeRun('cleanAutoplay', Libertad.cleanAutoplay, currentSettings);
+      safeRun('cleanSidebar', Libertad.cleanSidebar, currentSettings);
     }
     if (shortsChanged) {
       safeRun(
@@ -310,10 +312,12 @@
 
   let lastDislikeBtn = null;
   let lastCheckedHref = window.location.href;
+  let lastFlexySyncedHref = null;
 
   // Handle YouTube SPA Navigation events
   window.addEventListener('yt-navigate-start', (event) => {
     lastDislikeBtn = null;
+    lastFlexySyncedHref = null;
     const flexy = document.querySelector('ytd-watch-flexy');
     if (flexy?.hasAttribute('flexy-chat-collapsed_')) {
       flexy.removeAttribute('flexy-chat-collapsed_');
@@ -339,12 +343,14 @@
   window.addEventListener('yt-navigate-finish', () => {
     lastDislikeBtn = null;
     lastCheckedHref = window.location.href;
+    lastFlexySyncedHref = window.location.href;
     syncAllModules();
   });
 
   window.addEventListener('popstate', () => {
     lastDislikeBtn = null;
     lastCheckedHref = window.location.href;
+    lastFlexySyncedHref = null;
     safeRun(
       'redirectShortsIfActive',
       Libertad.redirectShortsIfActive,
@@ -403,6 +409,13 @@
       }
 
       if (currentPath === '/watch') {
+        if (
+          lastFlexySyncedHref !== currentHref &&
+          document.querySelector('ytd-watch-flexy')
+        ) {
+          lastFlexySyncedHref = currentHref;
+          safeRun('cleanSidebar', Libertad.cleanSidebar, currentSettings);
+        }
         if (currentSettings.hideAutoplay) {
           safeRun('cleanAutoplay', Libertad.cleanAutoplay, currentSettings);
         }
