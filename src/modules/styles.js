@@ -1622,10 +1622,6 @@ globalThis.Libertad = globalThis.Libertad || {};
       if (flexy && !flexy.hasAttribute('flexy-chat-collapsed_')) {
         flexy.setAttribute('flexy-chat-collapsed_', '');
         didMutateChat = true;
-        try {
-          if (typeof flexy.handleResize_ === 'function') flexy.handleResize_();
-          if (typeof flexy.notifyResize === 'function') flexy.notifyResize();
-        } catch (_) {}
       }
     }
 

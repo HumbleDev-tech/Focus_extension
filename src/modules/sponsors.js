@@ -95,13 +95,6 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   function getActiveVideoId() {
-    const moviePlayer = document.getElementById('movie_player');
-    if (moviePlayer && typeof moviePlayer.getVideoData === 'function') {
-      const data = moviePlayer.getVideoData();
-      if (data?.video_id && /^[a-zA-Z0-9_-]{11}$/.test(data.video_id)) {
-        return data.video_id;
-      }
-    }
     const watchFlexy = document.querySelector('ytd-watch-flexy');
     if (watchFlexy) {
       const attrId = watchFlexy.getAttribute('video-id');
