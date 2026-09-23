@@ -278,6 +278,7 @@
   }
 
   let lastEnforcedVideoId = null;
+  let audioSwitchAttemptedVideoId = null;
 
   function getCurrentVideoId() {
     try {
@@ -368,19 +369,26 @@
         });
       }
 
+      // If no track is verified as original, do NOT force tracks[0].
+      // Doing so risks arbitrarily disrupting user-selected audio or defaulting to dubbed tracks.
       if (!targetTrack) {
-        targetTrack = tracks[0];
+        lastEnforcedVideoId = videoId;
+        return true;
       }
 
       const currentId = currentTrack?.audioTrackId || currentTrack?.id;
       const targetId = targetTrack?.audioTrackId || targetTrack?.id;
 
       if (
-        targetTrack &&
         targetTrack !== currentTrack &&
         (!currentId || !targetId || currentId !== targetId)
       ) {
-        player.setAudioTrack(targetTrack);
+        // Enforce maximum of ONE programmatic audio switch per video ID
+        // to completely eliminate YouTube buffer/playback reload loops
+        if (audioSwitchAttemptedVideoId !== videoId) {
+          audioSwitchAttemptedVideoId = videoId;
+          player.setAudioTrack(targetTrack);
+        }
       }
 
       lastEnforcedVideoId = videoId;
@@ -455,6 +463,20 @@
     }
   }
 
+  let lastPlaybackEnforceTime = 0;
+  function triggerPlaybackEnforcement() {
+    const now = Date.now();
+    if (now - lastPlaybackEnforceTime < 250) return;
+    lastPlaybackEnforceTime = now;
+
+    enforceAutoplaySuppression();
+    if (!agentSettings.isOff && agentSettings.untranslateMaster) {
+      if (agentSettings.untranslateAudio) enforceOriginalAudio(false);
+      if (agentSettings.untranslateCaptions) neutralizeAutoCaptions();
+      broadcastMetadata();
+    }
+  }
+
   function bindPlayerEvents() {
     const player = getPlayer();
     let playerBound = false;
@@ -467,14 +489,9 @@
     ) {
       player.__libertadEventsBound = true;
       player.addEventListener('onStateChange', (state) => {
-        // State 1: PLAYING. Only enforce once playback actively starts, NEVER on BUFFERING (state 3)
+        // State 1: PLAYING. Only enforce once playback actively starts
         if (state === 1) {
-          enforceAutoplaySuppression();
-          if (!agentSettings.isOff && agentSettings.untranslateMaster) {
-            if (agentSettings.untranslateAudio) enforceOriginalAudio(true);
-            if (agentSettings.untranslateCaptions) neutralizeAutoCaptions();
-            broadcastMetadata();
-          }
+          triggerPlaybackEnforcement();
         }
       });
       playerBound = true;
@@ -486,11 +503,7 @@
     if (video && !video.__libertadEventsBound) {
       video.__libertadEventsBound = true;
       video.addEventListener('playing', () => {
-        if (!agentSettings.isOff && agentSettings.untranslateMaster) {
-          if (agentSettings.untranslateAudio) enforceOriginalAudio(true);
-          if (agentSettings.untranslateCaptions) neutralizeAutoCaptions();
-          broadcastMetadata();
-        }
+        triggerPlaybackEnforcement();
       });
       videoBound = true;
     } else if (video?.__libertadEventsBound) {
@@ -570,6 +583,7 @@
   // Automatically monitor navigation in page context
   window.addEventListener('yt-navigate-finish', () => {
     lastEnforcedVideoId = null;
+    audioSwitchAttemptedVideoId = null;
     lastBroadcastMetadataKey = null;
     cachedPlayerResponse = null;
     cachedPlayerResponseVideoId = null;
@@ -588,6 +602,7 @@
 
   window.addEventListener('popstate', () => {
     lastEnforcedVideoId = null;
+    audioSwitchAttemptedVideoId = null;
     lastBroadcastMetadataKey = null;
     cachedPlayerResponse = null;
     cachedPlayerResponseVideoId = null;

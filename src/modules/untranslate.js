@@ -83,9 +83,18 @@ globalThis.Libertad = globalThis.Libertad || {};
       return;
     }
 
+    const cleanTitle =
+      typeof detail.title === 'string' && detail.title.trim()
+        ? detail.title.trim()
+        : null;
+
+    if (cleanTitle) {
+      titlesCache.set(videoId, cleanTitle);
+    }
+
     latestOriginalMetadata = {
       videoId,
-      title: typeof detail.title === 'string' ? detail.title : null,
+      title: cleanTitle,
       description:
         typeof detail.description === 'string' ? detail.description : null,
       author: typeof detail.author === 'string' ? detail.author : null,
@@ -265,6 +274,9 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     const clean = originalTitle.trim();
     currentOriginalTitle = clean;
+    if (videoId) {
+      titlesCache.set(videoId, clean);
+    }
 
     let modified = false;
     const titleNodes = getWatchTitleElements();
@@ -315,6 +327,13 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (currentWatchVideoId !== videoId) {
       currentWatchVideoId = videoId;
       currentOriginalTitle = null;
+    }
+
+    if (!currentOriginalTitle && titlesCache.has(videoId)) {
+      const cached = titlesCache.get(videoId);
+      if (typeof cached === 'string' && cached) {
+        currentOriginalTitle = cached;
+      }
     }
 
     if (currentOriginalTitle) {

@@ -79,6 +79,13 @@ globalThis.Libertad = globalThis.Libertad || {};
     renderSponsorProgressBar();
   }
 
+  function getVideoElement() {
+    return (
+      document.querySelector('video.html5-main-video') ||
+      document.querySelector('video')
+    );
+  }
+
   function isAdPlaying() {
     const moviePlayer = document.getElementById('movie_player');
     return Boolean(
@@ -400,7 +407,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       return;
     }
 
-    const video = document.querySelector('video.html5-main-video');
+    const video = getVideoElement();
     const duration =
       currentSponsorVideoDuration ||
       (video && Number.isFinite(video.duration) && video.duration > 0
@@ -409,6 +416,10 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     if (!duration || duration <= 0) {
       return;
+    }
+
+    if (!currentSponsorVideoDuration && duration > 0) {
+      currentSponsorVideoDuration = duration;
     }
 
     const renderKey = `${currentSponsorVideoId}_${duration}_${currentSponsorSegments.length}`;
@@ -474,6 +485,10 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (!conf?.skipSponsors || !currentSponsorSegments.length || !video) {
       return;
     }
+    // Prevent seeking storm: never evaluate skips while media pipeline is actively seeking or programmatically skipping
+    if (isProgrammaticSkip || video.seeking) {
+      return;
+    }
     if (!isKnownNotAd && isAdPlaying()) return;
 
     // Strict Guard: Never evaluate segments unless they verifiably match the active video
@@ -495,11 +510,12 @@ globalThis.Libertad = globalThis.Libertad || {};
         continue;
       }
       if (currentTime >= seg.start - 0.1 && currentTime < seg.end - 0.1) {
-        seekVideoPlayer(video, seg.end + 0.05);
-        if (lastSkippedSegmentUuid !== seg.uuid) {
-          lastSkippedSegmentUuid = seg.uuid;
-          showSponsorSkipToast(seg, video, conf);
+        if (lastSkippedSegmentUuid === seg.uuid) {
+          continue;
         }
+        seekVideoPlayer(video, seg.end + 0.05);
+        lastSkippedSegmentUuid = seg.uuid;
+        showSponsorSkipToast(seg, video, conf);
         break;
       }
     }
@@ -555,7 +571,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   function bindVideoSponsorListener(settings) {
     if (settings) activeSponsorSettings = settings;
     if (window.location.pathname !== '/watch') return;
-    const video = document.querySelector('video.html5-main-video');
+    const video = getVideoElement();
     if (!video) return;
 
     if (!video.dataset.libertadSponsorBound) {
@@ -730,7 +746,7 @@ globalThis.Libertad = globalThis.Libertad || {};
           sponsorCache.set(videoId, parsed);
           currentSponsorSegments = parsed;
 
-          const video = document.querySelector('video.html5-main-video');
+          const video = getVideoElement();
           if (video && Number.isFinite(video.duration) && video.duration > 0) {
             currentSponsorVideoDuration = video.duration;
           }
