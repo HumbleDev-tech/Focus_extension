@@ -577,6 +577,16 @@
       enforceAutoplaySuppression();
     } else if (cmd === 'REQUEST_METADATA') {
       broadcastMetadata(true);
+    } else if (cmd === 'RESIZE_PLAYER') {
+      try {
+        const flexy = document.querySelector('ytd-watch-flexy');
+        if (flexy && typeof flexy.handleResize_ === 'function') {
+          flexy.handleResize_();
+        }
+        if (flexy && typeof flexy.notifyResize === 'function') {
+          flexy.notifyResize();
+        }
+      } catch (_) {}
     }
   });
 

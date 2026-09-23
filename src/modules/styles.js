@@ -1307,6 +1307,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       styleEl.textContent = cachedStylesheetCss;
     }
     updateZenBanner(settings);
+    cleanSidebar(settings);
   }
 
   // Show a calm, intentional screen on YouTube home if home feed is disabled
@@ -1475,14 +1476,13 @@ globalThis.Libertad = globalThis.Libertad || {};
   function scheduleChatResize() {
     if (chatResizeTimer) clearTimeout(chatResizeTimer);
     chatResizeTimer = setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+      window.dispatchEvent(
+        new CustomEvent('libertad-agent-cmd', {
+          detail: { action: 'RESIZE_PLAYER' },
+        }),
+      );
       chatResizeTimer = null;
-      const flexy = document.querySelector('ytd-watch-flexy');
-      if (flexy) {
-        try {
-          if (typeof flexy.handleResize_ === 'function') flexy.handleResize_();
-          if (typeof flexy.notifyResize === 'function') flexy.notifyResize();
-        } catch (_) {}
-      }
     }, 80);
   }
 
@@ -1962,14 +1962,21 @@ globalThis.Libertad = globalThis.Libertad || {};
   function schedulePlayerResize() {
     if (playerResizeTimer) clearTimeout(playerResizeTimer);
     playerResizeTimer = setTimeout(() => {
-      playerResizeTimer = null;
-      const flexy = document.querySelector('ytd-watch-flexy');
-      if (flexy) {
-        try {
-          if (typeof flexy.handleResize_ === 'function') flexy.handleResize_();
-          if (typeof flexy.notifyResize === 'function') flexy.notifyResize();
-        } catch (_) {}
-      }
+      window.dispatchEvent(new Event('resize'));
+      window.dispatchEvent(
+        new CustomEvent('libertad-agent-cmd', {
+          detail: { action: 'RESIZE_PLAYER' },
+        }),
+      );
+      setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+        window.dispatchEvent(
+          new CustomEvent('libertad-agent-cmd', {
+            detail: { action: 'RESIZE_PLAYER' },
+          }),
+        );
+        playerResizeTimer = null;
+      }, 180);
     }, 40);
   }
 
