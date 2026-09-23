@@ -95,6 +95,15 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   function getActiveVideoId() {
+    const parseId =
+      globalThis.Libertad.parseYouTubeVideoId ||
+      function (u) {
+        const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+        return m ? m[1] : null;
+      };
+    const urlId = parseId(window.location.href);
+    if (urlId) return urlId;
+
     const watchFlexy = document.querySelector('ytd-watch-flexy');
     if (watchFlexy) {
       const attrId = watchFlexy.getAttribute('video-id');
@@ -102,13 +111,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         return attrId;
       }
     }
-    const parseId =
-      globalThis.Libertad.parseYouTubeVideoId ||
-      function (u) {
-        const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-        return m ? m[1] : null;
-      };
-    return parseId(window.location.href);
+    return null;
   }
 
   function seekVideoPlayer(video, targetTime) {
@@ -651,6 +654,20 @@ globalThis.Libertad = globalThis.Libertad || {};
       video.addEventListener('loadedmetadata', () => {
         renderSponsorProgressBar();
       });
+      video.addEventListener(
+        'play',
+        () => {
+          renderSponsorProgressBar();
+        },
+        { passive: true },
+      );
+      video.addEventListener(
+        'playing',
+        () => {
+          renderSponsorProgressBar();
+        },
+        { passive: true },
+      );
 
       if (currentSponsorSegments.length > 0) {
         renderSponsorProgressBar();
@@ -711,7 +728,6 @@ globalThis.Libertad = globalThis.Libertad || {};
             !res ||
             !res.success
           ) {
-            sponsorCache.set(videoId, []);
             return;
           }
 
@@ -730,11 +746,15 @@ globalThis.Libertad = globalThis.Libertad || {};
               return {
                 uuid: s.UUID || s.uuid || fallbackUuid,
                 category: s.category,
+                actionType: s.actionType || 'skip',
                 start,
                 end,
               };
             })
-            .filter((s) => s.end > s.start);
+            .filter(
+              (s) =>
+                s.end > s.start && (!s.actionType || s.actionType === 'skip'),
+            );
 
           sponsorCache.set(videoId, parsed);
           currentSponsorSegments = parsed;
@@ -748,7 +768,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         },
       );
     } catch (_) {
-      sponsorCache.set(videoId, []);
+      // Fail silently on transient runtime errors without poisoning the local cache
     }
   }
 

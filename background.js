@@ -409,7 +409,8 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
           'preview',
           'music_offtopic',
         ]);
-        const url = `https://sponsor.ajay.app/api/skipSegments?videoID=${encodeURIComponent(videoId)}&categories=${encodeURIComponent(categories)}`;
+        const actionTypes = JSON.stringify(['skip']);
+        const url = `https://sponsor.ajay.app/api/skipSegments?videoID=${encodeURIComponent(videoId)}&categories=${encodeURIComponent(categories)}&actionTypes=${encodeURIComponent(actionTypes)}`;
 
         try {
           const res = await fetch(url, { signal: controller.signal });
