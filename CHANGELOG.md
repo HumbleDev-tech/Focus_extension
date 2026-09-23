@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.4]
+- **Zero-Latency SPA Video ID Synchronization:** Inverted the resolution priority in `getActiveVideoId` (`sponsors.js`) to parse `window.location.href` directly in memory ($O(1)$) prior to querying DOM attributes (`<ytd-watch-flexy video-id="...">`). Eliminates race conditions during rapid SPA navigations where SponsorBlock was receiving stale video IDs from the preceding video.
+- **SponsorBlock Transient Failure & Poison Cache Elimination:** Eradicated negative caching of empty arrays (`sponsorCache.set(videoId, [])`) on transient network drops, request timeouts, and Service Worker disconnects. Prevents temporary fetch failures from permanently blinding the client cache to valid sponsor segments for the remainder of the tab session.
+- **Selective Sponsor Action Type Filtering:** Enforced strict `actionTypes=['skip']` query filtering at the Service Worker level (`background.js`) and added defensive client-side filtering (`!s.actionType || s.actionType === 'skip'`) in `sponsors.js`. Guarantees non-skip community segments (such as Point of Interest / Highlight `poi` and audio `mute`) do not trigger destructive timeline jumps.
+- **Resilient Background / Paused Video Rendering:** Bound native media `play` and `playing` lifecycle events in `bindVideoSponsorListener` to trigger `renderSponsorProgressBar()`, ensuring sponsor segment visual markers render immediately when background or un-autoplayed videos commence playback, while preserving ad-safe playback gates (`#movie_player.ad-showing`, `ad-interrupting`).
+
+---
+
 ## [1.4.3]
 - **Cooperative Background Scheduler & Frame-Budget Protection:** Replaced synchronous DOM scanning in `requestAnimationFrame` with a non-blocking background scheduler powered by `requestIdleCallback` (with a 16ms fallback). Mutation bursts are coalesced using task deduplication, keeping main-thread execution strictly under 0.2ms to eliminate UI stutter and micro-freezes on low-end laptops and notebooks.
 - **Dual-Layer Player & Layout Resize Coordination:** Restored debounced native window resize dispatching in `schedulePlayerResize` and `scheduleChatResize` paired with direct main-world Polymer `ytd-watch-flexy.handleResize_()` coordination via `agent.js`. Reconnected `cleanSidebar` execution in `applyStyles` to guarantee immediate HTML5 video player and column recalibration when toggling the related sidebar, eliminating video shrinking, letterboxing, and misaligned recommendation cards.
