@@ -88,10 +88,25 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   function isAdPlaying() {
     const moviePlayer = document.getElementById('movie_player');
-    return Boolean(
+    if (
       moviePlayer?.classList?.contains('ad-showing') ||
-        moviePlayer?.classList?.contains('ad-interrupting'),
-    );
+      moviePlayer?.classList?.contains('ad-interrupting')
+    ) {
+      return true;
+    }
+    // Modern YouTube SSAI & Player Overlay ad markers
+    const adModule = moviePlayer?.querySelector('.video-ads.ytp-ad-module');
+    if (adModule && adModule.children.length > 0) {
+      return true;
+    }
+    if (
+      document.querySelector(
+        '.ytp-ad-player-overlay, .ytp-ad-player-overlay-layout, .ytp-ad-text',
+      )
+    ) {
+      return true;
+    }
+    return false;
   }
 
   function getActiveVideoId() {
@@ -115,29 +130,41 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   function seekVideoPlayer(video, targetTime) {
-    if (video && Number.isFinite(targetTime)) {
-      if (isAdPlaying()) return;
-      const activeVid = getActiveVideoId();
-      if (
-        activeVid &&
-        currentSponsorVideoId &&
-        activeVid !== currentSponsorVideoId
-      ) {
-        return;
-      }
-      isProgrammaticSkip = true;
-      const maxTime =
-        Number.isFinite(video.duration) && video.duration > 0
-          ? Math.max(0, video.duration - 0.1)
-          : targetTime;
-      const safeTarget = Math.min(targetTime, maxTime);
-      video.currentTime = safeTarget;
-      if (programmaticSkipTimer) clearTimeout(programmaticSkipTimer);
-      programmaticSkipTimer = setTimeout(() => {
-        isProgrammaticSkip = false;
-        programmaticSkipTimer = null;
-      }, 500);
+    if (!video || !Number.isFinite(targetTime)) return;
+
+    // Guard 1: Media pipeline readiness - abort if initial frames are not yet available
+    if (video.readyState < 2) return; // HAVE_CURRENT_DATA = 2
+
+    // Guard 2: Live streams & uninitialized duration - never seek on livestreams or non-finite media
+    if (!Number.isFinite(video.duration) || video.duration <= 0) return;
+    if (window.location.pathname.startsWith('/live')) return;
+
+    // Guard 3: In-stream ads and SSAI protection
+    if (isAdPlaying()) return;
+
+    // Guard 4: Video startup handshake - avoid aggressive seeking while paused at time 0
+    if (video.currentTime < 0.5 && targetTime > 1.0 && video.paused) return;
+
+    const activeVid = getActiveVideoId();
+    if (
+      activeVid &&
+      currentSponsorVideoId &&
+      activeVid !== currentSponsorVideoId
+    ) {
+      return;
     }
+
+    isProgrammaticSkip = true;
+    const maxTime = Math.max(0, video.duration - 0.1);
+    const safeTarget = Math.min(targetTime, maxTime);
+
+    video.currentTime = safeTarget;
+
+    if (programmaticSkipTimer) clearTimeout(programmaticSkipTimer);
+    programmaticSkipTimer = setTimeout(() => {
+      isProgrammaticSkip = false;
+      programmaticSkipTimer = null;
+    }, 500);
   }
 
   function dismissSponsorToast() {

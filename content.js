@@ -88,6 +88,13 @@
     () => currentSettings,
   );
 
+  // Initialize SPA link interceptor for instantaneous shorts-to-watch routing
+  safeRun(
+    'setupShortsLinkInterceptor',
+    Libertad.setupShortsLinkInterceptor,
+    () => currentSettings,
+  );
+
   // Apply styles immediately at document_start
   safeRun('applyStyles', Libertad.applyStyles, currentSettings);
 

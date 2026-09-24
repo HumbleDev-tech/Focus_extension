@@ -54,5 +54,41 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
   }
 
+  // Intercept clicks on Shorts links across YouTube feeds and drawers to route natively via SPA
+  function setupShortsLinkInterceptor(getSettings) {
+    document.addEventListener(
+      'click',
+      (e) => {
+        const settings =
+          typeof getSettings === 'function' ? getSettings() : null;
+        if (!settings?.hideShorts) return;
+
+        const anchor =
+          e.target && typeof e.target.closest === 'function'
+            ? e.target.closest('a')
+            : null;
+        if (!anchor) return;
+
+        const href = anchor.getAttribute('href');
+        if (!href) return;
+
+        const match = href.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
+        if (match) {
+          anchor.setAttribute('href', `/watch?v=${match[1]}`);
+          return;
+        }
+
+        const channelShortsMatch = href.match(
+          /^(\/(@[^/]+|channel\/[^/]+|c\/[^/]+|user\/[^/]+))\/shorts(?:\/.*)?$/,
+        );
+        if (channelShortsMatch) {
+          anchor.setAttribute('href', `${channelShortsMatch[1]}/videos`);
+        }
+      },
+      { capture: true },
+    );
+  }
+
+  globalThis.Libertad.setupShortsLinkInterceptor = setupShortsLinkInterceptor;
   globalThis.Libertad.redirectShortsIfActive = redirectShortsIfActive;
 })();

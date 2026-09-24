@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.5]
+- **SSAI & In-Stream Ad Playback Hardening:** Hardened `isAdPlaying` in `sponsors.js` with comprehensive detection for modern YouTube Server-Side Ad Injection (SSAI) and overlay banners (`.video-ads.ytp-ad-module`, `.ytp-ad-player-overlay`, `.ytp-ad-text`), preventing unauthorized programmatic timeline skips during server-stitched ads that could trigger YouTube's playback watchdog errors or black screens.
+- **Media Pipeline Readiness & Seeking Guards:** Added strict HTML5 `video.readyState >= 2` (`HAVE_CURRENT_DATA`) validation and duration sanity checks (`Number.isFinite(video.duration) && video.duration > 0`) in `seekVideoPlayer`. Prevents Chromium demuxer stall states on videos with 0.0s intro sponsors and completely insulates live streams (`/live`) from invalid seeking operations.
+- **Zero-Reload SPA Shorts Redirection:** Implemented `setupShortsLinkInterceptor` in `shorts.js` and wired it into `content.js`, intercepting clicks on Shorts anchors (`a[href*="/shorts/"]`) in the DOM capture phase to rewrite destinations directly to standard watch URLs (`/watch?v=...`) and channel video tabs. Eliminates destructive `window.location.replace` hard reloads during internal YouTube browsing, preserving player state, tab session memory, and streaming buffers.
+
+---
+
 ## [1.4.4]
 - **Zero-Latency SPA Video ID Synchronization:** Inverted the resolution priority in `getActiveVideoId` (`sponsors.js`) to parse `window.location.href` directly in memory ($O(1)$) prior to querying DOM attributes (`<ytd-watch-flexy video-id="...">`). Eliminates race conditions during rapid SPA navigations where SponsorBlock was receiving stale video IDs from the preceding video.
 - **SponsorBlock Transient Failure & Poison Cache Elimination:** Eradicated negative caching of empty arrays (`sponsorCache.set(videoId, [])`) on transient network drops, request timeouts, and Service Worker disconnects. Prevents temporary fetch failures from permanently blinding the client cache to valid sponsor segments for the remainder of the tab session.
