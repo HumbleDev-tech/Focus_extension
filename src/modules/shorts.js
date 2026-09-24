@@ -56,37 +56,76 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   // Intercept clicks on Shorts links across YouTube feeds and drawers to route natively via SPA
   function setupShortsLinkInterceptor(getSettings) {
-    document.addEventListener(
-      'click',
-      (e) => {
-        const settings =
-          typeof getSettings === 'function' ? getSettings() : null;
-        if (!settings?.hideShorts) return;
+    const handleIntercept = (e) => {
+      const settings = typeof getSettings === 'function' ? getSettings() : null;
+      if (!settings?.hideShorts) return;
 
-        const anchor =
-          e.target && typeof e.target.closest === 'function'
-            ? e.target.closest('a')
-            : null;
-        if (!anchor) return;
+      const anchor =
+        e.target && typeof e.target.closest === 'function'
+          ? e.target.closest('a')
+          : null;
+      if (!anchor) return;
 
-        const href = anchor.getAttribute('href');
-        if (!href) return;
+      const href = anchor.getAttribute('href');
+      if (!href) return;
 
-        const match = href.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
-        if (match) {
+      // 1. Specific Shorts video: /shorts/12345678901 -> /watch?v=12345678901 (preserving query params & hash)
+      const match = href.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
+      if (match) {
+        try {
+          const parsed = new URL(href, window.location.origin);
+          parsed.pathname = '/watch';
+          parsed.searchParams.set('v', match[1]);
+          anchor.setAttribute(
+            'href',
+            parsed.pathname + parsed.search + (parsed.hash || ''),
+          );
+        } catch (_) {
           anchor.setAttribute('href', `/watch?v=${match[1]}`);
-          return;
         }
+        return;
+      }
 
-        const channelShortsMatch = href.match(
-          /^(\/(@[^/]+|channel\/[^/]+|c\/[^/]+|user\/[^/]+))\/shorts(?:\/.*)?$/,
-        );
-        if (channelShortsMatch) {
-          anchor.setAttribute('href', `${channelShortsMatch[1]}/videos`);
+      // 2. Channel Shorts tab: /@user/shorts -> /@user/videos
+      const channelShortsMatch = href.match(
+        /^(\/(@[^/]+|channel\/[^/]+|c\/[^/]+|user\/[^/]+))\/shorts(?:\/.*)?$/,
+      );
+      if (channelShortsMatch) {
+        anchor.setAttribute('href', `${channelShortsMatch[1]}/videos`);
+        return;
+      }
+
+      // 3. Navigation drawer / sidebar Shorts root: /shorts or /shorts/ -> redirect to Subscriptions or Home
+      try {
+        const parsed = new URL(href, window.location.origin);
+        if (
+          parsed.hostname === window.location.hostname ||
+          parsed.hostname.endsWith('youtube.com')
+        ) {
+          if (parsed.pathname === '/shorts' || parsed.pathname === '/shorts/') {
+            const dest = settings?.redirectHomeToSubscriptions
+              ? '/feed/subscriptions'
+              : '/';
+            anchor.setAttribute('href', dest);
+          }
         }
-      },
-      { capture: true },
-    );
+      } catch (_) {
+        if (
+          href === '/shorts' ||
+          href === '/shorts/' ||
+          href.startsWith('/shorts?') ||
+          href.startsWith('/shorts#')
+        ) {
+          const dest = settings?.redirectHomeToSubscriptions
+            ? '/feed/subscriptions'
+            : '/';
+          anchor.setAttribute('href', dest);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleIntercept, { capture: true });
+    document.addEventListener('auxclick', handleIntercept, { capture: true });
   }
 
   globalThis.Libertad.setupShortsLinkInterceptor = setupShortsLinkInterceptor;

@@ -86,6 +86,19 @@ globalThis.Libertad = globalThis.Libertad || {};
     );
   }
 
+  function isElementVisible(el) {
+    if (!el) return false;
+    if (typeof el.checkVisibility === 'function') {
+      return el.checkVisibility({
+        checkOpacity: true,
+        checkVisibilityCSS: true,
+      });
+    }
+    return Boolean(
+      el.offsetParent || (el.offsetWidth > 0 && el.offsetHeight > 0),
+    );
+  }
+
   function isAdPlaying() {
     const moviePlayer = document.getElementById('movie_player');
     if (
@@ -94,17 +107,25 @@ globalThis.Libertad = globalThis.Libertad || {};
     ) {
       return true;
     }
-    // Modern YouTube SSAI & Player Overlay ad markers
+    // Modern YouTube SSAI & Player Overlay ad markers (verified active and visible)
     const adModule = moviePlayer?.querySelector('.video-ads.ytp-ad-module');
-    if (adModule && adModule.children.length > 0) {
-      return true;
+    if (adModule && isElementVisible(adModule)) {
+      const hasVisibleChildren = Array.from(adModule.children).some((child) =>
+        isElementVisible(child),
+      );
+      if (hasVisibleChildren) return true;
     }
-    if (
-      document.querySelector(
-        '.ytp-ad-player-overlay, .ytp-ad-player-overlay-layout, .ytp-ad-text',
-      )
-    ) {
-      return true;
+    const overlays = document.querySelectorAll(
+      '.ytp-ad-player-overlay, .ytp-ad-player-overlay-layout, .ytp-ad-text',
+    );
+    for (const el of overlays) {
+      if (isElementVisible(el)) {
+        if (el.classList.contains('ytp-ad-text')) {
+          if (el.textContent?.trim().length > 0) return true;
+        } else {
+          return true;
+        }
+      }
     }
     return false;
   }
@@ -130,20 +151,21 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   function seekVideoPlayer(video, targetTime) {
-    if (!video || !Number.isFinite(targetTime)) return;
+    if (!video || !Number.isFinite(targetTime)) return false;
 
     // Guard 1: Media pipeline readiness - abort if initial frames are not yet available
-    if (video.readyState < 2) return; // HAVE_CURRENT_DATA = 2
+    if (video.readyState < 2) return false; // HAVE_CURRENT_DATA = 2
 
     // Guard 2: Live streams & uninitialized duration - never seek on livestreams or non-finite media
-    if (!Number.isFinite(video.duration) || video.duration <= 0) return;
-    if (window.location.pathname.startsWith('/live')) return;
+    if (!Number.isFinite(video.duration) || video.duration <= 0) return false;
+    if (window.location.pathname.startsWith('/live')) return false;
 
     // Guard 3: In-stream ads and SSAI protection
-    if (isAdPlaying()) return;
+    if (isAdPlaying()) return false;
 
     // Guard 4: Video startup handshake - avoid aggressive seeking while paused at time 0
-    if (video.currentTime < 0.5 && targetTime > 1.0 && video.paused) return;
+    if (video.currentTime < 0.5 && targetTime > 1.0 && video.paused)
+      return false;
 
     const activeVid = getActiveVideoId();
     if (
@@ -151,7 +173,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       currentSponsorVideoId &&
       activeVid !== currentSponsorVideoId
     ) {
-      return;
+      return false;
     }
 
     isProgrammaticSkip = true;
@@ -165,6 +187,8 @@ globalThis.Libertad = globalThis.Libertad || {};
       isProgrammaticSkip = false;
       programmaticSkipTimer = null;
     }, 500);
+
+    return true;
   }
 
   function dismissSponsorToast() {
@@ -536,9 +560,11 @@ globalThis.Libertad = globalThis.Libertad || {};
         if (lastSkippedSegmentUuid === seg.uuid) {
           continue;
         }
-        seekVideoPlayer(video, seg.end + 0.05);
-        lastSkippedSegmentUuid = seg.uuid;
-        showSponsorSkipToast(seg, video, conf);
+        const didSeek = seekVideoPlayer(video, seg.end + 0.05);
+        if (didSeek) {
+          lastSkippedSegmentUuid = seg.uuid;
+          showSponsorSkipToast(seg, video, conf);
+        }
         break;
       }
     }
@@ -692,6 +718,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         'playing',
         () => {
           renderSponsorProgressBar();
+          checkVideoSponsors(video, activeSponsorSettings);
         },
         { passive: true },
       );
@@ -792,6 +819,9 @@ globalThis.Libertad = globalThis.Libertad || {};
           }
 
           renderSponsorProgressBar();
+          if (video) {
+            checkVideoSponsors(video, activeSponsorSettings);
+          }
         },
       );
     } catch (_) {
