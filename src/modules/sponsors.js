@@ -101,24 +101,28 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   function isAdPlaying() {
     const moviePlayer = document.getElementById('movie_player');
+    if (!moviePlayer) return false;
+
     if (
-      moviePlayer?.classList?.contains('ad-showing') ||
-      moviePlayer?.classList?.contains('ad-interrupting')
+      moviePlayer.classList?.contains('ad-showing') ||
+      moviePlayer.classList?.contains('ad-interrupting')
     ) {
       return true;
     }
     // Modern YouTube SSAI & Player Overlay ad markers (verified active and visible)
-    const adModule = moviePlayer?.querySelector('.video-ads.ytp-ad-module');
-    if (adModule && isElementVisible(adModule)) {
+    const adModule = moviePlayer.querySelector('.video-ads.ytp-ad-module');
+    if (adModule?.firstElementChild && isElementVisible(adModule)) {
       const hasVisibleChildren = Array.from(adModule.children).some((child) =>
         isElementVisible(child),
       );
       if (hasVisibleChildren) return true;
     }
-    const overlays = document.querySelectorAll(
+    // Scoped strictly to moviePlayer: ad overlays never exist outside the player container
+    const overlays = moviePlayer.querySelectorAll(
       '.ytp-ad-player-overlay, .ytp-ad-player-overlay-layout, .ytp-ad-text',
     );
-    for (const el of overlays) {
+    for (let i = 0; i < overlays.length; i++) {
+      const el = overlays[i];
       if (isElementVisible(el)) {
         if (el.classList.contains('ytp-ad-text')) {
           if (el.textContent?.trim().length > 0) return true;
@@ -632,7 +636,8 @@ globalThis.Libertad = globalThis.Libertad || {};
 
       const onTimeUpdate = () => {
         lastKnownPlaybackTime = video.currentTime;
-        if (isAdPlaying()) return;
+        const hasSegments = currentSponsorSegments.length > 0;
+        if (hasSegments && isAdPlaying()) return;
 
         const now = Date.now();
         if (!cachedActiveVid || now - lastHeartbeatCheck > 2000) {
@@ -650,9 +655,14 @@ globalThis.Libertad = globalThis.Libertad || {};
           }
         }
 
-        checkVideoSponsors(video, activeSponsorSettings, cachedActiveVid, true);
+        checkVideoSponsors(
+          video,
+          activeSponsorSettings,
+          cachedActiveVid,
+          hasSegments,
+        );
         if (
-          currentSponsorSegments.length > 0 &&
+          hasSegments &&
           !activeSponsorContainer?.isConnected &&
           now - lastProgressBarCheck > 1000
         ) {
