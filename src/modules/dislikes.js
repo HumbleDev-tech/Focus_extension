@@ -376,7 +376,6 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     init(settings) {
       if (settings?.showDislikes && !settings?.hideLikeDislike) {
-        updateDislikeCount(settings);
         pollForDislikeButton(settings);
       }
     },
@@ -387,7 +386,6 @@ globalThis.Libertad = globalThis.Libertad || {};
         resetDislikesNavigation();
       } else if (phase === 'finish') {
         if (settings?.showDislikes && !settings?.hideLikeDislike) {
-          updateDislikeCount(settings);
           pollForDislikeButton(settings);
         }
       }
@@ -400,7 +398,6 @@ globalThis.Libertad = globalThis.Libertad || {};
         if (!settings?.showDislikes || settings?.hideLikeDislike) {
           resetDislikesNavigation();
         } else {
-          updateDislikeCount(settings);
           pollForDislikeButton(settings);
         }
       }

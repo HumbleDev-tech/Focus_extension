@@ -115,12 +115,6 @@
       Libertad.redirectHomeToSubscriptions,
       currentSettings,
     );
-    safeRun('updateDislikeCount', Libertad.updateDislikeCount, currentSettings);
-    safeRun(
-      'pollForDislikeButton',
-      Libertad.pollForDislikeButton,
-      currentSettings,
-    );
     safeRun('updateWatchTitle', Libertad.updateWatchTitle, currentSettings);
     safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
     safeRun(
@@ -160,29 +154,14 @@
   if (document.readyState !== 'loading') {
     safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
     safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
-    safeRun(
-      'pollForDislikeButton',
-      Libertad.pollForDislikeButton,
-      currentSettings,
-    );
   }
   document.addEventListener('DOMContentLoaded', () => {
     safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
     safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
-    safeRun(
-      'pollForDislikeButton',
-      Libertad.pollForDislikeButton,
-      currentSettings,
-    );
   });
   window.addEventListener('load', () => {
     safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
     safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
-    safeRun(
-      'pollForDislikeButton',
-      Libertad.pollForDislikeButton,
-      currentSettings,
-    );
   });
 
   // Load saved settings from storage with local priority and sync fallback
@@ -196,6 +175,7 @@
         );
       } catch (_) {}
     }
+    safeRun('broadcastInit', Libertad.broadcastInit, currentSettings);
     syncAllModules();
   };
 
@@ -208,7 +188,7 @@
           applyLoadedSettings(syncSaved);
         });
       } else {
-        syncAllModules();
+        applyLoadedSettings(null);
       }
     });
   } else if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
@@ -216,7 +196,7 @@
       applyLoadedSettings(syncSaved);
     });
   } else {
-    syncAllModules();
+    applyLoadedSettings(null);
   }
 
   // Listen for storage changes in real time with granular key diffing
@@ -225,7 +205,6 @@
     if (areaName !== 'local' && chrome.storage?.local) return;
 
     let stylesChanged = false;
-    let dislikesChanged = false;
     let titleChanged = false;
     let sponsorsChanged = false;
     let shortsChanged = false;
@@ -234,7 +213,6 @@
     for (const key in changes) {
       currentSettings[key] = changes[key].newValue;
       if (key === 'showDislikes' || key === 'hideLikeDislike') {
-        dislikesChanged = true;
         stylesChanged = true;
       }
       if (key.startsWith('untranslate')) {
@@ -298,18 +276,6 @@
       currentSettings,
       changes,
     );
-    if (dislikesChanged) {
-      safeRun(
-        'updateDislikeCount',
-        Libertad.updateDislikeCount,
-        currentSettings,
-      );
-      safeRun(
-        'pollForDislikeButton',
-        Libertad.pollForDislikeButton,
-        currentSettings,
-      );
-    }
     if (titleChanged) {
       safeRun('updateWatchTitle', Libertad.updateWatchTitle, currentSettings);
       safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
@@ -485,6 +451,13 @@
         const activePath = window.location.pathname;
         const activeHref = window.location.href;
 
+        // Delegated module DOM mutations for all registered modules
+        safeRun(
+          'broadcastDomMutation',
+          Libertad.broadcastDomMutation,
+          currentSettings,
+        );
+
         if (currentSettings.hideExplore) {
           const isWatch =
             activePath === '/watch' || activePath.startsWith('/live');
@@ -512,12 +485,6 @@
           if (currentSettings.hideLiveChat) {
             safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
           }
-          // Delegated module DOM mutations (dislikes, etc.)
-          safeRun(
-            'broadcastDomMutation',
-            Libertad.broadcastDomMutation,
-            currentSettings,
-          );
           if (
             currentSettings.untranslateMaster !== false &&
             currentSettings.untranslateTitles !== false
