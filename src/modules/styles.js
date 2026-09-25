@@ -664,8 +664,9 @@ globalThis.Libertad = globalThis.Libertad || {};
     // Left Drawer Explore Section
     if (settings.hideExplore) {
       rules.push(`
-        /* Full Explore Section in Navigation Drawer (Language-Independent & Tagged) */
+        /* Full Explore Section in Navigation Drawer (Structural & Language-Independent) */
         ytd-guide-section-renderer[data-libertad-explore="true"],
+        ytd-guide-section-renderer:has(a:is([href*="/feed/explore"], [href*="/feed/trending"], [href*="/gaming"], [href*="/playables"], [href*="/podcasts"], [href*="/feed/storefront"], [href*="/shopping"])):not(:has(a:is([href="/"], [href*="/feed/subscriptions"], [href*="/feed/you"], [href*="premium"]))),
         ytd-guide-section-renderer:has(#guide-section-title [href*="/feed/explore"]),
         ytd-guide-section-renderer:has(#guide-section-title [href*="/feed/trending"]),
 
@@ -673,9 +674,13 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-guide-entry-renderer:has(a[href*="/feed/explore"]),
         ytd-guide-entry-renderer:has(a[href*="/feed/trending"]),
         ytd-guide-entry-renderer:has(a[href*="/gaming"]),
+        ytd-guide-entry-renderer:has(a[href*="/playables"]),
         ytd-guide-entry-renderer:has(a[href*="/podcasts"]),
         ytd-guide-entry-renderer:has(a[href*="/feed/podcasts"]),
         ytd-guide-entry-renderer:has(a[href*="/feed/storefront"]),
+        ytd-guide-entry-renderer:has(a[href*="/shopping"]),
+        ytd-guide-entry-renderer:has(a[href*="/movies"]),
+        ytd-guide-entry-renderer:has(a[href*="/courses"]),
         ytd-guide-entry-renderer:has(a[href*="/feed/courses_destination"]),
         ytd-guide-entry-renderer:has(a[href*="/channel/UCEgdi0XIXXZ-qJOFPf4JSKw"]),
         ytd-guide-entry-renderer:has(a[href*="/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ"]),
@@ -683,14 +688,20 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-guide-entry-renderer:has(a[href*="/channel/UC1x8rV_f-2yPpzlN0JWZXIQ"]),
         ytd-guide-entry-renderer:has(a[href*="/channel/UC4R8F_QCY98548AqZ6dNXGQ"]),
         ytd-guide-entry-renderer:has(a[href*="/channel/UCOpNcN46UbXVtpKMrmU4Abg"]),
+        ytd-guide-entry-renderer:has(a[href*="/channel/UClgRkhTL3_hImCAmdLfDE4g"]),
+        ytd-guide-entry-renderer:has(a[href*="/channel/UCkYQyvc_i9hXEo4xic9Hh2g"]),
 
         /* Mini Guide Explore Entries */
         ytd-mini-guide-entry-renderer:has(a[href*="/feed/explore"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/feed/trending"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/gaming"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/playables"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/podcasts"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/feed/podcasts"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/feed/storefront"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/shopping"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/movies"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/courses"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/feed/courses_destination"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/channel/UCEgdi0XIXXZ-qJOFPf4JSKw"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ"]),
@@ -698,9 +709,14 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-mini-guide-entry-renderer:has(a[href*="/channel/UC1x8rV_f-2yPpzlN0JWZXIQ"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/channel/UC4R8F_QCY98548AqZ6dNXGQ"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/channel/UCOpNcN46UbXVtpKMrmU4Abg"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/channel/UClgRkhTL3_hImCAmdLfDE4g"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/channel/UCkYQyvc_i9hXEo4xic9Hh2g"]),
         ytd-mini-guide-entry-renderer[aria-label*="Explor" i],
 
-        /* Feed Filter Chip Bar & Mobile Explore Items */
+        /* Feed Shelves & Filter Chips for Explore / Playables */
+        ytd-rich-shelf-renderer:has(a[href*="/playables"]),
+        ytd-rich-section-renderer:has(a[href*="/playables"]),
+        ytd-shelf-renderer:has(a[href*="/playables"]),
         ytd-feed-filter-chip-bar-renderer yt-chip-cloud-chip-renderer:has(a[href*="/feed/explore"]),
         ytd-feed-filter-chip-bar-renderer yt-chip-cloud-chip-renderer:has(a[href*="/feed/trending"]),
         ytd-feed-filter-chip-bar-renderer [aria-label*="Explore" i],
@@ -1757,6 +1773,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         'explore',
         'explorar',
         'explorer',
+        'descobrir',
         'entdecken',
         'esplora',
         'verken',
@@ -1778,11 +1795,21 @@ globalThis.Libertad = globalThis.Libertad || {};
           continue;
         }
 
+        const hasExploreLinks = Boolean(
+          sec.querySelector(
+            'a[href*="/feed/explore"], a[href*="/feed/trending"], a[href*="/gaming"], a[href*="/playables"], a[href*="/podcasts"], a[href*="/feed/storefront"], a[href*="/shopping"], a[href*="/movies"]',
+          ),
+        );
+
         const titleEl = sec.querySelector(
-          '#guide-section-title, yt-formatted-string#title',
+          '#guide-section-title, yt-formatted-string#title, h3',
         );
         const titleText = (titleEl?.textContent || '').trim().toLowerCase();
-        if (exploreKeywords.some((kw) => titleText.startsWith(kw))) {
+        const hasExploreTitle = exploreKeywords.some((kw) =>
+          titleText.startsWith(kw),
+        );
+
+        if (hasExploreLinks || hasExploreTitle) {
           sec.setAttribute('data-libertad-explore', 'true');
           sec.classList.add('libertad-force-hide');
         } else {
