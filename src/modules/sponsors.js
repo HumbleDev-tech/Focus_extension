@@ -839,6 +839,80 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
   }
 
+  const sponsorsModule = {
+    name: 'sponsors',
+
+    init(settings) {
+      activeSponsorSettings = settings;
+      if (settings?.skipSponsors && window.location.pathname === '/watch') {
+        updateSponsorSegments(settings);
+        bindVideoSponsorListener(settings);
+      }
+    },
+
+    onNavigate(_url, settings, phase) {
+      activeSponsorSettings = settings;
+      if (phase === 'start') {
+        resetSponsorNavigation();
+      } else if (phase === 'finish' || phase === 'mutation') {
+        if (settings?.skipSponsors && window.location.pathname === '/watch') {
+          updateSponsorSegments(settings);
+          bindVideoSponsorListener(settings);
+        }
+      }
+    },
+
+    onSettingsChange(newSettings, changes) {
+      activeSponsorSettings = newSettings;
+      const isSponsorToggleChanged =
+        !changes ||
+        Object.keys(changes).some(
+          (k) => k.startsWith('skipSponsors') || k.startsWith('sponsorSkip'),
+        );
+
+      if (isSponsorToggleChanged) {
+        if (!newSettings?.skipSponsors) {
+          resetSponsorNavigation();
+        } else if (window.location.pathname === '/watch') {
+          updateSponsorSegments(newSettings);
+          bindVideoSponsorListener(newSettings);
+          renderSponsorProgressBar();
+        }
+      }
+    },
+
+    onDomMutation(settings) {
+      if (!settings?.skipSponsors) return;
+      if (window.location.pathname !== '/watch') return;
+
+      const activeVid = getActiveVideoId();
+      if (!activeVid) return;
+
+      if (activeVid !== currentSponsorVideoId) {
+        updateSponsorSegments(settings);
+      }
+
+      bindVideoSponsorListener(settings);
+
+      if (
+        currentSponsorSegments.length > 0 &&
+        !activeSponsorContainer?.isConnected
+      ) {
+        renderSponsorProgressBar();
+      }
+    },
+
+    destroy() {
+      resetSponsorNavigation();
+      activeSponsorSettings = null;
+    },
+  };
+
+  // Self-register in the plugin engine
+  if (typeof globalThis.Libertad.registerModule === 'function') {
+    globalThis.Libertad.registerModule('sponsors', sponsorsModule);
+  }
+
   globalThis.Libertad.getActiveVideoId = getActiveVideoId;
   globalThis.Libertad.checkVideoSponsors = checkVideoSponsors;
   globalThis.Libertad.bindVideoSponsorListener = bindVideoSponsorListener;

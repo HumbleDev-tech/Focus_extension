@@ -104,16 +104,6 @@
       Libertad.restoreOriginalChapters,
       currentSettings,
     );
-    safeRun(
-      'updateSponsorSegments',
-      Libertad.updateSponsorSegments,
-      currentSettings,
-    );
-    safeRun(
-      'bindVideoSponsorListener',
-      Libertad.bindVideoSponsorListener,
-      currentSettings,
-    );
     broadcastAgentSettings();
   }
 
@@ -173,7 +163,6 @@
 
     let stylesChanged = false;
     let titleChanged = false;
-    let sponsorsChanged = false;
 
     for (const key in changes) {
       currentSettings[key] = changes[key].newValue;
@@ -182,9 +171,6 @@
       }
       if (key.startsWith('untranslate')) {
         titleChanged = true;
-      }
-      if (key.startsWith('skipSponsors') || key.startsWith('sponsorSkip')) {
-        sponsorsChanged = true;
       }
       if (key === 'hideShorts' || key === 'redirectHomeToSubscriptions') {
         stylesChanged = true;
@@ -246,18 +232,6 @@
         currentSettings,
       );
     }
-    if (sponsorsChanged) {
-      safeRun(
-        'updateSponsorSegments',
-        Libertad.updateSponsorSegments,
-        currentSettings,
-      );
-      safeRun(
-        'bindVideoSponsorListener',
-        Libertad.bindVideoSponsorListener,
-        currentSettings,
-      );
-    }
   });
 
   let lastCheckedHref = window.location.href;
@@ -272,7 +246,6 @@
     }
     const targetUrl = event?.detail?.url;
     safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
-    safeRun('resetSponsorNavigation', Libertad.resetSponsorNavigation);
     safeRun('resetUntranslateNavigation', Libertad.resetUntranslateNavigation);
     safeRun('resetStylesNavigation', Libertad.resetStylesNavigation);
     safeRun(
@@ -435,41 +408,6 @@
               Libertad.restoreOriginalChapters,
               currentSettings,
             );
-          }
-          if (currentSettings.skipSponsors && Libertad.getActiveVideoId) {
-            const activeVid = safeRun(
-              'getActiveVideoId',
-              Libertad.getActiveVideoId,
-            );
-            const currentSponsorVid =
-              typeof Libertad.getCurrentSponsorVideoId === 'function'
-                ? Libertad.getCurrentSponsorVideoId()
-                : null;
-            if (activeVid && activeVid !== currentSponsorVid) {
-              safeRun(
-                'updateSponsorSegments',
-                Libertad.updateSponsorSegments,
-                currentSettings,
-              );
-            }
-            safeRun(
-              'bindVideoSponsorListener',
-              Libertad.bindVideoSponsorListener,
-              currentSettings,
-            );
-            const segments =
-              typeof Libertad.getCurrentSponsorSegments === 'function'
-                ? Libertad.getCurrentSponsorSegments()
-                : [];
-            const hasContainer = Libertad.hasActiveSponsorContainer
-              ? Libertad.hasActiveSponsorContainer()
-              : false;
-            if (segments.length > 0 && !hasContainer) {
-              safeRun(
-                'renderSponsorProgressBar',
-                Libertad.renderSponsorProgressBar,
-              );
-            }
           }
         }
 
