@@ -1,10 +1,14 @@
 # Changelog
 
-## [1.4.5]
+## [1.4.6]
 - **Dynamic YouTube Tab Injection Parity (`zen.js`):** Synchronized the dynamic script injection manifest in `background.js` (`injectYouTubeTabs`) with `manifest.json`, ensuring `src/modules/zen.js` is automatically loaded into existing YouTube tabs upon extension installation or update without requiring a manual page refresh.
 - **Automated Manifest & Service Worker Script Parity Check:** Added pre-flight automated parity testing in `test/parity-check.js` (Step 11) to guarantee 1:1 parity between declared content scripts in `manifest.json` and background worker dynamic script arrays, preventing module desynchronization regressions.
 - **Dislike Polling Debounce & Mutation Thrashing Elimination:** Introduced video ID scoped polling guards (`currentPollingVid`) in `dislikes.js` (`pollForDislikeButton`), preventing YouTube DOM mutations during watch page load from repeatedly clearing and restarting the 300ms polling interval. Eliminates CPU spikes and significantly accelerates dislike count badge injection.
 - **Transient Network & Rate-Limit Cache Hardening (Untranslate):** Refactored `fetchOriginalTitle` in `untranslate.js` to restrict negative caching (`titlesCache.set(videoId, false)`) strictly to confirmed HTTP 404/403/401 responses. Prevents transient HTTP 429 (Rate Limit) errors and network drops during fast feed scrolling from permanently poisoning the in-memory title cache for the duration of the session.
+
+---
+
+## [1.4.5]
 - **Unified Plugin Registry Engine & Fault Isolation:** Implemented the central `registerModule` lifecycle interface (`init`, `onNavigate`, `onSettingsChange`, `onDomMutation`, `destroy`) in `src/core/utils.js` wrapped in `safeRun` exception barriers, isolating runtime errors to individual modules and decoupling `content.js` into an autonomous orchestrator.
 - **Autonomous Subscriptions & Shorts Plugin Migration:** Migrated `subscriptions.js` and `shorts.js` to self-contained plugin modules governed by the `registerModule` lifecycle contract (`init`, `onNavigate`, `onSettingsChange`, `onDomMutation`). Eradicated 7 redundant execution blocks and direct function references in `content.js`, delegating early route evaluation and click interception entirely to autonomous lifecycle events.
 - **Encapsulated SponsorBlock Plugin & Idle DOM Decoupling:** Migrated `sponsors.js` to an autonomous plugin module registered via `registerModule`. Purged 35 lines of invasive state inspection and manual container checks from `content.js`'s idle `MutationObserver`, moving segment synchronizations, listener bindings, and visual progress bar rendering into local lexical scopes evaluated directly within `onDomMutation`, `onNavigate`, and `onSettingsChange`.
