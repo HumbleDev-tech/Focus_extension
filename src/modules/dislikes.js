@@ -87,9 +87,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       const buttons = actions.querySelectorAll('button');
       for (let i = 0; i < buttons.length; i++) {
         const b = buttons[i];
-        if (
-          b.closest('#comments, ytd-comments, ytd-comment-thread-renderer')
-        ) {
+        if (b.closest('#comments, ytd-comments, ytd-comment-thread-renderer')) {
           continue;
         }
         const aria = (b.getAttribute('aria-label') || '').toLowerCase();
@@ -110,9 +108,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       // SVG path signature fallback (thumbs-down icon path)
       for (let i = 0; i < buttons.length; i++) {
         const b = buttons[i];
-        if (
-          b.closest('#comments, ytd-comments, ytd-comment-thread-renderer')
-        ) {
+        if (b.closest('#comments, ytd-comments, ytd-comment-thread-renderer')) {
           continue;
         }
         const path = b.querySelector('path');
@@ -197,8 +193,11 @@ globalThis.Libertad = globalThis.Libertad || {};
     });
   }
 
+  let lastDislikeBtn = null;
+
   // SPA Lifecycle Reset
   function resetDislikesNavigation() {
+    lastDislikeBtn = null;
     if (dislikePollTimer) {
       clearInterval(dislikePollTimer);
       dislikePollTimer = null;
@@ -371,6 +370,95 @@ globalThis.Libertad = globalThis.Libertad || {};
       });
   }
 
+  // --- Unified Lifecycle Interface (Black Box Module) ---
+  const dislikeModule = {
+    name: 'dislikes',
+
+    init(settings) {
+      if (settings?.showDislikes && !settings?.hideLikeDislike) {
+        updateDislikeCount(settings);
+        pollForDislikeButton(settings);
+      }
+    },
+
+    onNavigate(_url, settings, phase) {
+      lastDislikeBtn = null;
+      if (phase === 'start') {
+        resetDislikesNavigation();
+      } else if (phase === 'finish') {
+        if (settings?.showDislikes && !settings?.hideLikeDislike) {
+          updateDislikeCount(settings);
+          pollForDislikeButton(settings);
+        }
+      }
+    },
+
+    onSettingsChange(settings, changes) {
+      const showChanged =
+        changes && ('showDislikes' in changes || 'hideLikeDislike' in changes);
+      if (showChanged || !changes) {
+        if (!settings?.showDislikes || settings?.hideLikeDislike) {
+          resetDislikesNavigation();
+        } else {
+          updateDislikeCount(settings);
+          pollForDislikeButton(settings);
+        }
+      }
+    },
+
+    onDomMutation(settings) {
+      if (!settings?.showDislikes || settings?.hideLikeDislike) {
+        return;
+      }
+      const isWatch =
+        window.location.pathname === '/watch' ||
+        window.location.pathname.startsWith('/live');
+      if (!isWatch) return;
+
+      const parseId =
+        globalThis.Libertad.parseYouTubeVideoId ||
+        function (u) {
+          const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+          return m ? m[1] : null;
+        };
+      const currentVid = parseId(window.location.href);
+      const activeBadge =
+        lastDislikeBtn?.isConnected &&
+        lastDislikeBtn.querySelector('.libertad-dislike-badge');
+      const hasCurrentBadge =
+        activeBadge &&
+        (!currentVid ||
+          activeBadge.getAttribute('data-video-id') === currentVid);
+
+      if (!hasCurrentBadge) {
+        const dislikeBtn = findDislikeButton();
+        if (dislikeBtn) {
+          lastDislikeBtn = dislikeBtn;
+          const btnBadge = dislikeBtn.querySelector('.libertad-dislike-badge');
+          const isMatchingCurrent =
+            btnBadge &&
+            currentVid &&
+            btnBadge.getAttribute('data-video-id') === currentVid;
+          if (!isMatchingCurrent) {
+            updateDislikeCount(settings);
+          }
+        } else {
+          pollForDislikeButton(settings, currentVid);
+        }
+      }
+    },
+
+    destroy() {
+      resetDislikesNavigation();
+    },
+  };
+
+  // Self-register in the plugin engine
+  if (typeof globalThis.Libertad.registerModule === 'function') {
+    globalThis.Libertad.registerModule('dislikes', dislikeModule);
+  }
+
+  // Preserve backward compatibility with current orchestrator
   globalThis.Libertad.findDislikeButton = findDislikeButton;
   globalThis.Libertad.injectDislikeBadge = injectDislikeBadge;
   globalThis.Libertad.removeDislikeBadge = removeDislikeBadge;

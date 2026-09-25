@@ -292,6 +292,12 @@
     }
 
     broadcastAgentSettings();
+    safeRun(
+      'broadcastSettingsChange',
+      Libertad.broadcastSettingsChange,
+      currentSettings,
+      changes,
+    );
     if (dislikesChanged) {
       safeRun(
         'updateDislikeCount',
@@ -342,13 +348,11 @@
     }
   });
 
-  let lastDislikeBtn = null;
   let lastCheckedHref = window.location.href;
   let lastFlexySyncedHref = null;
 
   // Handle YouTube SPA Navigation events
   window.addEventListener('yt-navigate-start', (event) => {
-    lastDislikeBtn = null;
     lastFlexySyncedHref = null;
     const flexy = document.querySelector('ytd-watch-flexy');
     if (flexy?.hasAttribute('flexy-chat-collapsed_')) {
@@ -371,23 +375,40 @@
     safeRun('resetSponsorNavigation', Libertad.resetSponsorNavigation);
     safeRun('resetUntranslateNavigation', Libertad.resetUntranslateNavigation);
     safeRun('resetStylesNavigation', Libertad.resetStylesNavigation);
-    safeRun('resetDislikesNavigation', Libertad.resetDislikesNavigation);
+    safeRun(
+      'broadcastNavigation',
+      Libertad.broadcastNavigation,
+      targetUrl || window.location.href,
+      currentSettings,
+      'start',
+    );
   });
 
   window.addEventListener('yt-navigate-finish', () => {
-    lastDislikeBtn = null;
     lastCheckedHref = window.location.href;
     lastFlexySyncedHref = window.location.href;
     safeRun('resetStylesNavigation', Libertad.resetStylesNavigation);
+    safeRun(
+      'broadcastNavigation',
+      Libertad.broadcastNavigation,
+      window.location.href,
+      currentSettings,
+      'finish',
+    );
     syncAllModules();
   });
 
   window.addEventListener('popstate', () => {
-    lastDislikeBtn = null;
     lastCheckedHref = window.location.href;
     lastFlexySyncedHref = null;
     safeRun('resetStylesNavigation', Libertad.resetStylesNavigation);
-    safeRun('resetDislikesNavigation', Libertad.resetDislikesNavigation);
+    safeRun(
+      'broadcastNavigation',
+      Libertad.broadcastNavigation,
+      window.location.href,
+      currentSettings,
+      'finish',
+    );
     safeRun(
       'redirectShortsIfActive',
       Libertad.redirectShortsIfActive,
@@ -491,53 +512,12 @@
           if (currentSettings.hideLiveChat) {
             safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
           }
-          if (currentSettings.showDislikes && Libertad.findDislikeButton) {
-            const parseId =
-              Libertad.parseYouTubeVideoId ||
-              function (u) {
-                const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-                return m ? m[1] : null;
-              };
-            const currentVid = parseId(window.location.href);
-            const activeBadge =
-              lastDislikeBtn?.isConnected &&
-              lastDislikeBtn.querySelector('.libertad-dislike-badge');
-            const hasCurrentBadge =
-              activeBadge &&
-              (!currentVid ||
-                activeBadge.getAttribute('data-video-id') === currentVid);
-
-            if (!hasCurrentBadge) {
-              const dislikeBtn = safeRun(
-                'findDislikeButton',
-                Libertad.findDislikeButton,
-              );
-              if (dislikeBtn) {
-                lastDislikeBtn = dislikeBtn;
-                const btnBadge = dislikeBtn.querySelector(
-                  '.libertad-dislike-badge',
-                );
-                const isMatchingCurrent =
-                  btnBadge &&
-                  currentVid &&
-                  btnBadge.getAttribute('data-video-id') === currentVid;
-                if (!isMatchingCurrent) {
-                  safeRun(
-                    'updateDislikeCount',
-                    Libertad.updateDislikeCount,
-                    currentSettings,
-                  );
-                }
-              } else {
-                safeRun(
-                  'pollForDislikeButton',
-                  Libertad.pollForDislikeButton,
-                  currentSettings,
-                  currentVid,
-                );
-              }
-            }
-          }
+          // Delegated module DOM mutations (dislikes, etc.)
+          safeRun(
+            'broadcastDomMutation',
+            Libertad.broadcastDomMutation,
+            currentSettings,
+          );
           if (
             currentSettings.untranslateMaster !== false &&
             currentSettings.untranslateTitles !== false

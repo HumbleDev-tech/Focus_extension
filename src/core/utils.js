@@ -90,8 +90,84 @@ globalThis.Libertad = globalThis.Libertad || {};
     return clean === 'pt' || clean.startsWith('pt-') || clean.startsWith('pt_');
   }
 
+  // --- Libertad Plugin Registry Engine ---
+  const registeredModules = new Map();
+
+  function safeRun(moduleName, fn, ...args) {
+    if (typeof fn !== 'function') return undefined;
+    try {
+      return fn(...args);
+    } catch (err) {
+      console.warn(`[Libertad] Module fault isolated in [${moduleName}]:`, err);
+      return undefined;
+    }
+  }
+
+  function registerModule(name, definition) {
+    if (!name || typeof definition !== 'object') return;
+    registeredModules.set(name, definition);
+  }
+
+  function getModule(name) {
+    return registeredModules.get(name);
+  }
+
+  function getAllModules() {
+    return Array.from(registeredModules.values());
+  }
+
+  function broadcastInit(settings) {
+    for (const [name, mod] of registeredModules) {
+      if (typeof mod.init === 'function') {
+        safeRun(name, mod.init.bind(mod), settings);
+      }
+    }
+  }
+
+  function broadcastNavigation(url, settings, phase) {
+    for (const [name, mod] of registeredModules) {
+      if (typeof mod.onNavigate === 'function') {
+        safeRun(name, mod.onNavigate.bind(mod), url, settings, phase);
+      }
+    }
+  }
+
+  function broadcastSettingsChange(settings, changes) {
+    for (const [name, mod] of registeredModules) {
+      if (typeof mod.onSettingsChange === 'function') {
+        safeRun(name, mod.onSettingsChange.bind(mod), settings, changes);
+      }
+    }
+  }
+
+  function broadcastDomMutation(settings) {
+    for (const [name, mod] of registeredModules) {
+      if (typeof mod.onDomMutation === 'function') {
+        safeRun(name, mod.onDomMutation.bind(mod), settings);
+      }
+    }
+  }
+
+  function broadcastDestroy() {
+    for (const [name, mod] of registeredModules) {
+      if (typeof mod.destroy === 'function') {
+        safeRun(name, mod.destroy.bind(mod));
+      }
+    }
+  }
+
   globalThis.Libertad.parseYouTubeVideoId = parseYouTubeVideoId;
   globalThis.Libertad.formatNumber = formatNumber;
   globalThis.Libertad.isSpanishLocale = isSpanishLocale;
   globalThis.Libertad.isPortugueseLocale = isPortugueseLocale;
+
+  globalThis.Libertad.safeRun = safeRun;
+  globalThis.Libertad.registerModule = registerModule;
+  globalThis.Libertad.getModule = getModule;
+  globalThis.Libertad.getAllModules = getAllModules;
+  globalThis.Libertad.broadcastInit = broadcastInit;
+  globalThis.Libertad.broadcastNavigation = broadcastNavigation;
+  globalThis.Libertad.broadcastSettingsChange = broadcastSettingsChange;
+  globalThis.Libertad.broadcastDomMutation = broadcastDomMutation;
+  globalThis.Libertad.broadcastDestroy = broadcastDestroy;
 })();
