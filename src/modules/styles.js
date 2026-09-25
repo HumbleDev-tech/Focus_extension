@@ -921,6 +921,18 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (settings.showDislikes && !settings.hideLikeDislike) {
       rules.push(`
         /* Ensure Dislike button container allows text expansion and proper padding */
+        segmented-like-dislike-button-view-model,
+        segmented-like-dislike-button-view-model dislike-button-view-model,
+        .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper,
+        .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper > :nth-child(2),
+        ytd-segmented-like-dislike-button-renderer #segmented-dislike-button,
+        dislike-button-view-model,
+        #segmented-dislike-button {
+          overflow: visible !important;
+          width: auto !important;
+          max-width: none !important;
+        }
+
         ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button,
         segmented-like-dislike-button-view-model dislike-button-view-model button,
         dislike-button-view-model button,
@@ -932,6 +944,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         button:has(.libertad-dislike-badge) {
           width: auto !important;
           min-width: 48px !important;
+          max-width: none !important;
           padding-left: 8px !important;
           padding-right: 12px !important;
           display: inline-flex !important;
@@ -943,6 +956,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         .libertad-dislike-badge {
           display: inline-flex !important;
           align-items: center !important;
+          justify-content: center !important;
           font-family: "Roboto", "Segoe UI", Arial, sans-serif !important;
           font-size: 14px !important;
           font-weight: 500 !important;
@@ -953,6 +967,17 @@ globalThis.Libertad = globalThis.Libertad || {};
           white-space: nowrap !important;
           opacity: 1 !important;
           visibility: visible !important;
+          overflow: visible !important;
+        }
+
+        .libertad-dislike-badge span[role="text"],
+        .libertad-dislike-badge span {
+          font-family: inherit !important;
+          font-size: inherit !important;
+          font-weight: inherit !important;
+          color: inherit !important;
+          pointer-events: none !important;
+          white-space: nowrap !important;
         }
       `);
     }

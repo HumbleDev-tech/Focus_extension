@@ -34,44 +34,88 @@ globalThis.Libertad = globalThis.Libertad || {};
   let dislikePollTimer = null;
   let dislikePollAttempts = 0;
 
+  function getNativeButton(control) {
+    if (!control) return null;
+    if (control.matches?.('button, tp-yt-paper-button#button')) {
+      return control;
+    }
+    return control.querySelector?.('button, tp-yt-paper-button#button') || null;
+  }
+
+  function findLikeButton() {
+    const likeSelectors = [
+      'segmented-like-dislike-button-view-model like-button-view-model button',
+      '#segmented-like-button button',
+      'ytd-segmented-like-dislike-button-renderer #segmented-like-button button',
+      'like-button-view-model button',
+      '#top-level-buttons-computed ytd-toggle-button-renderer:first-child button',
+      '#top-level-buttons-computed like-button-view-model button',
+    ];
+    for (const sel of likeSelectors) {
+      const el = document.querySelector(sel);
+      if (
+        el &&
+        !el.closest(
+          '#comments, ytd-comments, ytd-comment-thread-renderer, #shorts-container',
+        )
+      ) {
+        return getNativeButton(el);
+      }
+    }
+    return null;
+  }
+
   // Find modern YouTube dislike button with multi-strategy fallbacks
   function findDislikeButton() {
     // Strategy 1: Direct explicit view-model and segmented button selectors
-    const explicit = document.querySelector(
-      'segmented-like-dislike-button-view-model dislike-button-view-model button, ' +
-        'dislike-button-view-model button, ' +
-        '#segmented-dislike-button button, ' +
-        '#segmented-dislike-button, ' +
-        'ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button, ' +
-        'like-button-view-model + dislike-button-view-model button, ' +
-        'like-button-view-model ~ * button, ' +
-        '#top-level-buttons-computed #dislike-button button, ' +
-        '#top-level-buttons-computed ytd-toggle-button-renderer:nth-child(2) button',
-    );
-    if (
-      explicit &&
-      !explicit.closest(
-        '#comments, ytd-comments, ytd-comment-thread-renderer, #shorts-container',
-      )
-    ) {
-      return explicit;
+    const explicitSelectors = [
+      'segmented-like-dislike-button-view-model dislike-button-view-model button',
+      'segmented-like-dislike-button-view-model dislike-button-view-model',
+      'dislike-button-view-model button',
+      'dislike-button-view-model',
+      '#segmented-dislike-button button',
+      '#segmented-dislike-button',
+      'ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button',
+      'ytd-segmented-like-dislike-button-renderer #segmented-dislike-button',
+      'like-button-view-model + dislike-button-view-model button',
+      'like-button-view-model + dislike-button-view-model',
+      'like-button-view-model ~ * button',
+      '#top-level-buttons-computed #dislike-button button',
+      '#top-level-buttons-computed #dislike-button',
+      '#top-level-buttons-computed ytd-toggle-button-renderer:nth-child(2) button',
+    ];
+
+    for (const sel of explicitSelectors) {
+      const el = document.querySelector(sel);
+      if (
+        el &&
+        !el.closest(
+          '#comments, ytd-comments, ytd-comment-thread-renderer, #shorts-container',
+        )
+      ) {
+        const nativeBtn = getNativeButton(el);
+        if (nativeBtn) return nativeBtn;
+      }
     }
 
     // Strategy 2: Segmented container structure (Second button in container is always Dislike)
-    const segmented = document.querySelector(
-      'segmented-like-dislike-button-view-model, ' +
-        'ytd-segmented-like-dislike-button-renderer, ' +
-        '.ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper',
-    );
-    if (
-      segmented &&
-      !segmented.closest(
-        '#comments, ytd-comments, ytd-comment-thread-renderer, #shorts-container',
-      )
-    ) {
-      const buttons = segmented.querySelectorAll('button');
-      if (buttons.length >= 2) {
-        return buttons[1];
+    const segmentedContainers = [
+      'segmented-like-dislike-button-view-model',
+      'ytd-segmented-like-dislike-button-renderer',
+      '.ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper',
+    ];
+    for (const containerSel of segmentedContainers) {
+      const segmented = document.querySelector(containerSel);
+      if (
+        segmented &&
+        !segmented.closest(
+          '#comments, ytd-comments, ytd-comment-thread-renderer, #shorts-container',
+        )
+      ) {
+        const buttons = segmented.querySelectorAll('button');
+        if (buttons.length >= 2) {
+          return buttons[1];
+        }
       }
     }
 
@@ -130,50 +174,100 @@ globalThis.Libertad = globalThis.Libertad || {};
     return null;
   }
 
-  // Inject or update the dislike badge
-  function injectDislikeBadge(button, formattedCount, videoId) {
-    if (!button || !formattedCount) return;
+  const ICON_BUTTON_CLASSES = [
+    'yt-spec-button-shape-next--icon-button',
+    'ytSpecButtonShapeNextIconButton',
+  ];
+  const ICON_LEADING_CLASSES = [
+    'yt-spec-button-shape-next--icon-leading',
+    'ytSpecButtonShapeNextIconLeading',
+  ];
 
-    if (!button.hasAttribute('data-libertad-orig-aria')) {
-      const origAria = button.getAttribute('aria-label');
-      if (origAria) {
-        button.setAttribute('data-libertad-orig-aria', origAria);
+  function updateDislikeButtonShape(button, hasText) {
+    if (!button) return;
+    if (hasText) {
+      for (const cls of ICON_BUTTON_CLASSES) {
+        button.classList.remove(cls);
       }
-    }
-
-    button.classList.remove('yt-spec-button-shape-next--icon-button');
-    button.classList.add('yt-spec-button-shape-next--icon-leading');
-
-    let textWrapper = button.querySelector(
-      '.yt-spec-button-shape-next__button-text-content',
-    );
-    if (!textWrapper) {
-      textWrapper = button.querySelector('.libertad-dislike-badge');
-    }
-
-    if (!textWrapper) {
-      textWrapper = document.createElement('div');
-      textWrapper.className =
-        'yt-spec-button-shape-next__button-text-content libertad-dislike-badge';
-      const touchFeedback = button.querySelector('yt-touch-feedback-shape');
-      if (touchFeedback) {
-        button.insertBefore(textWrapper, touchFeedback);
-      } else {
-        button.appendChild(textWrapper);
+      for (const cls of ICON_LEADING_CLASSES) {
+        button.classList.add(cls);
       }
     } else {
-      textWrapper.classList.add('libertad-dislike-badge');
+      for (const cls of ICON_LEADING_CLASSES) {
+        button.classList.remove(cls);
+      }
+      for (const cls of ICON_BUTTON_CLASSES) {
+        button.classList.add(cls);
+      }
+    }
+  }
+
+  // Inject or update the dislike badge using native template cloning
+  function injectDislikeBadge(button, formattedCount, videoId) {
+    const nativeBtn = getNativeButton(button);
+    if (!nativeBtn || !formattedCount) return;
+
+    if (!nativeBtn.hasAttribute('data-libertad-orig-aria')) {
+      const origAria = nativeBtn.getAttribute('aria-label');
+      if (origAria) {
+        nativeBtn.setAttribute('data-libertad-orig-aria', origAria);
+      }
+    }
+
+    updateDislikeButtonShape(nativeBtn, true);
+
+    let textWrapper = nativeBtn.querySelector('.libertad-dislike-badge');
+    let textSpan = null;
+
+    if (!textWrapper) {
+      // Strategy A: Clone the text container template from the Like button (100% native typography & styling)
+      const likeBtn = findLikeButton();
+      const likeTemplate = likeBtn?.querySelector(
+        '.yt-spec-button-shape-next__button-text-content, .ytSpecButtonShapeNextButtonTextContent, button > div[class*="cbox"]',
+      );
+
+      if (likeTemplate) {
+        textWrapper = likeTemplate.cloneNode(true);
+        textWrapper.classList.add('libertad-dislike-badge');
+        textSpan =
+          textWrapper.querySelector('span[role="text"], span') ||
+          document.createElement('span');
+        textSpan.setAttribute('role', 'text');
+        textSpan.textContent = '';
+        while (textWrapper.firstChild) {
+          textWrapper.removeChild(textWrapper.firstChild);
+        }
+        textWrapper.appendChild(textSpan);
+      } else {
+        // Strategy B: Fallback construct standard dual-class container with inner text span
+        textWrapper = document.createElement('div');
+        textWrapper.className =
+          'yt-spec-button-shape-next__button-text-content ytSpecButtonShapeNextButtonTextContent libertad-dislike-badge';
+        textSpan = document.createElement('span');
+        textSpan.setAttribute('role', 'text');
+        textWrapper.appendChild(textSpan);
+      }
+
+      const touchFeedback = nativeBtn.querySelector('yt-touch-feedback-shape');
+      if (touchFeedback) {
+        nativeBtn.insertBefore(textWrapper, touchFeedback);
+      } else {
+        nativeBtn.appendChild(textWrapper);
+      }
+    } else {
+      textSpan = textWrapper.querySelector('span[role="text"], span');
     }
 
     if (videoId) {
       textWrapper.setAttribute('data-video-id', videoId);
-      button.setAttribute('data-libertad-dislike-vid', videoId);
+      nativeBtn.setAttribute('data-libertad-dislike-vid', videoId);
     }
 
-    if (textWrapper.textContent !== formattedCount) {
-      textWrapper.textContent = formattedCount;
+    const targetNode = textSpan || textWrapper;
+    if (targetNode.textContent !== formattedCount) {
+      targetNode.textContent = formattedCount;
     }
-    button.setAttribute('aria-label', `Dislike (${formattedCount})`);
+    nativeBtn.setAttribute('aria-label', `Dislike (${formattedCount})`);
   }
 
   function removeDislikeBadge() {
@@ -181,8 +275,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     badges.forEach((b) => {
       const btn = b.closest('button');
       if (btn) {
-        btn.classList.remove('yt-spec-button-shape-next--icon-leading');
-        btn.classList.add('yt-spec-button-shape-next--icon-button');
+        updateDislikeButtonShape(btn, false);
         btn.removeAttribute('data-libertad-dislike-vid');
         const defaultAria = btn.getAttribute('data-libertad-orig-aria');
         if (defaultAria) {
