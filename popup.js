@@ -64,19 +64,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const BADGE_STORAGE_KEY = 'libertad_ver_badge';
   const BADGE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours (1 day)
 
-  let manifestVersion = '1.4.5';
-  if (
-    footerVersion &&
-    typeof chrome !== 'undefined' &&
-    chrome.runtime?.getManifest
-  ) {
+  let manifestVersion = '';
+  if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
     try {
       const manifest = chrome.runtime.getManifest();
       if (manifest?.version) {
         manifestVersion = manifest.version;
-        footerVersion.textContent = `v${manifest.version}`;
       }
     } catch (_) {}
+  }
+
+  if (footerVersion && manifestVersion) {
+    footerVersion.textContent = `v${manifestVersion}`;
   }
 
   let badgeRecord = null;
@@ -85,7 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (raw) badgeRecord = JSON.parse(raw);
   } catch (_) {}
 
-  if (!badgeRecord || badgeRecord.version !== manifestVersion) {
+  if (
+    manifestVersion &&
+    (!badgeRecord || badgeRecord.version !== manifestVersion)
+  ) {
     badgeRecord = {
       version: manifestVersion,
       firstSeen: Date.now(),
@@ -97,10 +99,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const isBadgeExpired =
-    typeof badgeRecord.firstSeen === 'number' &&
+    typeof badgeRecord?.firstSeen === 'number' &&
     Date.now() - badgeRecord.firstSeen > BADGE_TTL_MS;
 
-  const shouldShowBadge = !badgeRecord.dismissed && !isBadgeExpired;
+  const shouldShowBadge =
+    Boolean(manifestVersion) &&
+    Boolean(badgeRecord) &&
+    !badgeRecord.dismissed &&
+    !isBadgeExpired;
 
   if (versionBadgeNew) {
     versionBadgeNew.style.display = shouldShowBadge ? 'inline-flex' : 'none';
