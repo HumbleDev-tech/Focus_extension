@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const BADGE_STORAGE_KEY = 'libertad_ver_badge';
   const BADGE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours (1 day)
 
-  let manifestVersion = '1.4.4';
+  let manifestVersion = '1.4.5';
   if (
     footerVersion &&
     typeof chrome !== 'undefined' &&
