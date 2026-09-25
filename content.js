@@ -110,15 +110,12 @@
   // Initial load and DOMContentLoaded events
   if (document.readyState !== 'loading') {
     safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
-    safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
   }
   document.addEventListener('DOMContentLoaded', () => {
     safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
-    safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
   });
   window.addEventListener('load', () => {
     safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
-    safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
   });
 
   // Load saved settings from storage with local priority and sync fallback
@@ -245,7 +242,6 @@
       flexy.removeAttribute('flexy-chat-collapsed_');
     }
     const targetUrl = event?.detail?.url;
-    safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
     safeRun('resetUntranslateNavigation', Libertad.resetUntranslateNavigation);
     safeRun('resetStylesNavigation', Libertad.resetStylesNavigation);
     safeRun(
@@ -321,7 +317,6 @@
       isCheckingMutation = false;
 
       const currentHref = window.location.href;
-      const currentPath = window.location.pathname;
       const hrefChanged = currentHref !== lastCheckedHref;
       lastCheckedHref = currentHref;
 
@@ -333,11 +328,6 @@
           currentSettings,
           'mutation',
         );
-      }
-
-      const isHome = currentPath === '/' || currentPath === '';
-      if (isHome) {
-        safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
       }
 
       // Deferred Idle Phase: non-blocking execution of heavier DOM cleaners and feed analyzers

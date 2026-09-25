@@ -1,6 +1,6 @@
 /**
- * Libertad - Style & Zen Engine
- * Injects dynamic CSS rules and renders Zen Mode intentional home interface.
+ * Libertad - Style Engine
+ * Injects dynamic CSS rules and adjusts YouTube layout dimensions.
  */
 
 globalThis.Libertad = globalThis.Libertad || {};
@@ -9,7 +9,6 @@ globalThis.Libertad = globalThis.Libertad || {};
   'use strict';
 
   const STYLE_ID = 'libertad-focus-styles';
-  const ZEN_CONTAINER_ID = 'libertad-zen-container';
 
   // Build high-efficiency CSS rules based on settings
   function buildStylesheet(settings) {
@@ -1303,7 +1302,6 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   let cachedStylesheetKey = '';
   let cachedStylesheetCss = '';
-  let lastZenTargetContainer = null;
 
   function getStylesheetKey(settings) {
     if (!settings || typeof settings !== 'object') return '';
@@ -1338,170 +1336,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     } else if (styleEl.textContent !== cachedStylesheetCss) {
       styleEl.textContent = cachedStylesheetCss;
     }
-    updateZenBanner(settings);
     cleanSidebar(settings);
-  }
-
-  // Show a calm, intentional screen on YouTube home if home feed is disabled
-  function updateZenBanner(settings) {
-    if (!settings || typeof settings !== 'object') return;
-
-    function applyZenAttributes(el, theme, scale, lang) {
-      if (!el) return;
-      el.dataset.theme = theme;
-      el.dataset.scale = scale;
-      el.dataset.lang = lang;
-    }
-
-    const isHomePage =
-      window.location.pathname === '/' || window.location.pathname === '';
-    const existing = document.getElementById(ZEN_CONTAINER_ID);
-
-    // If home is redirected to subscriptions, zen banner is not needed
-    if (settings.redirectHomeToSubscriptions && isHomePage) {
-      lastZenTargetContainer = null;
-      if (existing) existing.remove();
-      return;
-    }
-
-    if (settings.hideHomeFeed && isHomePage) {
-      // 1. Resolve Language
-      const isSpanish =
-        settings.lang === 'es' ||
-        ((!settings.lang || settings.lang === 'auto') &&
-          typeof navigator !== 'undefined' &&
-          (globalThis.Libertad.isSpanishLocale
-            ? globalThis.Libertad.isSpanishLocale(navigator.language)
-            : navigator.language?.toLowerCase().startsWith('es')));
-      const isPortuguese =
-        settings.lang === 'pt' ||
-        ((!settings.lang || settings.lang === 'auto') &&
-          typeof navigator !== 'undefined' &&
-          (globalThis.Libertad.isPortugueseLocale
-            ? globalThis.Libertad.isPortugueseLocale(navigator.language)
-            : navigator.language?.toLowerCase().startsWith('pt')));
-      const langKey = isSpanish ? 'es' : isPortuguese ? 'pt' : 'en';
-
-      // 2. Resolve Theme
-      let resolvedTheme = settings.theme || 'auto';
-      if (resolvedTheme === 'auto') {
-        const isDark =
-          document.documentElement.hasAttribute('dark') ||
-          document.body?.hasAttribute('dark') ||
-          Boolean(document.querySelector('ytd-app[dark]')) ||
-          Boolean(document.querySelector('html[dark]')) ||
-          (typeof window !== 'undefined' &&
-            window.matchMedia?.('(prefers-color-scheme: dark)')?.matches);
-        resolvedTheme = isDark ? 'dark' : 'light';
-      }
-
-      // 3. Resolve Scale
-      let resolvedScale = settings.scale || 'auto';
-      if (resolvedScale === 'auto') {
-        const screenW =
-          typeof window !== 'undefined' && window.screen
-            ? window.screen.width || 1920
-            : 1920;
-        const dpr =
-          typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-        const effectiveW = screenW * dpr;
-        if (screenW >= 3440 || (effectiveW >= 3840 && dpr < 1.5)) {
-          resolvedScale = '140';
-        } else if (screenW >= 2400 || (effectiveW >= 2560 && dpr <= 1.25)) {
-          resolvedScale = '120';
-        } else {
-          resolvedScale = '100';
-        }
-      }
-
-      const statusText = isSpanish
-        ? 'ENFOQUE ACTIVO'
-        : isPortuguese
-          ? 'FOCO ATIVO'
-          : 'FOCUS ACTIVE';
-      const titleText = isSpanish
-        ? 'Modo Intencional Activo'
-        : isPortuguese
-          ? 'Modo Intencional Ativo'
-          : 'Intentional Mode Active';
-      const descText = isSpanish
-        ? 'Recomendaciones de feed suprimidas. Realiza una búsqueda arriba para encontrar contenido específico.'
-        : isPortuguese
-          ? 'Recomendações de feed suprimidas. Faça uma pesquisa acima para encontrar conteúdo específico.'
-          : 'Feed recommendations suppressed. Use the search bar above to find specific content.';
-
-      const cardHtml = `
-        <div class="libertad-zen-card">
-          <div class="libertad-zen-brand">
-            <span class="libertad-zen-brand-title">LIBERTAD</span>
-            <div class="libertad-zen-status">
-              <span class="libertad-zen-dot"></span>
-              <span>${statusText}</span>
-            </div>
-          </div>
-          <div class="libertad-zen-icon-wrapper">
-            <svg class="libertad-zen-svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="9"/>
-              <line x1="12" y1="2" x2="12" y2="6"/>
-              <line x1="12" y1="18" x2="12" y2="22"/>
-              <line x1="2" y1="12" x2="6" y2="12"/>
-              <line x1="18" y1="12" x2="22" y2="12"/>
-              <circle cx="12" cy="12" r="2.5"/>
-            </svg>
-          </div>
-          <div class="libertad-zen-title">${titleText}</div>
-          <p class="libertad-zen-desc">${descText}</p>
-        </div>
-      `;
-
-      let targetContainer = lastZenTargetContainer?.isConnected
-        ? lastZenTargetContainer
-        : null;
-
-      if (!targetContainer) {
-        targetContainer =
-          document.querySelector(
-            'ytd-browse[page-subtype="home"]:not([hidden]) #primary',
-          ) ||
-          document.querySelector(
-            'ytd-browse[page-subtype="home"]:not([hidden])',
-          ) ||
-          document.querySelector('ytd-browse:not([hidden]) #primary') ||
-          document.querySelector('ytd-browse[page-subtype="home"] #primary') ||
-          document.querySelector('ytd-browse #primary') ||
-          document.querySelector('ytd-browse[page-subtype="home"]') ||
-          document.querySelector('ytd-browse');
-        if (targetContainer) {
-          lastZenTargetContainer = targetContainer;
-        }
-      }
-
-      if (!targetContainer) {
-        return;
-      }
-
-      if (existing) {
-        const langChanged = existing.dataset.lang !== langKey;
-        applyZenAttributes(existing, resolvedTheme, resolvedScale, langKey);
-        if (langChanged || !existing.firstElementChild) {
-          existing.innerHTML = cardHtml;
-        }
-        if (existing.parentElement !== targetContainer) {
-          targetContainer.prepend(existing);
-        }
-      } else {
-        const zen = document.createElement('div');
-        zen.id = ZEN_CONTAINER_ID;
-        applyZenAttributes(zen, resolvedTheme, resolvedScale, langKey);
-        zen.innerHTML = cardHtml;
-        targetContainer.prepend(zen);
-      }
-    } else {
-      lastZenTargetContainer = null;
-      if (existing) {
-        existing.remove();
-      }
-    }
   }
 
   let chatResizeTimer = null;
@@ -2021,7 +1856,6 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   globalThis.Libertad.buildStylesheet = buildStylesheet;
   globalThis.Libertad.applyStyles = applyStyles;
-  globalThis.Libertad.updateZenBanner = updateZenBanner;
   globalThis.Libertad.cleanLiveChat = cleanLiveChat;
   globalThis.Libertad.cleanExplore = cleanExplore;
   globalThis.Libertad.cleanAutoplay = cleanAutoplay;
