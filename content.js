@@ -69,31 +69,8 @@
     }
   }
 
-  // Early route checks at document_start
-  safeRun(
-    'redirectShortsIfActive',
-    Libertad.redirectShortsIfActive,
-    currentSettings,
-  );
-  safeRun(
-    'redirectHomeToSubscriptions',
-    Libertad.redirectHomeToSubscriptions,
-    currentSettings,
-  );
-
-  // Initialize SPA link interceptor for instantaneous subscription routing
-  safeRun(
-    'setupSubscriptionsLinkInterceptor',
-    Libertad.setupSubscriptionsLinkInterceptor,
-    () => currentSettings,
-  );
-
-  // Initialize SPA link interceptor for instantaneous shorts-to-watch routing
-  safeRun(
-    'setupShortsLinkInterceptor',
-    Libertad.setupShortsLinkInterceptor,
-    () => currentSettings,
-  );
+  // Initialize registered plugin modules at document_start
+  safeRun('broadcastInit', Libertad.broadcastInit, currentSettings);
 
   // Apply styles immediately at document_start
   safeRun('applyStyles', Libertad.applyStyles, currentSettings);
@@ -105,16 +82,6 @@
     safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
     safeRun('cleanAutoplay', Libertad.cleanAutoplay, currentSettings);
     safeRun('cleanSidebar', Libertad.cleanSidebar, currentSettings);
-    safeRun(
-      'redirectShortsIfActive',
-      Libertad.redirectShortsIfActive,
-      currentSettings,
-    );
-    safeRun(
-      'redirectHomeToSubscriptions',
-      Libertad.redirectHomeToSubscriptions,
-      currentSettings,
-    );
     safeRun('updateWatchTitle', Libertad.updateWatchTitle, currentSettings);
     safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
     safeRun(
@@ -207,8 +174,6 @@
     let stylesChanged = false;
     let titleChanged = false;
     let sponsorsChanged = false;
-    let shortsChanged = false;
-    let subscriptionsChanged = false;
 
     for (const key in changes) {
       currentSettings[key] = changes[key].newValue;
@@ -221,12 +186,7 @@
       if (key.startsWith('skipSponsors') || key.startsWith('sponsorSkip')) {
         sponsorsChanged = true;
       }
-      if (key === 'hideShorts') {
-        stylesChanged = true;
-        shortsChanged = true;
-      }
-      if (key === 'redirectHomeToSubscriptions') {
-        subscriptionsChanged = true;
+      if (key === 'hideShorts' || key === 'redirectHomeToSubscriptions') {
         stylesChanged = true;
       }
       if (
@@ -253,20 +213,6 @@
       safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
       safeRun('cleanAutoplay', Libertad.cleanAutoplay, currentSettings);
       safeRun('cleanSidebar', Libertad.cleanSidebar, currentSettings);
-    }
-    if (shortsChanged) {
-      safeRun(
-        'redirectShortsIfActive',
-        Libertad.redirectShortsIfActive,
-        currentSettings,
-      );
-    }
-    if (subscriptionsChanged) {
-      safeRun(
-        'redirectHomeToSubscriptions',
-        Libertad.redirectHomeToSubscriptions,
-        currentSettings,
-      );
     }
 
     broadcastAgentSettings();
@@ -325,18 +271,6 @@
       flexy.removeAttribute('flexy-chat-collapsed_');
     }
     const targetUrl = event?.detail?.url;
-    safeRun(
-      'redirectShortsIfActive',
-      Libertad.redirectShortsIfActive,
-      currentSettings,
-      targetUrl,
-    );
-    safeRun(
-      'redirectHomeToSubscriptions',
-      Libertad.redirectHomeToSubscriptions,
-      currentSettings,
-      targetUrl,
-    );
     safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
     safeRun('resetSponsorNavigation', Libertad.resetSponsorNavigation);
     safeRun('resetUntranslateNavigation', Libertad.resetUntranslateNavigation);
@@ -374,16 +308,6 @@
       window.location.href,
       currentSettings,
       'finish',
-    );
-    safeRun(
-      'redirectShortsIfActive',
-      Libertad.redirectShortsIfActive,
-      currentSettings,
-    );
-    safeRun(
-      'redirectHomeToSubscriptions',
-      Libertad.redirectHomeToSubscriptions,
-      currentSettings,
     );
     syncAllModules();
   });
@@ -430,14 +354,11 @@
 
       if (hrefChanged) {
         safeRun(
-          'redirectShortsIfActive',
-          Libertad.redirectShortsIfActive,
+          'broadcastNavigation',
+          Libertad.broadcastNavigation,
+          currentHref,
           currentSettings,
-        );
-        safeRun(
-          'redirectHomeToSubscriptions',
-          Libertad.redirectHomeToSubscriptions,
-          currentSettings,
+          'mutation',
         );
       }
 

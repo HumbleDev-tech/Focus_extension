@@ -8,8 +8,12 @@ globalThis.Libertad = globalThis.Libertad || {};
 (function () {
   'use strict';
 
+  let isInterceptorBound = false;
+  let currentModuleSettings = null;
+
   function redirectShortsIfActive(settings, targetUrl) {
-    if (!settings?.hideShorts) return;
+    const activeSettings = settings || currentModuleSettings;
+    if (!activeSettings?.hideShorts) return;
     const rawUrl = targetUrl || window.location.href;
     let path = window.location.pathname;
     try {
@@ -37,7 +41,7 @@ globalThis.Libertad = globalThis.Libertad || {};
           window.location.replace(`/watch?v=${videoId}`);
         }
       } else if (path === '/shorts' || path === '/shorts/') {
-        const dest = settings?.redirectHomeToSubscriptions
+        const dest = activeSettings?.redirectHomeToSubscriptions
           ? '/feed/subscriptions'
           : '/';
         window.location.replace(dest);
@@ -56,8 +60,14 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   // Intercept clicks on Shorts links across YouTube feeds and drawers to route natively via SPA
   function setupShortsLinkInterceptor(getSettings) {
+    if (isInterceptorBound) return;
+    isInterceptorBound = true;
+
     const handleIntercept = (e) => {
-      const settings = typeof getSettings === 'function' ? getSettings() : null;
+      const settings =
+        typeof getSettings === 'function'
+          ? getSettings()
+          : currentModuleSettings;
       if (!settings?.hideShorts) return;
 
       const anchor =
@@ -126,6 +136,44 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     document.addEventListener('click', handleIntercept, { capture: true });
     document.addEventListener('auxclick', handleIntercept, { capture: true });
+  }
+
+  const shortsModule = {
+    init(settings) {
+      currentModuleSettings = settings;
+      setupShortsLinkInterceptor(() => currentModuleSettings);
+      redirectShortsIfActive(settings);
+    },
+
+    onNavigate(url, settings, _phase) {
+      currentModuleSettings = settings;
+      redirectShortsIfActive(settings, url);
+    },
+
+    onSettingsChange(newSettings, _changes) {
+      currentModuleSettings = newSettings;
+      if (newSettings?.hideShorts) {
+        redirectShortsIfActive(newSettings);
+      }
+    },
+
+    onDomMutation(settings) {
+      if (
+        settings?.hideShorts &&
+        window.location.pathname.startsWith('/shorts')
+      ) {
+        redirectShortsIfActive(settings);
+      }
+    },
+
+    destroy() {
+      currentModuleSettings = null;
+    },
+  };
+
+  // Self-register in the plugin engine
+  if (typeof globalThis.Libertad.registerModule === 'function') {
+    globalThis.Libertad.registerModule('shorts', shortsModule);
   }
 
   globalThis.Libertad.setupShortsLinkInterceptor = setupShortsLinkInterceptor;

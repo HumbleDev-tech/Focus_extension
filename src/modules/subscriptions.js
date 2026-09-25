@@ -8,8 +8,12 @@ globalThis.Libertad = globalThis.Libertad || {};
 (function () {
   'use strict';
 
+  let isInterceptorBound = false;
+  let currentModuleSettings = null;
+
   function redirectHomeToSubscriptions(settings, targetUrl) {
-    if (!settings?.redirectHomeToSubscriptions) return false;
+    const activeSettings = settings || currentModuleSettings;
+    if (!activeSettings?.redirectHomeToSubscriptions) return false;
     const rawUrl = targetUrl || window.location.href;
     try {
       const parsed = new URL(rawUrl, window.location.origin);
@@ -29,11 +33,16 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   // Intercept clicks on Home links (logo, drawer) to route natively via SPA
   function setupSubscriptionsLinkInterceptor(getSettings) {
+    if (isInterceptorBound) return;
+    isInterceptorBound = true;
+
     document.addEventListener(
       'click',
       (e) => {
         const settings =
-          typeof getSettings === 'function' ? getSettings() : null;
+          typeof getSettings === 'function'
+            ? getSettings()
+            : currentModuleSettings;
         if (!settings?.redirectHomeToSubscriptions) return;
 
         const anchor =
@@ -70,6 +79,44 @@ globalThis.Libertad = globalThis.Libertad || {};
       },
       { capture: true },
     );
+  }
+
+  const subscriptionsModule = {
+    init(settings) {
+      currentModuleSettings = settings;
+      setupSubscriptionsLinkInterceptor(() => currentModuleSettings);
+      redirectHomeToSubscriptions(settings);
+    },
+
+    onNavigate(url, settings, _phase) {
+      currentModuleSettings = settings;
+      redirectHomeToSubscriptions(settings, url);
+    },
+
+    onSettingsChange(newSettings, _changes) {
+      currentModuleSettings = newSettings;
+      if (newSettings?.redirectHomeToSubscriptions) {
+        redirectHomeToSubscriptions(newSettings);
+      }
+    },
+
+    onDomMutation(settings) {
+      if (settings?.redirectHomeToSubscriptions) {
+        const path = window.location.pathname;
+        if (path === '/' || path === '') {
+          redirectHomeToSubscriptions(settings);
+        }
+      }
+    },
+
+    destroy() {
+      currentModuleSettings = null;
+    },
+  };
+
+  // Self-register in the plugin engine
+  if (typeof globalThis.Libertad.registerModule === 'function') {
+    globalThis.Libertad.registerModule('subscriptions', subscriptionsModule);
   }
 
   globalThis.Libertad.redirectHomeToSubscriptions = redirectHomeToSubscriptions;
