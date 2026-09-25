@@ -12,6 +12,7 @@ async function injectYouTubeTabs() {
       'src/core/cache.js',
       'src/core/utils.js',
       'src/modules/styles.js',
+      'src/modules/zen.js',
       'src/modules/shorts.js',
       'src/modules/subscriptions.js',
       'src/modules/dislikes.js',

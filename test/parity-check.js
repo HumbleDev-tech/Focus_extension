@@ -98,6 +98,27 @@ assert(!contentJs.includes("preset: 'basic'"), 'content.js has zero legacy basic
 const changelogMd = fs.readFileSync(path.join(__dirname, '../CHANGELOG.md'), 'utf8');
 assert(!changelogMd.includes('`redirectHomeSubscriptions`'), 'CHANGELOG.md uses canonical redirectHomeToSubscriptions key');
 
+// 11. Verify 100% parity between manifest.json content scripts and background.js dynamic injection
+const manifestJson = JSON.parse(fs.readFileSync(path.join(__dirname, '../manifest.json'), 'utf8'));
+const manifestContentScripts = manifestJson.content_scripts?.find((cs) =>
+  cs.matches?.some((m) => m.includes('youtube.com')) && cs.world !== 'MAIN'
+)?.js || [];
+
+const bgMatch = backgroundJs.match(/const contentScriptFiles = \[\s*([\s\S]*?)\s*\];/);
+const bgScripts = bgMatch
+  ? bgMatch[1]
+      .split('\n')
+      .map((s) => s.replace(/['",]/g, '').trim())
+      .filter(Boolean)
+  : [];
+
+assert(
+  manifestContentScripts.length > 0 &&
+  manifestContentScripts.length === bgScripts.length &&
+  manifestContentScripts.every((script, idx) => script === bgScripts[idx]),
+  `manifest.json content_scripts and background.js contentScriptFiles match 1:1 (${manifestContentScripts.length} scripts)`
+);
+
 console.log(`\n=== PARITY AUDIT COMPLETE: ${failures} FAILURES ===`);
 if (failures > 0) {
   process.exit(1);

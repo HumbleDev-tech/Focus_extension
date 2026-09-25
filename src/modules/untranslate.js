@@ -193,7 +193,6 @@ globalThis.Libertad = globalThis.Libertad || {};
             { action: 'FETCH_ORIGINAL_TITLE', videoId },
             (res) => {
               if (!chrome.runtime?.id || chrome.runtime.lastError) {
-                titlesCache.set(videoId, false);
                 resolve(null);
                 return;
               }
@@ -206,14 +205,17 @@ globalThis.Libertad = globalThis.Libertad || {};
                 const t = titleCandidate.trim();
                 titlesCache.set(videoId, t);
                 resolve(t);
-              } else {
+              } else if (res?.notFound) {
+                // Definitive 404 from background worker: safe to cache as false to avoid repeated lookups
                 titlesCache.set(videoId, false);
+                resolve(null);
+              } else {
+                // Transient failure (network error, timeout, 429): do NOT poison cache!
                 resolve(null);
               }
             },
           );
         } catch (_) {
-          titlesCache.set(videoId, false);
           resolve(null);
         }
       });

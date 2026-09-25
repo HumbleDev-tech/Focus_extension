@@ -287,6 +287,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   let lastDislikeBtn = null;
+  let currentPollingVid = null;
 
   // SPA Lifecycle Reset
   function resetDislikesNavigation() {
@@ -295,18 +296,19 @@ globalThis.Libertad = globalThis.Libertad || {};
       clearInterval(dislikePollTimer);
       dislikePollTimer = null;
     }
+    currentPollingVid = null;
     inFlightDislikes.clear();
     removeDislikeBadge();
   }
 
   // Polling helper to guarantee injection as soon as YouTube renders the watch action buttons
   function pollForDislikeButton(settings, targetVideoId) {
-    if (dislikePollTimer) {
-      clearInterval(dislikePollTimer);
-      dislikePollTimer = null;
-    }
-
     if (!settings?.showDislikes || settings?.hideLikeDislike) {
+      if (dislikePollTimer) {
+        clearInterval(dislikePollTimer);
+        dislikePollTimer = null;
+        currentPollingVid = null;
+      }
       return;
     }
 
@@ -320,6 +322,17 @@ globalThis.Libertad = globalThis.Libertad || {};
     const vid = targetVideoId || parseId(window.location.href);
     if (!vid) return;
 
+    // Fast bailout: if already polling for this specific video, allow the existing interval to proceed
+    if (dislikePollTimer && currentPollingVid === vid) {
+      return;
+    }
+
+    if (dislikePollTimer) {
+      clearInterval(dislikePollTimer);
+      dislikePollTimer = null;
+    }
+    currentPollingVid = vid;
+
     // Eagerly trigger API fetch so data is ready in cache
     updateDislikeCount(settings);
 
@@ -332,6 +345,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       if (currentVid !== vid || dislikePollAttempts > 40) {
         clearInterval(dislikePollTimer);
         dislikePollTimer = null;
+        currentPollingVid = null;
         return;
       }
 
@@ -341,6 +355,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         if (badge && badge.getAttribute('data-video-id') === vid) {
           clearInterval(dislikePollTimer);
           dislikePollTimer = null;
+          currentPollingVid = null;
           return;
         }
 
