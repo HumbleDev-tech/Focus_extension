@@ -31,22 +31,111 @@ globalThis.Libertad = globalThis.Libertad || {};
   const dislikeCache = new BoundedCache(200);
   const inFlightDislikes = new Set();
 
-  // Find modern YouTube dislike button in a single C++ selector pass
+  let dislikePollTimer = null;
+  let dislikePollAttempts = 0;
+
+  // Find modern YouTube dislike button with multi-strategy fallbacks
   function findDislikeButton() {
-    const btn = document.querySelector(
-      'segmented-like-dislike-button-view-model dislike-button-view-model button, dislike-button-view-model button, ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button, #segmented-dislike-button button, like-button-view-model + dislike-button-view-model button, #top-level-buttons-computed #dislike-button button',
+    // Strategy 1: Direct explicit view-model and segmented button selectors
+    const explicit = document.querySelector(
+      'segmented-like-dislike-button-view-model dislike-button-view-model button, ' +
+        'dislike-button-view-model button, ' +
+        '#segmented-dislike-button button, ' +
+        '#segmented-dislike-button, ' +
+        'ytd-segmented-like-dislike-button-renderer #segmented-dislike-button button, ' +
+        'like-button-view-model + dislike-button-view-model button, ' +
+        'like-button-view-model ~ * button, ' +
+        '#top-level-buttons-computed #dislike-button button, ' +
+        '#top-level-buttons-computed ytd-toggle-button-renderer:nth-child(2) button',
     );
     if (
-      btn &&
-      !btn.closest('#comments, ytd-comments, ytd-comment-thread-renderer')
+      explicit &&
+      !explicit.closest(
+        '#comments, ytd-comments, ytd-comment-thread-renderer, #shorts-container',
+      )
     ) {
-      return btn;
+      return explicit;
     }
+
+    // Strategy 2: Segmented container structure (Second button in container is always Dislike)
+    const segmented = document.querySelector(
+      'segmented-like-dislike-button-view-model, ' +
+        'ytd-segmented-like-dislike-button-renderer, ' +
+        '.ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper',
+    );
+    if (
+      segmented &&
+      !segmented.closest(
+        '#comments, ytd-comments, ytd-comment-thread-renderer, #shorts-container',
+      )
+    ) {
+      const buttons = segmented.querySelectorAll('button');
+      if (buttons.length >= 2) {
+        return buttons[1];
+      }
+    }
+
+    // Strategy 3: Accessibility / I18N aria-label / title inside primary watch actions container
+    const actions = document.querySelector(
+      'ytd-watch-metadata #actions, ' +
+        '#actions.ytd-watch-metadata, ' +
+        '#top-level-buttons-computed, ' +
+        'ytd-menu-renderer.ytd-watch-metadata, ' +
+        '#actions #top-row',
+    );
+    if (actions) {
+      const buttons = actions.querySelectorAll('button');
+      for (let i = 0; i < buttons.length; i++) {
+        const b = buttons[i];
+        if (
+          b.closest('#comments, ytd-comments, ytd-comment-thread-renderer')
+        ) {
+          continue;
+        }
+        const aria = (b.getAttribute('aria-label') || '').toLowerCase();
+        const title = (b.getAttribute('title') || '').toLowerCase();
+        if (
+          aria.includes('dislike') ||
+          aria.includes('no me gusta') ||
+          aria.includes('não gostei') ||
+          aria.includes("n'aime pas") ||
+          title.includes('dislike') ||
+          title.includes('no me gusta') ||
+          title.includes('não gostei')
+        ) {
+          return b;
+        }
+      }
+
+      // SVG path signature fallback (thumbs-down icon path)
+      for (let i = 0; i < buttons.length; i++) {
+        const b = buttons[i];
+        if (
+          b.closest('#comments, ytd-comments, ytd-comment-thread-renderer')
+        ) {
+          continue;
+        }
+        const path = b.querySelector('path');
+        if (path) {
+          const d = (path.getAttribute('d') || '').toLowerCase();
+          if (
+            d.startsWith('m17') ||
+            d.startsWith('m3.25') ||
+            d.startsWith('m8.482') ||
+            d.includes('4-9v2h5.72') ||
+            d.includes('4-9v-7')
+          ) {
+            return b;
+          }
+        }
+      }
+    }
+
     return null;
   }
 
   // Inject or update the dislike badge
-  function injectDislikeBadge(button, formattedCount) {
+  function injectDislikeBadge(button, formattedCount, videoId) {
     if (!button || !formattedCount) return;
 
     if (!button.hasAttribute('data-libertad-orig-aria')) {
@@ -70,9 +159,19 @@ globalThis.Libertad = globalThis.Libertad || {};
       textWrapper = document.createElement('div');
       textWrapper.className =
         'yt-spec-button-shape-next__button-text-content libertad-dislike-badge';
-      button.appendChild(textWrapper);
+      const touchFeedback = button.querySelector('yt-touch-feedback-shape');
+      if (touchFeedback) {
+        button.insertBefore(textWrapper, touchFeedback);
+      } else {
+        button.appendChild(textWrapper);
+      }
     } else {
       textWrapper.classList.add('libertad-dislike-badge');
+    }
+
+    if (videoId) {
+      textWrapper.setAttribute('data-video-id', videoId);
+      button.setAttribute('data-libertad-dislike-vid', videoId);
     }
 
     if (textWrapper.textContent !== formattedCount) {
@@ -88,6 +187,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       if (btn) {
         btn.classList.remove('yt-spec-button-shape-next--icon-leading');
         btn.classList.add('yt-spec-button-shape-next--icon-button');
+        btn.removeAttribute('data-libertad-dislike-vid');
         const defaultAria = btn.getAttribute('data-libertad-orig-aria');
         if (defaultAria) {
           btn.setAttribute('aria-label', defaultAria);
@@ -97,7 +197,67 @@ globalThis.Libertad = globalThis.Libertad || {};
     });
   }
 
-  // Dislike restoration logic
+  // SPA Lifecycle Reset
+  function resetDislikesNavigation() {
+    if (dislikePollTimer) {
+      clearInterval(dislikePollTimer);
+      dislikePollTimer = null;
+    }
+    inFlightDislikes.clear();
+    removeDislikeBadge();
+  }
+
+  // Polling helper to guarantee injection as soon as YouTube renders the watch action buttons
+  function pollForDislikeButton(settings, targetVideoId) {
+    if (dislikePollTimer) {
+      clearInterval(dislikePollTimer);
+      dislikePollTimer = null;
+    }
+
+    if (!settings?.showDislikes || settings?.hideLikeDislike) {
+      return;
+    }
+
+    const parseId =
+      globalThis.Libertad.parseYouTubeVideoId ||
+      function (u) {
+        const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+        return m ? m[1] : null;
+      };
+
+    const vid = targetVideoId || parseId(window.location.href);
+    if (!vid) return;
+
+    // Eagerly trigger API fetch so data is ready in cache
+    updateDislikeCount(settings);
+
+    dislikePollAttempts = 0;
+    dislikePollTimer = setInterval(() => {
+      dislikePollAttempts++;
+      const currentVid = parseId(window.location.href);
+
+      // Abort if route changed or max polling attempts (12 seconds) reached
+      if (currentVid !== vid || dislikePollAttempts > 40) {
+        clearInterval(dislikePollTimer);
+        dislikePollTimer = null;
+        return;
+      }
+
+      const btn = findDislikeButton();
+      if (btn) {
+        const badge = btn.querySelector('.libertad-dislike-badge');
+        if (badge && badge.getAttribute('data-video-id') === vid) {
+          clearInterval(dislikePollTimer);
+          dislikePollTimer = null;
+          return;
+        }
+
+        updateDislikeCount(settings);
+      }
+    }, 300);
+  }
+
+  // Dislike restoration logic: eagerly fetches API count and injects whenever button is ready
   function updateDislikeCount(settings) {
     if (!settings?.showDislikes || settings?.hideLikeDislike) {
       removeDislikeBadge();
@@ -117,19 +277,21 @@ globalThis.Libertad = globalThis.Libertad || {};
       return;
     }
 
+    // Fast path: if already cached, inject if button is in DOM
     const dislikeButton = findDislikeButton();
-    if (!dislikeButton) return;
-
     if (dislikeCache.has(videoId)) {
       const cached = dislikeCache.get(videoId);
       if (cached) {
-        injectDislikeBadge(dislikeButton, cached);
+        if (dislikeButton) {
+          injectDislikeBadge(dislikeButton, cached, videoId);
+        }
       } else {
         removeDislikeBadge();
       }
       return;
     }
 
+    // Eagerly fetch from background service worker without waiting for button DOM
     if (inFlightDislikes.has(videoId)) return;
     if (!chrome.runtime?.id) return;
     inFlightDislikes.add(videoId);
@@ -148,9 +310,11 @@ globalThis.Libertad = globalThis.Libertad || {};
               return;
             }
             if (res?.success && res.data) {
-              resolve(res.data);
+              resolve({ ok: true, data: res.data });
+            } else if (res?.notFound) {
+              resolve({ ok: false, notFound: true });
             } else {
-              resolve(null);
+              resolve({ ok: false, transient: true });
             }
           },
         );
@@ -160,42 +324,57 @@ globalThis.Libertad = globalThis.Libertad || {};
     });
 
     fetchPromise
-      .then((data) => {
+      .then((result) => {
         inFlightDislikes.delete(videoId);
         const currentVideoId = parseId(window.location.href);
-        if (data && typeof data.dislikes === 'number') {
+        if (
+          result?.ok &&
+          result.data &&
+          typeof result.data.dislikes === 'number'
+        ) {
           const formatNum =
             globalThis.Libertad.formatNumber ||
             function (n) {
               return n.toString();
             };
-          const formatted = formatNum(data.dislikes, settings?.lang);
+          const formatted = formatNum(result.data.dislikes, settings?.lang);
           dislikeCache.set(videoId, formatted);
           if (currentVideoId === videoId) {
             const currentBtn = findDislikeButton();
             if (currentBtn) {
-              injectDislikeBadge(currentBtn, formatted);
+              injectDislikeBadge(currentBtn, formatted, videoId);
             }
           }
-        } else {
+        } else if (result?.notFound) {
+          // Explicit 404 from community API: safe to cache as false to avoid repeated lookups
           dislikeCache.set(videoId, false);
           if (currentVideoId === videoId) {
             removeDislikeBadge();
+          }
+        } else {
+          // Transient failure (network error, timeout, 5xx): do NOT poison cache!
+          // Remove any stale badge belonging to an older video
+          if (currentVideoId === videoId) {
+            const badge = document.querySelector('.libertad-dislike-badge');
+            if (
+              badge &&
+              badge.getAttribute('data-video-id') !== currentVideoId
+            ) {
+              removeDislikeBadge();
+            }
           }
         }
       })
       .catch(() => {
         inFlightDislikes.delete(videoId);
-        dislikeCache.set(videoId, false);
-        const currentVideoId = parseId(window.location.href);
-        if (currentVideoId === videoId) {
-          removeDislikeBadge();
-        }
+        // Fail silently without poisoning cache
       });
   }
 
   globalThis.Libertad.findDislikeButton = findDislikeButton;
   globalThis.Libertad.injectDislikeBadge = injectDislikeBadge;
   globalThis.Libertad.removeDislikeBadge = removeDislikeBadge;
+  globalThis.Libertad.resetDislikesNavigation = resetDislikesNavigation;
+  globalThis.Libertad.pollForDislikeButton = pollForDislikeButton;
   globalThis.Libertad.updateDislikeCount = updateDislikeCount;
 })();

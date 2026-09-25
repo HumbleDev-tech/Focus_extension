@@ -270,7 +270,7 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 
       const fetchPromise = (async () => {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         try {
           const res = await fetch(

@@ -925,7 +925,11 @@ globalThis.Libertad = globalThis.Libertad || {};
         segmented-like-dislike-button-view-model dislike-button-view-model button,
         dislike-button-view-model button,
         #segmented-dislike-button button,
-        #dislike-button button {
+        #dislike-button button,
+        segmented-like-dislike-button-view-model button:nth-of-type(2),
+        segmented-like-dislike-button-view-model .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper > :nth-child(2) button,
+        button[data-libertad-dislike-vid],
+        button:has(.libertad-dislike-badge) {
           width: auto !important;
           min-width: 48px !important;
           padding-left: 8px !important;
@@ -933,6 +937,7 @@ globalThis.Libertad = globalThis.Libertad || {};
           display: inline-flex !important;
           align-items: center !important;
           justify-content: center !important;
+          overflow: visible !important;
         }
 
         .libertad-dislike-badge {
@@ -946,6 +951,8 @@ globalThis.Libertad = globalThis.Libertad || {};
           margin-left: 6px !important;
           pointer-events: none !important;
           white-space: nowrap !important;
+          opacity: 1 !important;
+          visibility: visible !important;
         }
       `);
     }

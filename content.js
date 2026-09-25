@@ -116,6 +116,11 @@
       currentSettings,
     );
     safeRun('updateDislikeCount', Libertad.updateDislikeCount, currentSettings);
+    safeRun(
+      'pollForDislikeButton',
+      Libertad.pollForDislikeButton,
+      currentSettings,
+    );
     safeRun('updateWatchTitle', Libertad.updateWatchTitle, currentSettings);
     safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
     safeRun(
@@ -155,14 +160,29 @@
   if (document.readyState !== 'loading') {
     safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
     safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
+    safeRun(
+      'pollForDislikeButton',
+      Libertad.pollForDislikeButton,
+      currentSettings,
+    );
   }
   document.addEventListener('DOMContentLoaded', () => {
     safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
     safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
+    safeRun(
+      'pollForDislikeButton',
+      Libertad.pollForDislikeButton,
+      currentSettings,
+    );
   });
   window.addEventListener('load', () => {
     safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
     safeRun('updateZenBanner', Libertad.updateZenBanner, currentSettings);
+    safeRun(
+      'pollForDislikeButton',
+      Libertad.pollForDislikeButton,
+      currentSettings,
+    );
   });
 
   // Load saved settings from storage with local priority and sync fallback
@@ -278,6 +298,11 @@
         Libertad.updateDislikeCount,
         currentSettings,
       );
+      safeRun(
+        'pollForDislikeButton',
+        Libertad.pollForDislikeButton,
+        currentSettings,
+      );
     }
     if (titleChanged) {
       safeRun('updateWatchTitle', Libertad.updateWatchTitle, currentSettings);
@@ -346,6 +371,7 @@
     safeRun('resetSponsorNavigation', Libertad.resetSponsorNavigation);
     safeRun('resetUntranslateNavigation', Libertad.resetUntranslateNavigation);
     safeRun('resetStylesNavigation', Libertad.resetStylesNavigation);
+    safeRun('resetDislikesNavigation', Libertad.resetDislikesNavigation);
   });
 
   window.addEventListener('yt-navigate-finish', () => {
@@ -361,6 +387,7 @@
     lastCheckedHref = window.location.href;
     lastFlexySyncedHref = null;
     safeRun('resetStylesNavigation', Libertad.resetStylesNavigation);
+    safeRun('resetDislikesNavigation', Libertad.resetDislikesNavigation);
     safeRun(
       'redirectShortsIfActive',
       Libertad.redirectShortsIfActive,
@@ -371,6 +398,7 @@
       Libertad.redirectHomeToSubscriptions,
       currentSettings,
     );
+    syncAllModules();
   });
 
   // High-performance cooperative background scheduler: keeps non-urgent DOM passes off the render frame budget
@@ -464,23 +492,49 @@
             safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
           }
           if (currentSettings.showDislikes && Libertad.findDislikeButton) {
-            const hasBadge =
+            const parseId =
+              Libertad.parseYouTubeVideoId ||
+              function (u) {
+                const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+                return m ? m[1] : null;
+              };
+            const currentVid = parseId(window.location.href);
+            const activeBadge =
               lastDislikeBtn?.isConnected &&
               lastDislikeBtn.querySelector('.libertad-dislike-badge');
-            if (!hasBadge) {
+            const hasCurrentBadge =
+              activeBadge &&
+              (!currentVid ||
+                activeBadge.getAttribute('data-video-id') === currentVid);
+
+            if (!hasCurrentBadge) {
               const dislikeBtn = safeRun(
                 'findDislikeButton',
                 Libertad.findDislikeButton,
               );
               if (dislikeBtn) {
                 lastDislikeBtn = dislikeBtn;
-                if (!dislikeBtn.querySelector('.libertad-dislike-badge')) {
+                const btnBadge = dislikeBtn.querySelector(
+                  '.libertad-dislike-badge',
+                );
+                const isMatchingCurrent =
+                  btnBadge &&
+                  currentVid &&
+                  btnBadge.getAttribute('data-video-id') === currentVid;
+                if (!isMatchingCurrent) {
                   safeRun(
                     'updateDislikeCount',
                     Libertad.updateDislikeCount,
                     currentSettings,
                   );
                 }
+              } else {
+                safeRun(
+                  'pollForDislikeButton',
+                  Libertad.pollForDislikeButton,
+                  currentSettings,
+                  currentVid,
+                );
               }
             }
           }

@@ -758,7 +758,7 @@
       </div>
       <div class="module-list">
         <!-- Module: Restore Dislikes -->
-        <label class="module-row" for="toggleDislikes">
+        <label class="module-row" id="moduleDislikesRow" for="toggleDislikes">
           <div class="module-icon">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
@@ -770,7 +770,8 @@
           <div class="module-meta">
             <div class="module-title-row">
               <span class="module-title" data-i18n="toggleDislikesTitle">Restore Dislikes</span>
-              <span class="module-tag" data-i18n="statusApiOnline">API ONLINE</span>
+              <span class="module-tag" id="dislikesApiTag" data-i18n="statusApiOnline">API ONLINE</span>
+              <span class="module-bypass-tag" id="dislikesSuppressedTag" style="display: none;" data-i18n="tagDislikesSuppressed">HIDDEN IN CLEANER</span>
             </div>
             <span class="module-desc" data-i18n="toggleDislikesDesc">Incorporate public community dislikes metric via
               Return YouTube Dislike API</span>

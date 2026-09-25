@@ -147,6 +147,9 @@ const LIBERTAD_I18N = {
     badgeRecommended: 'RECOMMENDED',
     tagOverridden: 'BYPASSED',
     tagOverriddenDesc: 'Bypassed while Direct to Subscriptions is active',
+    tagDislikesSuppressed: 'HIDDEN IN CLEANER',
+    tagDislikesSuppressedDesc:
+      'Dislike button is hidden because Hide Like/Dislike is active in UI Cleaner',
   },
   es: {
     statusOff: 'OFF',
@@ -290,6 +293,9 @@ const LIBERTAD_I18N = {
     badgeRecommended: 'RECOMENDADO',
     tagOverridden: 'ANULADO',
     tagOverriddenDesc: 'Anulado mientras Directo a Suscripciones esté activo',
+    tagDislikesSuppressed: 'OCULTO EN CLEANER',
+    tagDislikesSuppressedDesc:
+      'El botón de dislike está oculto porque Ocultar Like/Dislike está activo en UI Cleaner',
   },
   pt: {
     statusOff: 'OFF',
@@ -434,6 +440,9 @@ const LIBERTAD_I18N = {
     tagOverridden: 'SUBSTITUÍDO',
     tagOverriddenDesc:
       'Substituído enquanto Direto para Inscrições estiver ativo',
+    tagDislikesSuppressed: 'OCULTO NO CLEANER',
+    tagDislikesSuppressedDesc:
+      'O botão de dislike está oculto porque Ocultar Like/Dislike está ativo no UI Cleaner',
   },
 };
 

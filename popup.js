@@ -28,6 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const presetBtnCustom = document.getElementById('presetBtnCustom');
   const cardHomeFeed = document.getElementById('cardHomeFeed');
   const homeFeedBypassTag = document.getElementById('homeFeedBypassTag');
+  const moduleDislikesRow = document.getElementById('moduleDislikesRow');
+  const dislikesApiTag = document.getElementById('dislikesApiTag');
+  const dislikesSuppressedTag = document.getElementById(
+    'dislikesSuppressedTag',
+  );
   const profileCreatePanel = document.getElementById('profileCreatePanel');
   const profileCreateInput = document.getElementById('profileCreateInput');
   const confirmCreateProfileBtn = document.getElementById(
@@ -649,6 +654,28 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isRedirectSubs) {
         homeFeedBypassTag.setAttribute('title', t('tagOverriddenDesc'));
       }
+    }
+
+    // Synchronize Dislikes suppressed indicator when Like/Dislike is hidden in Cleaner
+    const isDislikesSuppressed = Boolean(state.hideLikeDislike);
+    if (moduleDislikesRow) {
+      moduleDislikesRow.classList.toggle('is-suppressed', isDislikesSuppressed);
+    }
+    if (dislikesSuppressedTag) {
+      dislikesSuppressedTag.style.display = isDislikesSuppressed
+        ? 'inline-flex'
+        : 'none';
+      if (isDislikesSuppressed) {
+        dislikesSuppressedTag.setAttribute(
+          'title',
+          t('tagDislikesSuppressedDesc'),
+        );
+      }
+    }
+    if (dislikesApiTag) {
+      dislikesApiTag.style.display = isDislikesSuppressed
+        ? 'none'
+        : 'inline-flex';
     }
 
     // Preset buttons active state and Custom mode visual feedback
