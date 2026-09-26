@@ -6,18 +6,26 @@
   <title>Welcome to Libertad</title>
   <style>
     :root {
-      --bg-canvas: #090d12;
-      --bg-surface: #0d1117;
-      --bg-card: #161b22;
-      --bg-card-hover: #1f242c;
-      --border-subtle: #21262d;
-      --border-strong: #30363d;
-      --text-primary: #f0f6fc;
-      --text-secondary: #8b949e;
+      --bg-canvas: #0b0f17;
+      --bg-surface: #111622;
+      --bg-card: #151c2a;
+      --bg-card-hover: #1b2435;
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --border-active: #38bdf8;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #5d6d82;
       --accent-primary: #38bdf8;
-      --accent-glow: rgba(56, 189, 248, 0.15);
-      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --accent-hover: #7dd3fc;
+      --accent-glow: rgba(56, 189, 248, 0.35);
+      --accent-soft-bg: rgba(56, 189, 248, 0.09);
+      --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
+      --radius-sharp: 2px;
+      --radius-tech: 3px;
+      --radius-panel: 4px;
+      --transition-fast: 0.14s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     * {
@@ -35,8 +43,9 @@
       flex-direction: column;
       align-items: center;
       padding: 32px 16px 64px;
-      line-height: 1.5;
+      line-height: 1.45;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     .header-bar {
@@ -45,7 +54,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-bottom: 24px;
+      padding-bottom: 20px;
       border-bottom: 1px solid var(--border-subtle);
       margin-bottom: 32px;
     }
@@ -53,42 +62,44 @@
     .brand-wrap {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .brand-icon {
-      width: 36px;
-      height: 36px;
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sharp);
     }
 
     .brand-title {
       font-family: var(--font-mono);
-      font-weight: 700;
-      font-size: 16px;
-      letter-spacing: 0.12em;
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: 1.2px;
       color: var(--text-primary);
     }
 
     .lang-selector {
       display: flex;
-      gap: 4px;
+      gap: 2px;
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
-      border-radius: 6px;
+      border-radius: var(--radius-tech);
       padding: 2px;
     }
 
     .lang-btn {
       background: transparent;
       border: none;
-      color: var(--text-secondary);
+      color: var(--text-muted);
       font-family: var(--font-mono);
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 4px;
+      font-size: 10.5px;
+      padding: 3px 8px;
+      border-radius: var(--radius-sharp);
       cursor: pointer;
-      font-weight: 600;
-      transition: all 0.15s ease;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      transition: all var(--transition-fast);
     }
 
     .lang-btn:hover {
@@ -96,8 +107,10 @@
     }
 
     .lang-btn.active {
-      background: var(--border-strong);
+      background: var(--bg-card);
       color: var(--accent-primary);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
     .main-container {
@@ -105,7 +118,7 @@
       max-width: 760px;
       display: flex;
       flex-direction: column;
-      gap: 32px;
+      gap: 24px;
     }
 
     .intro-section {
@@ -114,38 +127,42 @@
 
     .intro-tag {
       font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 0.14em;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
       color: var(--accent-primary);
       text-transform: uppercase;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       display: inline-block;
     }
 
     .intro-title {
-      font-size: 28px;
+      font-family: var(--font-sans);
+      font-size: 26px;
       font-weight: 700;
       color: var(--text-primary);
       letter-spacing: -0.02em;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
     .intro-desc {
       color: var(--text-secondary);
-      font-size: 15px;
+      font-size: 14px;
+      line-height: 1.5;
       max-width: 620px;
     }
 
-    /* Cards */
+    /* Step Cards (Industrial Rack Panels) */
     .step-card {
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      padding: 24px;
+      border-radius: var(--radius-panel);
+      padding: 20px 22px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      transition: border-color 0.2s ease;
+      gap: 14px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      transition: border-color var(--transition-fast);
     }
 
     .step-card:hover {
@@ -155,51 +172,54 @@
     .step-header {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .step-badge {
-      width: 26px;
-      height: 26px;
-      border-radius: 6px;
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-sharp);
       background: var(--bg-surface);
       border: 1px solid var(--border-strong);
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: var(--font-mono);
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
       color: var(--accent-primary);
+      flex-shrink: 0;
     }
 
     .step-title {
-      font-size: 16px;
+      font-family: var(--font-sans);
+      font-size: 15px;
       font-weight: 600;
       color: var(--text-primary);
+      letter-spacing: -0.1px;
     }
 
     /* Step 1 Diagram */
     .pin-guide {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
+      gap: 12px;
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 16px;
+      border-radius: var(--radius-tech);
+      padding: 14px;
     }
 
     .guide-item {
       display: flex;
       align-items: flex-start;
-      gap: 12px;
+      gap: 10px;
     }
 
     .guide-icon-wrap {
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-sharp);
       background: var(--bg-card);
       border: 1px solid var(--border-strong);
       display: flex;
@@ -210,33 +230,36 @@
     }
 
     .guide-text {
-      font-size: 13px;
+      font-size: 12.5px;
       color: var(--text-secondary);
+      line-height: 1.4;
     }
 
     .guide-text strong {
       color: var(--text-primary);
       display: block;
+      font-size: 13px;
       margin-bottom: 2px;
+      font-weight: 600;
     }
 
     /* Step 2 Presets */
     .preset-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 12px;
+      gap: 10px;
     }
 
     .preset-choice {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 16px;
+      border-radius: var(--radius-tech);
+      padding: 14px;
       cursor: pointer;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      transition: all 0.2s ease;
+      gap: 6px;
+      transition: all var(--transition-fast);
       text-align: left;
     }
 
@@ -247,15 +270,16 @@
 
     .preset-choice.selected {
       border-color: var(--accent-primary);
-      background: var(--accent-glow);
+      background: var(--accent-soft-bg);
+      box-shadow: 0 0 10px var(--accent-glow);
     }
 
     .preset-name {
       font-family: var(--font-mono);
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--text-primary);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.6px;
     }
 
     .preset-choice.selected .preset-name {
@@ -272,20 +296,21 @@
 
     .preset-badge {
       font-family: var(--font-mono);
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
+      font-size: 8.5px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
       color: var(--accent-primary);
       background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.28);
-      border-radius: 4px;
-      padding: 1px 5px;
-      line-height: 1.3;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: var(--radius-sharp);
+      padding: 1px 4px;
+      line-height: 1.2;
       white-space: nowrap;
     }
 
     .preset-summary {
-      font-size: 12px;
+      font-family: var(--font-sans);
+      font-size: 11.5px;
       color: var(--text-secondary);
       line-height: 1.4;
     }
@@ -297,34 +322,40 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 16px;
+      padding-top: 4px;
     }
 
     .launch-btn {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       background: var(--accent-primary);
-      color: #04090e;
-      font-size: 14px;
-      font-weight: 700;
+      color: #0b0f17;
+      font-size: 13px;
+      font-weight: 800;
       font-family: var(--font-mono);
-      padding: 12px 24px;
-      border-radius: 8px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 11px 22px;
+      border-radius: var(--radius-tech);
       text-decoration: none;
       border: none;
       cursor: pointer;
-      transition: transform 0.15s ease, opacity 0.15s ease;
+      box-shadow: 0 0 12px var(--accent-glow);
+      transition: transform var(--transition-fast), filter var(--transition-fast);
     }
 
     .launch-btn:hover {
-      opacity: 0.95;
+      filter: brightness(1.15);
       transform: translateY(-1px);
     }
 
     .footer-note {
-      font-size: 12px;
-      color: var(--text-secondary);
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-muted);
       font-family: var(--font-mono);
+      letter-spacing: 0.7px;
     }
 
     /* Welcome Footer Links */
@@ -333,7 +364,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding-top: 24px;
+      padding-top: 20px;
       border-top: 1px solid var(--border-subtle);
       margin-top: 8px;
     }
@@ -349,17 +380,17 @@
     .welcome-link {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      color: var(--text-secondary);
-      font-size: 12px;
+      gap: 5px;
+      color: var(--text-muted);
+      font-size: 11px;
       font-family: var(--font-mono);
+      font-weight: 600;
       text-decoration: none;
-      transition: color 0.15s ease, transform 0.15s ease;
+      transition: color var(--transition-fast);
     }
 
     .welcome-link:hover {
       color: var(--accent-primary);
-      transform: translateY(-1px);
     }
 
     .welcome-link-sep {

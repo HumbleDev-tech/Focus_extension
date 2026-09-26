@@ -1101,20 +1101,20 @@ globalThis.Libertad = globalThis.Libertad || {};
 
       /* Theme Adaptations */
       #libertad-zen-container[data-theme="dark"] {
-        --zen-bg: #131722;
+        --zen-bg: #0b0f17;
         --zen-border: rgba(255, 255, 255, 0.08);
-        --zen-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
-        --zen-text-primary: #f0f3f6;
-        --zen-text-secondary: #9aa4b2;
+        --zen-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+        --zen-text-primary: #f1f5f9;
+        --zen-text-secondary: #94a3b8;
         --zen-accent: #38bdf8;
         --zen-accent-glow: rgba(56, 189, 248, 0.35);
         --zen-accent-soft: rgba(56, 189, 248, 0.08);
         --zen-accent-border: rgba(56, 189, 248, 0.28);
       }
       #libertad-zen-container[data-theme="oled"] {
-        --zen-bg: #040508;
-        --zen-border: #171a21;
-        --zen-shadow: 0 8px 32px rgba(0, 0, 0, 0.85);
+        --zen-bg: #000000;
+        --zen-border: #181b24;
+        --zen-shadow: 0 8px 32px rgba(0, 0, 0, 0.9);
         --zen-text-primary: #ffffff;
         --zen-text-secondary: #a1a1aa;
         --zen-accent: #38bdf8;
@@ -1137,7 +1137,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       .libertad-zen-card {
         background: var(--zen-bg);
         border: 1px solid var(--zen-border);
-        border-radius: calc(8px * var(--zen-scale));
+        border-radius: calc(4px * var(--zen-scale));
         padding: calc(28px * var(--zen-scale)) calc(36px * var(--zen-scale)) calc(30px * var(--zen-scale));
         max-width: calc(440px * var(--zen-scale));
         width: 100%;
@@ -1157,9 +1157,9 @@ globalThis.Libertad = globalThis.Libertad || {};
         margin-bottom: calc(18px * var(--zen-scale));
       }
       .libertad-zen-brand-title {
-        font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, monospace;
-        font-size: calc(11px * var(--zen-scale));
-        font-weight: 700;
+        font-family: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+        font-size: calc(11.5px * var(--zen-scale));
+        font-weight: 800;
         letter-spacing: 1.5px;
         color: var(--zen-text-primary);
       }
@@ -1167,11 +1167,11 @@ globalThis.Libertad = globalThis.Libertad || {};
         display: inline-flex;
         align-items: center;
         gap: calc(5px * var(--zen-scale));
-        padding: calc(2px * var(--zen-scale)) calc(8px * var(--zen-scale));
-        border-radius: calc(12px * var(--zen-scale));
+        padding: calc(2px * var(--zen-scale)) calc(7px * var(--zen-scale));
+        border-radius: calc(2px * var(--zen-scale));
         background: var(--zen-accent-soft);
         border: 1px solid var(--zen-accent-border);
-        font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, monospace;
+        font-family: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
         font-size: calc(9.5px * var(--zen-scale));
         font-weight: 700;
         letter-spacing: 0.8px;
@@ -1180,7 +1180,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       .libertad-zen-dot {
         width: calc(4.5px * var(--zen-scale));
         height: calc(4.5px * var(--zen-scale));
-        border-radius: 50%;
+        border-radius: 1px;
         background: var(--zen-accent);
         box-shadow: 0 0 calc(4px * var(--zen-scale)) var(--zen-accent-glow);
       }
@@ -1194,8 +1194,8 @@ globalThis.Libertad = globalThis.Libertad || {};
         height: calc(44px * var(--zen-scale));
         background: var(--zen-accent-soft);
         border: 1px solid var(--zen-accent-border);
-        border-radius: calc(6px * var(--zen-scale));
-        box-shadow: 0 0 calc(16px * var(--zen-scale)) var(--zen-accent-glow);
+        border-radius: calc(3px * var(--zen-scale));
+        box-shadow: 0 0 calc(14px * var(--zen-scale)) var(--zen-accent-glow);
       }
       .libertad-zen-svg {
         display: block;
@@ -1221,19 +1221,19 @@ globalThis.Libertad = globalThis.Libertad || {};
         position: absolute;
         bottom: calc(64px * var(--toast-scale));
         right: calc(24px * var(--toast-scale));
-        background: rgba(13, 17, 23, 0.92);
+        background: rgba(11, 15, 23, 0.95);
         border: 1px solid rgba(56, 189, 248, 0.35);
-        color: #f0f3f6;
-        font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+        color: #f1f5f9;
+        font-family: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
         font-size: calc(10.5px * var(--toast-scale));
         line-height: 1.2;
-        font-weight: 600;
+        font-weight: 700;
         letter-spacing: 0.4px;
         padding: calc(6px * var(--toast-scale)) calc(10px * var(--toast-scale));
-        border-radius: calc(6px * var(--toast-scale));
+        border-radius: calc(3px * var(--toast-scale));
         z-index: 9999;
         pointer-events: auto;
-        box-shadow: 0 calc(6px * var(--toast-scale)) calc(20px * var(--toast-scale)) rgba(0, 0, 0, 0.45);
+        box-shadow: 0 calc(6px * var(--toast-scale)) calc(20px * var(--toast-scale)) rgba(0, 0, 0, 0.55);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         display: flex;
@@ -1265,9 +1265,9 @@ globalThis.Libertad = globalThis.Libertad || {};
         box-shadow: 0 calc(6px * var(--toast-scale)) calc(20px * var(--toast-scale)) rgba(0, 0, 0, 0.65);
       }
       .libertad-sponsor-toast-dot {
-        width: calc(6.5px * var(--toast-scale));
-        height: calc(6.5px * var(--toast-scale));
-        border-radius: 50%;
+        width: calc(6px * var(--toast-scale));
+        height: calc(6px * var(--toast-scale));
+        border-radius: 1px;
         flex-shrink: 0;
         box-shadow: 0 0 calc(5px * var(--toast-scale)) currentColor;
       }
@@ -1291,7 +1291,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       }
       .libertad-sponsor-toast-duration {
         font-size: calc(9.5px * var(--toast-scale));
-        font-weight: 500;
+        font-weight: 600;
         opacity: 0.65;
         font-family: inherit;
       }
@@ -1299,7 +1299,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         background: rgba(56, 189, 248, 0.14);
         border: 1px solid rgba(56, 189, 248, 0.35);
         color: #38bdf8;
-        border-radius: calc(4px * var(--toast-scale));
+        border-radius: calc(2px * var(--toast-scale));
         padding: calc(3px * var(--toast-scale)) calc(7px * var(--toast-scale));
         font-family: inherit;
         font-size: calc(9.5px * var(--toast-scale));
