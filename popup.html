@@ -169,7 +169,7 @@
           <span class="preset-tag" id="presetTagLabel" data-i18n="quickModeLabel">FOCUS LEVEL</span>
           <button type="button" class="save-profile-trigger-btn" id="saveProfileBtn"
             title="Save current settings as a profile" data-i18n="saveAsProfileBtn">
-            + Save as Profile
+            + SAVE PROFILE
           </button>
         </div>
         <span class="preset-summary" id="presetDesc">Suppresses sidebar recommendations, shorts, autoplay, and clutter.
@@ -188,11 +188,17 @@
     <nav class="tab-nav-bar" aria-label="Workspaces">
       <button type="button" class="tab-nav-btn active" data-tab="focus" data-i18n="tabFocus">FOCUS SHIELD</button>
       <button type="button" class="tab-nav-btn" data-tab="cleaner" data-i18n="tabCleaner">UI CLEANER</button>
-      <button type="button" class="tab-nav-btn" data-tab="extras" data-i18n="tabExtras">EXTRAS</button>
+      <button type="button" class="tab-nav-btn" data-tab="extras" data-i18n="tabExtras">POWER TOOLS</button>
     </nav>
 
     <!-- TAB 1: FOCUS SHIELD (Macro Distraction Blockers) -->
     <div class="tab-panel active" id="tabPanelFocus">
+      <div class="tab-polarity-banner focus-banner">
+        <svg class="tab-polarity-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+        <span class="tab-polarity-text" data-i18n="focusPolarityHint">Active switches suppress and block distractions</span>
+      </div>
       <div class="pane-header">
         <span class="pane-title" data-i18n="parametersLabel">PARAMETERS // FINE-TUNE</span>
       </div>
@@ -323,12 +329,12 @@
 
     <!-- TAB 2: UI CLEANER (Micro-De-Bloat Matrix) -->
     <div class="tab-panel" id="tabPanelCleaner">
-      <div class="cleaner-polarity-banner">
-        <svg class="cleaner-polarity-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="tab-polarity-banner cleaner-banner">
+        <svg class="tab-polarity-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
           <line x1="1" y1="1" x2="23" y2="23"></line>
         </svg>
-        <span class="cleaner-polarity-text" data-i18n="cleanerPolarityHint">Select elements to HIDE from the interface</span>
+        <span class="tab-polarity-text" data-i18n="cleanerPolarityHint">Select elements to HIDE from the interface</span>
       </div>
 
       <!-- Section A: Header & Search Clutter -->
@@ -763,8 +769,14 @@
       </section>
     </div>
 
-    <!-- TAB 3: EXTRAS (Power Modules & Restorations) -->
+    <!-- TAB 3: POWER TOOLS (Power Modules & Restorations) -->
     <div class="tab-panel" id="tabPanelExtras">
+      <div class="tab-polarity-banner power-banner">
+        <svg class="tab-polarity-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        <span class="tab-polarity-text" data-i18n="powerPolarityHint">Active modules restore or enhance YouTube features</span>
+      </div>
       <div class="pane-header">
         <span class="pane-title" data-i18n="auxiliaryLabel">POWER MODULES // UTILITIES</span>
       </div>
@@ -783,7 +795,7 @@
             <div class="module-title-row">
               <span class="module-title" data-i18n="toggleDislikesTitle">Restore Dislikes</span>
               <span class="module-tag" id="dislikesApiTag" data-i18n="statusApiOnline">API ONLINE</span>
-              <span class="module-bypass-tag" id="dislikesSuppressedTag" style="display: none;" data-i18n="tagDislikesSuppressed">HIDDEN IN CLEANER</span>
+              <span class="module-bypass-tag" id="dislikesSuppressedTag" style="display: none;" data-i18n="tagDislikesSuppressed" title="Dislike button is hidden because Hide Like/Dislike is active in UI Cleaner">HIDDEN IN CLEANER</span>
             </div>
             <span class="module-desc" data-i18n="toggleDislikesDesc">Incorporate public community dislikes metric via
               Return YouTube Dislike API</span>

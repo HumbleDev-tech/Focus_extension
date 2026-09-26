@@ -281,7 +281,7 @@ button:focus-visible {
 
 .status-indicator:hover {
   filter: brightness(1.2);
-  border-color: var(--accent-primary);
+  border-color: var(--accent);
 }
 
 .status-indicator:focus-visible {
@@ -1018,34 +1018,40 @@ button:focus-visible {
 .preset-meta-header {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  margin-top: calc(1px * var(--ui-scale));
+  gap: calc(3px * var(--ui-scale));
+  margin-top: calc(2px * var(--ui-scale));
+  margin-bottom: calc(2px * var(--ui-scale));
 }
 
 .preset-title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: calc(18px * var(--ui-scale));
 }
 
 .save-profile-trigger-btn {
-  background: transparent;
+  background: var(--surface-subtle);
   border: 1px solid var(--border-hairline);
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: calc(7.5px * var(--ui-scale));
   font-weight: 700;
-  padding: calc(1.5px * var(--ui-scale)) calc(6px * var(--ui-scale));
-  border-radius: 2px;
+  padding: calc(2px * var(--ui-scale)) calc(7px * var(--ui-scale));
+  border-radius: 3px;
   cursor: pointer;
   transition: var(--transition-fast);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
 }
 
 .save-profile-trigger-btn:hover {
   background: var(--accent-soft-bg);
   border-color: var(--accent);
+  box-shadow: 0 0 calc(6px * var(--ui-scale)) var(--accent-glow);
 }
 
 .preset-tag {
@@ -1246,7 +1252,7 @@ button:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: calc(6px * var(--ui-scale));
+  margin-bottom: calc(5px * var(--ui-scale));
 }
 
 .pane-title {
@@ -1459,24 +1465,43 @@ input:checked + .slider:before {
   margin-bottom: calc(4px * var(--ui-scale));
 }
 
-/* Cleaner Polarity Banner */
+/* Polarity Banners */
+.tab-polarity-banner,
 .cleaner-polarity-banner {
   display: flex;
   align-items: center;
   gap: calc(6px * var(--ui-scale));
   background: var(--surface-card);
   border: 1px solid var(--border-hairline);
-  border-left: 2px solid var(--accent-primary);
+  border-left: 2px solid var(--accent);
   border-radius: 3px;
-  padding: calc(5px * var(--ui-scale)) calc(8px * var(--ui-scale));
-  margin-bottom: calc(8px * var(--ui-scale));
+  padding: calc(4.5px * var(--ui-scale)) calc(8px * var(--ui-scale));
+  margin-bottom: calc(7px * var(--ui-scale));
 }
 
+.tab-polarity-banner.focus-banner {
+  border-left-color: var(--accent);
+}
+
+.tab-polarity-banner.cleaner-banner {
+  border-left-color: var(--accent);
+}
+
+.tab-polarity-banner.power-banner {
+  border-left-color: #f59e0b;
+}
+
+.tab-polarity-icon,
 .cleaner-polarity-icon {
-  color: var(--accent-primary);
+  color: var(--accent);
   flex-shrink: 0;
 }
 
+.tab-polarity-banner.power-banner .tab-polarity-icon {
+  color: #f59e0b;
+}
+
+.tab-polarity-text,
 .cleaner-polarity-text {
   font-family: var(--font-sans);
   font-size: calc(8.5px * var(--ui-scale));
@@ -1621,6 +1646,7 @@ input:checked + .slider:before {
   line-height: 1.2;
   white-space: nowrap;
   flex-shrink: 0;
+  cursor: help;
 }
 
 .module-row.is-suppressed {
