@@ -191,7 +191,8 @@ flowchart TD
 
     subgraph ContentScript ["Content Script Environment (world: ISOLATED)"]
         Orchestrator["content.js (Router & Lifecycle Orchestrator)"]
-        Styles["styles.js (Dynamic CSS & Zen Screen Engine)"]
+        Styles["styles.js (Dynamic CSS Engine)"]
+        Zen["zen.js (Intentional Focus Screen Engine)"]
         Shorts["shorts.js (Shorts Eradication & Redirection)"]
         Subs["subscriptions.js (Direct Subscriptions & Link Interceptor)"]
         Sponsors["sponsors.js (SponsorBlock Timeline & Smart Rewind)"]
@@ -199,7 +200,7 @@ flowchart TD
         Dislikes["dislikes.js (Badge Injection)"]
         LRU["cache.js (Bounded LRU Cache)"]
 
-        Orchestrator --> Styles & Shorts & Subs & Sponsors & Untranslate & Dislikes & LRU
+        Orchestrator --> Styles & Zen & Shorts & Subs & Sponsors & Untranslate & Dislikes & LRU
     end
 
     subgraph ServiceWorker ["Service Worker (Manifest V3)"]

@@ -119,6 +119,17 @@ assert(
   `manifest.json content_scripts and background.js contentScriptFiles match 1:1 (${manifestContentScripts.length} scripts)`
 );
 
+// 12. Verify main world agent script parity
+const manifestMainScript = manifestJson.content_scripts?.find((cs) =>
+  cs.matches?.some((m) => m.includes('youtube.com')) && cs.world === 'MAIN'
+)?.js?.[0];
+assert(
+  manifestMainScript === 'src/injected/agent.js' &&
+  backgroundJs.includes("files: ['src/injected/agent.js']") &&
+  backgroundJs.includes("world: 'MAIN'"),
+  'agent.js main-world parity verified between manifest.json and background.js'
+);
+
 console.log(`\n=== PARITY AUDIT COMPLETE: ${failures} FAILURES ===`);
 if (failures > 0) {
   process.exit(1);

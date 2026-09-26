@@ -715,6 +715,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       presetDesc.textContent = t('descCustom');
     }
+    presetDesc.title = presetDesc.textContent;
 
     // Status pill
     const hasActiveToggle = ALL_TOGGLE_KEYS.some((k) => !!state[k]);

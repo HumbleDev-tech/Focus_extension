@@ -241,7 +241,10 @@ globalThis.Libertad = globalThis.Libertad || {};
         const parentChip = node.closest(
           'yt-chip-cloud-chip-renderer, yt-chip-cloud-chip-view-model, chip-shape, yt-chip-shape, iron-selector#chips > *, #chips > *, [role="tab"]',
         );
-        if (parentChip) {
+        if (
+          parentChip &&
+          parentChip.getAttribute('data-libertad-shorts-chip') !== 'true'
+        ) {
           parentChip.setAttribute('data-libertad-shorts-chip', 'true');
           parentChip.classList.add('libertad-force-hide');
           parentChip.style.setProperty('display', 'none', 'important');
