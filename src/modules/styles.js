@@ -650,6 +650,26 @@ globalThis.Libertad = globalThis.Libertad || {};
       `);
     }
 
+    // Fullscreen Quick Actions (Floating social overlay: Like, Dislike, Comments, Share, and 3-Dots)
+    if (settings.hideFullscreenActions) {
+      rules.push(`
+        .ytp-fullscreen-quick-actions,
+        .ytPlayerQuickActionButtonsHost,
+        .ytPlayerQuickActionButtonsHostDisableBackdropFilter,
+        .ytPlayerQuickActionButtonsHostCompactControls,
+        yt-player-quick-action-buttons,
+        .ytp-quick-actions,
+        .html5-video-player .ytp-fullscreen-quick-actions,
+        .html5-video-player yt-player-quick-action-buttons,
+        .html5-video-player .ytp-quick-actions,
+        ytd-watch-flexy[fullscreen] .ytp-fullscreen-quick-actions,
+        ytd-watch-flexy[fullscreen] yt-player-quick-action-buttons,
+        ytd-watch-flexy[fullscreen] .ytPlayerQuickActionButtonsHost {
+          display: none !important;
+        }
+      `);
+    }
+
     // Search and Feed Filter Chips
     if (settings.hideFilterChips) {
       rules.push(`

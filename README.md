@@ -91,6 +91,7 @@ Whenever you fine-tune switches to your liking, save your configuration with **`
 | **Player Overlays & Watermarks** | Shown | **Hidden** | **Hidden** | **Hidden** |
 | **Autoplay, Miniplayer & Play on TV** | Shown | Shown | **Hidden** | **Hidden** |
 | **Subtitles / Closed Captions (CC)** | Shown | Shown | Shown | **Hidden** |
+| **Fullscreen Actions (Quick Overlay)** | Shown | Shown | **Hidden** | **Hidden** |
 | **Promotional (Ask AI, Download, Merch)** | Shown | **Hidden** | **Hidden** | **Hidden** |
 | **Monetization (Join, Thanks, Clips)** | Shown | Shown | **Hidden** | **Hidden** |
 | **Social Actions (Share, Save, 3-Dots)** | Shown | Shown | Shown | **Hidden** |
@@ -122,10 +123,10 @@ Macro blockers for YouTube's biggest time sinks:
 
 ### 2. UI Cleaner
 
-A modular grid of 28 granular toggles across 5 clear categories to remove visual noise:
+A modular grid of 29 granular toggles across 5 clear categories to remove visual noise:
 
 * **Header & Search:** Hide the voice search microphone, the "+" Create button, notifications bell, Google account avatar/profile picture, and feed filter topic chips.
-* **Player & Overlays:** Hide the autoplay switch, the up-next countdown overlay, channel watermarks, "Includes paid promotion" badges, the miniplayer button, **Play on TV** (Cast/Remote buttons and overlays), and **Subtitles** (Closed Captions / CC button and caption overlays).
+* **Player & Overlays:** Hide the autoplay switch, the up-next countdown overlay, channel watermarks, "Includes paid promotion" badges, the miniplayer button, **Play on TV** (Cast/Remote buttons and overlays), **Subtitles** (Closed Captions / CC button and caption overlays), and **Fullscreen Actions** (floating Like, Dislike, Comments, Share, and 3-dots quick action overlay).
 * **Action Buttons:** Strip clutter from the action bar: hide Ask AI, Download, Thanks & Clips, Join/Membership, Share, Save to playlist, and the 3-dots overflow menu.
 * **Metrics & Social Counters:** Hide the Like/Dislike button group, subscribe button, channel subscriber counts, and view/date counts.
 * **Feeds & Navigation:** Hide merch and shopping shelves, live stream chat and chat replays (with automatic Polymer player expansion), explore/trending links, and "More from YouTube" sidebar links.

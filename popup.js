@@ -157,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hideMiniplayer: document.getElementById('toggleMiniplayer'),
     hidePlayOnTv: document.getElementById('togglePlayOnTv'),
     hideSubtitles: document.getElementById('toggleSubtitles'),
+    hideFullscreenActions: document.getElementById('toggleFullscreenActions'),
     // Cleaner: Action Bar & Social
     hideAskAi: document.getElementById('toggleAskAi'),
     hideDownload: document.getElementById('toggleDownload'),
