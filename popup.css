@@ -1067,8 +1067,11 @@ button:focus-visible {
   font-family: var(--font-mono);
   font-size: calc(8px * var(--ui-scale));
   color: var(--text-secondary);
-  line-height: 1.25;
-  min-height: calc(12px * var(--ui-scale));
+  line-height: calc(13px * var(--ui-scale));
+  height: calc(13px * var(--ui-scale));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .preset-track {

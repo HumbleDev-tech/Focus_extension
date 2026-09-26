@@ -138,16 +138,148 @@ globalThis.Libertad = globalThis.Libertad || {};
     document.addEventListener('auxclick', handleIntercept, { capture: true });
   }
 
+  // Dynamic DOM cleaner for individual Shorts filter chips in feeds, search, and watch related bar
+  function cleanShortsChips(settings) {
+    const activeSettings = settings || currentModuleSettings;
+    if (!activeSettings?.hideShorts) {
+      const hidden = document.querySelectorAll(
+        '[data-libertad-shorts-chip="true"]',
+      );
+      for (let i = 0; i < hidden.length; i++) {
+        hidden[i].removeAttribute('data-libertad-shorts-chip');
+        hidden[i].classList.remove('libertad-force-hide');
+        hidden[i].style.removeProperty('display');
+      }
+      return;
+    }
+
+    const candidateSelector = [
+      'ytd-feed-filter-chip-bar-renderer yt-chip-cloud-chip-renderer',
+      'yt-related-chip-cloud-renderer yt-chip-cloud-chip-renderer',
+      'yt-chip-cloud-renderer yt-chip-cloud-chip-renderer',
+      'iron-selector#chips > *',
+      '#chips > *',
+      'yt-chip-cloud-chip-renderer',
+      'yt-chip-cloud-chip-view-model',
+      'chip-shape',
+      'yt-chip-shape',
+      'ytd-feed-filter-chip-bar-renderer [role="tab"]',
+      'yt-related-chip-cloud-renderer [role="tab"]',
+      'yt-chip-cloud-renderer [role="tab"]',
+      'iron-selector#chips [role="tab"]',
+    ].join(', ');
+    const chips = document.querySelectorAll(candidateSelector);
+
+    for (let i = 0; i < chips.length; i++) {
+      const chip = chips[i];
+      if (chip.getAttribute('data-libertad-shorts-chip') === 'true') {
+        continue;
+      }
+      let rawText = (chip.textContent || '')
+        .replace(/[\s\u200B\u00A0\u202F\r\n\t]+/g, ' ')
+        .trim()
+        .toLowerCase();
+      if (!rawText && chip.shadowRoot) {
+        rawText = (chip.shadowRoot.textContent || '')
+          .replace(/[\s\u200B\u00A0\u202F\r\n\t]+/g, ' ')
+          .trim()
+          .toLowerCase();
+      }
+      const innerLabel = chip.querySelector(
+        '#text, yt-formatted-string, span, .yt-core-attributed-string',
+      );
+      const labelText = (innerLabel?.textContent || '')
+        .replace(/[\s\u200B\u00A0\u202F\r\n\t]+/g, ' ')
+        .trim()
+        .toLowerCase();
+      const aria = (
+        chip.getAttribute('aria-label') ||
+        chip.getAttribute('title') ||
+        innerLabel?.getAttribute('title') ||
+        innerLabel?.getAttribute('aria-label') ||
+        ''
+      )
+        .trim()
+        .toLowerCase();
+
+      if (
+        rawText === 'shorts' ||
+        rawText === '#shorts' ||
+        labelText === 'shorts' ||
+        labelText === '#shorts' ||
+        aria === 'shorts' ||
+        aria === '#shorts'
+      ) {
+        const target =
+          chip.closest(
+            'yt-chip-cloud-chip-renderer, yt-chip-cloud-chip-view-model, iron-selector#chips > *, #chips > *',
+          ) ||
+          chip.closest('chip-shape, yt-chip-shape, [role="tab"]') ||
+          chip;
+        target.setAttribute('data-libertad-shorts-chip', 'true');
+        target.classList.add('libertad-force-hide');
+        target.style.setProperty('display', 'none', 'important');
+        if (chip !== target) {
+          chip.setAttribute('data-libertad-shorts-chip', 'true');
+          chip.classList.add('libertad-force-hide');
+          chip.style.setProperty('display', 'none', 'important');
+        }
+      }
+    }
+
+    // Additional deep check: text elements inside chip clouds
+    const textNodes = document.querySelectorAll(
+      'ytd-feed-filter-chip-bar-renderer yt-formatted-string, yt-related-chip-cloud-renderer yt-formatted-string, iron-selector#chips yt-formatted-string, yt-chip-cloud-renderer yt-formatted-string, ytd-feed-filter-chip-bar-renderer span, yt-related-chip-cloud-renderer span, iron-selector#chips span, yt-chip-cloud-renderer span',
+    );
+    for (let j = 0; j < textNodes.length; j++) {
+      const node = textNodes[j];
+      const t = (node.textContent || '')
+        .replace(/[\s\u200B\u00A0\u202F\r\n\t]+/g, ' ')
+        .trim()
+        .toLowerCase();
+      if (t === 'shorts' || t === '#shorts') {
+        const parentChip = node.closest(
+          'yt-chip-cloud-chip-renderer, yt-chip-cloud-chip-view-model, chip-shape, yt-chip-shape, iron-selector#chips > *, #chips > *, [role="tab"]',
+        );
+        if (parentChip) {
+          parentChip.setAttribute('data-libertad-shorts-chip', 'true');
+          parentChip.classList.add('libertad-force-hide');
+          parentChip.style.setProperty('display', 'none', 'important');
+        }
+      }
+    }
+  }
+
+  // DOM lifecycle event listeners to catch dynamically rendered chips as early as possible
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => cleanShortsChips(), {
+        passive: true,
+      });
+    }
+    window.addEventListener('load', () => cleanShortsChips(), {
+      passive: true,
+    });
+    window.addEventListener('yt-navigate-finish', () => cleanShortsChips(), {
+      passive: true,
+    });
+    window.addEventListener('yt-page-data-updated', () => cleanShortsChips(), {
+      passive: true,
+    });
+  }
+
   const shortsModule = {
     init(settings) {
       currentModuleSettings = settings;
       setupShortsLinkInterceptor(() => currentModuleSettings);
       redirectShortsIfActive(settings);
+      cleanShortsChips(settings);
     },
 
     onNavigate(url, settings, _phase) {
       currentModuleSettings = settings;
       redirectShortsIfActive(settings, url);
+      cleanShortsChips(settings);
     },
 
     onSettingsChange(newSettings, _changes) {
@@ -155,6 +287,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       if (newSettings?.hideShorts) {
         redirectShortsIfActive(newSettings);
       }
+      cleanShortsChips(newSettings);
     },
 
     onDomMutation(settings) {
@@ -164,10 +297,14 @@ globalThis.Libertad = globalThis.Libertad || {};
       ) {
         redirectShortsIfActive(settings);
       }
+      if (settings?.hideShorts) {
+        cleanShortsChips(settings);
+      }
     },
 
     destroy() {
       currentModuleSettings = null;
+      cleanShortsChips({ hideShorts: false });
     },
   };
 
@@ -178,4 +315,5 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   globalThis.Libertad.setupShortsLinkInterceptor = setupShortsLinkInterceptor;
   globalThis.Libertad.redirectShortsIfActive = redirectShortsIfActive;
+  globalThis.Libertad.cleanShortsChips = cleanShortsChips;
 })();

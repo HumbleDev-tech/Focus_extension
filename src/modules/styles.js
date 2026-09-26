@@ -171,7 +171,27 @@ globalThis.Libertad = globalThis.Libertad || {};
         /* Standalone Player */
         ytd-shorts,
         #shorts-container,
-        ytd-reel-video-renderer {
+        ytd-reel-video-renderer,
+
+        /* Individual Shorts Filter Chip (Home Feeds, Search, and Related Sidebar) */
+        [data-libertad-shorts-chip="true"],
+        yt-chip-cloud-chip-renderer[data-libertad-shorts-chip="true"],
+        yt-chip-cloud-chip-view-model[data-libertad-shorts-chip="true"],
+        chip-shape[data-libertad-shorts-chip="true"],
+        yt-chip-shape[data-libertad-shorts-chip="true"],
+        yt-chip-cloud-chip-renderer:has([title="Shorts" i]),
+        yt-chip-cloud-chip-renderer:has([aria-label="Shorts" i]),
+        yt-chip-cloud-chip-renderer:has([aria-label*="Shorts" i]),
+        yt-chip-cloud-chip-view-model:has([title="Shorts" i]),
+        yt-chip-cloud-chip-view-model:has([aria-label*="Shorts" i]),
+        chip-shape:has([aria-label*="Shorts" i]),
+        chip-shape:has([title*="Shorts" i]),
+        yt-chip-shape:has([aria-label*="Shorts" i]),
+        yt-chip-cloud-chip-renderer:has(a[href*="/shorts"]),
+        ytd-feed-filter-chip-bar-renderer yt-chip-cloud-chip-renderer:has([title="Shorts" i]),
+        yt-related-chip-cloud-renderer yt-chip-cloud-chip-renderer:has([title="Shorts" i]),
+        ytd-feed-filter-chip-bar-renderer yt-chip-cloud-chip-renderer:has([aria-label*="Shorts" i]),
+        yt-related-chip-cloud-renderer yt-chip-cloud-chip-renderer:has([aria-label*="Shorts" i]) {
           display: none !important;
         }
       `);
