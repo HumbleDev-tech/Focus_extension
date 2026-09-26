@@ -707,28 +707,24 @@ button:focus-visible {
 
 .profile-track {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: calc(4px * var(--ui-scale));
-  overflow-x: auto;
-  padding-bottom: 2px;
-}
-
-.profile-track::-webkit-scrollbar {
-  height: 2px;
-}
-
-.profile-track::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: var(--radius-sharp);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-panel);
+  padding: 2px;
 }
 
 .profile-btn {
-  display: inline-flex;
+  flex: 1;
+  min-width: 0;
+  display: flex;
   align-items: center;
-  gap: calc(5px * var(--ui-scale));
+  justify-content: space-between;
+  gap: calc(4px * var(--ui-scale));
   padding: calc(3px * var(--ui-scale)) calc(7px * var(--ui-scale));
-  background: var(--surface-card);
-  border: 1px solid var(--border-hairline);
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: var(--radius-tech);
   color: var(--text-secondary);
   font-family: var(--font-mono);
@@ -736,7 +732,7 @@ button:focus-visible {
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition-fast);
-  white-space: nowrap;
+  user-select: none;
 }
 
 .profile-btn:hover {
@@ -746,23 +742,50 @@ button:focus-visible {
 }
 
 .profile-btn.active {
-  background: var(--accent-soft-bg);
+  background: var(--surface-card);
   color: var(--accent);
+  border-color: var(--accent-subtle-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="dark"] .profile-btn.active {
+  background: var(--accent-soft-bg);
   border-color: var(--accent);
-  box-shadow: 0 0 6px var(--accent-glow);
+  color: var(--accent);
+}
+
+:root[data-theme="oled"] .profile-btn.active {
+  background: var(--accent-soft-bg);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .profile-btn.active {
+  background: var(--surface-card);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.profile-btn.is-editing {
+  border-color: var(--accent);
+  background: var(--surface-card);
 }
 
 .profile-name {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: calc(120px * var(--ui-scale));
+  text-align: left;
 }
 
 .profile-actions {
   display: inline-flex;
   align-items: center;
   gap: 2px;
+  flex-shrink: 0;
 }
 
 .profile-edit-btn,
@@ -787,6 +810,11 @@ button:focus-visible {
   display: inline-flex;
 }
 
+.profile-btn.is-editing .profile-edit-btn,
+.profile-btn.is-editing .profile-delete-btn {
+  display: none;
+}
+
 .profile-edit-btn:hover {
   color: var(--accent);
   background: var(--surface-subtle);
@@ -806,8 +834,10 @@ button:focus-visible {
 }
 
 .add-profile-btn {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   background: transparent;
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-tech);
@@ -1502,7 +1532,7 @@ input:checked + .slider:before {
   border-bottom: 1px solid transparent;
 }
 
-.module-card:has(.sponsor-subpanel:not([style*="display: none"])) .module-card-header {
+.module-card:has(.sponsor-subpanel:not(.is-collapsed)) .module-card-header {
   border-bottom-color: var(--border-subtle);
 }
 
@@ -1512,6 +1542,21 @@ input:checked + .slider:before {
   display: flex;
   flex-direction: column;
   gap: calc(5px * var(--ui-scale));
+  max-height: calc(180px * var(--ui-scale));
+  opacity: 1;
+  overflow: hidden;
+  transition:
+    max-height 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.18s ease,
+    padding 0.22s ease;
+}
+
+.sponsor-subpanel.is-collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  pointer-events: none;
 }
 
 .sponsor-subpanel-header {
@@ -1545,13 +1590,40 @@ input:checked + .slider:before {
 
 .sponsor-chip-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: calc(4px * var(--ui-scale));
+}
+
+#untranslateSubOptions .sponsor-chip-grid {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+#untranslateSubOptions .sponsor-chip-grid .chip-toggle:nth-child(1),
+#untranslateSubOptions .sponsor-chip-grid .chip-toggle:nth-child(2),
+#untranslateSubOptions .sponsor-chip-grid .chip-toggle:nth-child(3) {
+  grid-column: span 2;
+}
+
+#untranslateSubOptions .sponsor-chip-grid .chip-toggle:nth-child(4),
+#untranslateSubOptions .sponsor-chip-grid .chip-toggle:nth-child(5) {
+  grid-column: span 3;
 }
 
 /* Sponsor Category Timeline Color Indicators */
 .sponsor-chip-grid .chip-toggle {
+  min-height: calc(26px * var(--ui-scale));
+  padding: calc(4px * var(--ui-scale)) calc(6px * var(--ui-scale));
+  gap: calc(5px * var(--ui-scale));
   border-left-width: calc(2.5px * var(--ui-scale));
+}
+
+.sponsor-chip-grid .chip-toggle .chip-label {
+  font-size: calc(9.5px * var(--ui-scale));
+}
+
+.sponsor-chip-grid .chip-toggle .chip-icon {
+  width: calc(12px * var(--ui-scale));
+  height: calc(12px * var(--ui-scale));
 }
 
 .sponsor-chip-grid .chip-toggle[data-category="sponsor"],
