@@ -383,6 +383,15 @@
         targetTrack !== currentTrack &&
         (!currentId || !targetId || currentId !== targetId)
       ) {
+        // Playback protection guard: If the video is actively playing past the initial handshake
+        // (currentTime > 0.5s and not paused), do NOT switch audio in hot playback.
+        // Doing so forces YouTube to dump the MSE audio buffer and freeze playback mid-sentence.
+        const video = getVideoElement();
+        if (video && video.currentTime > 0.5 && !video.paused) {
+          lastEnforcedVideoId = videoId;
+          return true;
+        }
+
         // Enforce maximum of ONE programmatic audio switch per video ID
         // to completely eliminate YouTube buffer/playback reload loops
         if (audioSwitchAttemptedVideoId !== videoId) {
@@ -471,7 +480,6 @@
 
     enforceAutoplaySuppression();
     if (!agentSettings.isOff && agentSettings.untranslateMaster) {
-      if (agentSettings.untranslateAudio) enforceOriginalAudio(false);
       if (agentSettings.untranslateCaptions) neutralizeAutoCaptions();
       broadcastMetadata();
     }
@@ -489,7 +497,6 @@
     ) {
       player.__libertadEventsBound = true;
       player.addEventListener('onStateChange', (state) => {
-        // State 1: PLAYING. Only enforce once playback actively starts
         if (state === 1) {
           triggerPlaybackEnforcement();
         }
@@ -505,6 +512,20 @@
       video.addEventListener('playing', () => {
         triggerPlaybackEnforcement();
       });
+      // Cold-start media initialization hooks: enforce audio before playback commences
+      const onMediaPreload = () => {
+        if (
+          !agentSettings.isOff &&
+          agentSettings.untranslateMaster &&
+          agentSettings.untranslateAudio
+        ) {
+          enforceOriginalAudio();
+        }
+      };
+      video.addEventListener('loadedmetadata', onMediaPreload, {
+        passive: true,
+      });
+      video.addEventListener('canplay', onMediaPreload, { passive: true });
       videoBound = true;
     } else if (video?.__libertadEventsBound) {
       videoBound = true;
@@ -541,9 +562,9 @@
 
     if (audioDone) return;
 
-    // Exponential backoff instead of continuous blind 500ms polling
+    // Exponential backoff clustered around early media preparation
     let attempts = 0;
-    const backoffDelays = [400, 1000, 2000];
+    const backoffDelays = [150, 350, 800];
 
     function scheduleNextAttempt() {
       if (attempts >= backoffDelays.length) {
@@ -554,6 +575,12 @@
       retryTimer = setTimeout(() => {
         retryTimer = null;
         bindPlayerEvents();
+        // If the video already progressed into active playback, abort retry loop to avoid mid-video freeze
+        const video = getVideoElement();
+        if (video && video.currentTime > 0.5 && !video.paused) {
+          lastEnforcedVideoId = currentVid || getCurrentVideoId();
+          return;
+        }
         const done = enforceOriginalAudio();
         neutralizeAutoCaptions();
         if (!done) {
@@ -607,7 +634,7 @@
     }
     bindPlayerEvents();
     enforceAutoplaySuppression();
-    setTimeout(startEnforcementRoutine, 400);
+    setTimeout(startEnforcementRoutine, 100);
   });
 
   window.addEventListener('popstate', () => {
@@ -629,5 +656,5 @@
   // Initial startup hook
   bindPlayerEvents();
   enforceAutoplaySuppression();
-  setTimeout(startEnforcementRoutine, 500);
+  setTimeout(startEnforcementRoutine, 150);
 })();
