@@ -775,30 +775,32 @@
         <span class="tab-polarity-text" data-i18n="powerPolarityHint">Active modules restore or enhance YouTube features</span>
       </div>
       <div class="module-list">
-        <!-- Module: Restore Dislikes -->
-        <label class="module-row" id="moduleDislikesRow" for="toggleDislikes">
-          <div class="module-icon">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path
-                d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17">
-              </path>
-            </svg>
-          </div>
-          <div class="module-meta">
-            <div class="module-title-row">
-              <span class="module-title" data-i18n="toggleDislikesTitle">Restore Dislikes</span>
-              <span class="module-tag" id="dislikesApiTag" data-i18n="statusApiOnline">API ONLINE</span>
-              <span class="module-bypass-tag" id="dislikesSuppressedTag" style="display: none;" data-i18n="tagDislikesSuppressed" title="Dislike button is hidden because Hide Like/Dislike is active in UI Cleaner">HIDDEN IN CLEANER</span>
+        <!-- Module: Restore Dislikes (Unified Card) -->
+        <div class="module-card" id="moduleDislikes">
+          <label class="module-card-header" id="moduleDislikesRow" for="toggleDislikes">
+            <div class="module-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17">
+                </path>
+              </svg>
             </div>
-            <span class="module-desc" data-i18n="toggleDislikesDesc">Incorporate public community dislikes metric via
-              Return YouTube Dislike API</span>
-          </div>
-          <div class="switch">
-            <input type="checkbox" id="toggleDislikes" aria-label="Restore Dislikes" />
-            <span class="slider"></span>
-          </div>
-        </label>
+            <div class="module-meta">
+              <div class="module-title-row">
+                <span class="module-title" data-i18n="toggleDislikesTitle">Restore Dislikes</span>
+                <span class="module-tag" id="dislikesApiTag" data-i18n="statusApiOnline">API ONLINE</span>
+                <span class="module-bypass-tag" id="dislikesSuppressedTag" style="display: none;" data-i18n="tagDislikesSuppressed" title="Dislike button is hidden because Hide Like/Dislike is active in UI Cleaner">HIDDEN IN CLEANER</span>
+              </div>
+              <span class="module-desc" data-i18n="toggleDislikesDesc">Incorporate public community dislikes metric via
+                Return YouTube Dislike API</span>
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="toggleDislikes" aria-label="Restore Dislikes" />
+              <span class="slider"></span>
+            </div>
+          </label>
+        </div>
 
         <!-- Module: Untranslate Suite (Unified Card) -->
         <div class="module-card" id="moduleUntranslate">
@@ -808,7 +810,7 @@
                 stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="2" x2="22" y1="12" y2="12"></line>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
                 </path>
               </svg>
             </div>
@@ -833,7 +835,7 @@
               <span class="sponsor-count-badge" id="untranslateCountBadge">5/5 ACTIVE</span>
             </div>
 
-            <div class="chip-grid sponsor-chip-grid">
+            <div class="chip-grid power-chip-grid sponsor-chip-grid">
               <!-- 1. Titles -->
               <label class="chip-toggle" for="toggleUntranslateTitles" title="Untranslate video and feed titles">
                 <input type="checkbox" id="toggleUntranslateTitles" class="visually-hidden"
@@ -900,8 +902,8 @@
                 <span class="chip-label" data-i18n="subUntranslateCaptionsTitle">Captions</span>
               </label>
 
-              <!-- 5. Chapters -->
-              <label class="chip-toggle" for="toggleUntranslateChapters"
+              <!-- 5. Chapters (Panoramic Span) -->
+              <label class="chip-toggle chip-toggle-wide" for="toggleUntranslateChapters"
                 title="Restore original creator chapter titles in timeline">
                 <input type="checkbox" id="toggleUntranslateChapters" class="visually-hidden"
                   aria-label="Original Chapters" />
@@ -950,7 +952,7 @@
               <span class="sponsor-count-badge" id="sponsorCountBadge">3/6 ACTIVE</span>
             </div>
 
-            <div class="chip-grid sponsor-chip-grid">
+            <div class="chip-grid power-chip-grid sponsor-chip-grid">
               <!-- 1. Sponsors -->
               <label class="chip-toggle" data-category="sponsor" for="toggleSubSponsors" title="Auto-skip paid promotions">
                 <input type="checkbox" id="toggleSubSponsors" class="visually-hidden" aria-label="Skip Paid Sponsors" />
