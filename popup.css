@@ -171,8 +171,11 @@
    ========================================================================== */
 
 :root {
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter",
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
   --transition-fast: 0.12s cubic-bezier(0.16, 1, 0.3, 1);
 
   --radius-sharp: 2px;
@@ -330,7 +333,9 @@ button:focus-visible {
   border-radius: 1px;
   background: var(--status-active-text);
   box-shadow: 0 0 calc(4px * var(--ui-scale)) var(--accent-glow);
-  transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 /* Status States */
@@ -388,17 +393,6 @@ button:focus-visible {
 .status-indicator[data-preset="profile"] .status-dot {
   background: #c084fc;
   box-shadow: 0 0 calc(4px * var(--ui-scale)) rgba(168, 85, 247, 0.45);
-}
-
-.status-indicator.status-inactive {
-  background: var(--surface-subtle);
-  border-color: var(--border-hairline);
-  color: var(--text-muted);
-}
-
-.status-indicator.status-inactive .status-dot {
-  background: var(--text-muted);
-  box-shadow: none;
 }
 
 :root[data-theme="light"] .status-indicator[data-preset="extreme"] {
@@ -462,7 +456,8 @@ button:focus-visible {
   max-height: calc(180px * var(--ui-scale));
   opacity: 1;
   overflow-y: auto;
-  padding: calc(9px * var(--ui-scale)) calc(12px * var(--ui-scale)) calc(11px * var(--ui-scale));
+  padding: calc(9px * var(--ui-scale)) calc(12px * var(--ui-scale))
+    calc(11px * var(--ui-scale));
   border-bottom-color: var(--border-hairline);
 }
 
@@ -974,6 +969,7 @@ button:focus-visible {
   font-size: calc(10.5px * var(--ui-scale));
   color: var(--text-muted);
   line-height: 1.3;
+  min-height: calc(14px * var(--ui-scale));
   margin-bottom: calc(3px * var(--ui-scale));
   white-space: nowrap;
   overflow: hidden;
@@ -1175,21 +1171,12 @@ button:focus-visible {
   color: var(--accent);
 }
 
-
-.tab-polarity-text,
-.cleaner-polarity-text {
+.tab-polarity-text {
   font-family: var(--font-mono);
   font-size: calc(9.5px * var(--ui-scale));
   font-weight: 600;
   letter-spacing: 0.2px;
   color: var(--text-secondary);
-}
-
-.pane-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: calc(5px * var(--ui-scale));
 }
 
 .pane-title {
@@ -1213,7 +1200,6 @@ button:focus-visible {
 }
 
 .shield-card,
-.module-row,
 .module-card-header {
   display: flex;
   align-items: center;
@@ -1224,15 +1210,13 @@ button:focus-visible {
   border-radius: var(--radius-tech);
 }
 
-.shield-card,
-.module-row {
+.shield-card {
   background: var(--surface-card);
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-hud);
 }
 
 .shield-card:hover,
-.module-row:hover,
 .module-card-header:hover {
   background: var(--surface-card-hover);
   border-color: var(--border-hairline);
@@ -1250,7 +1234,9 @@ button:focus-visible {
   justify-content: center;
   color: var(--text-secondary);
   flex-shrink: 0;
-  transition: color var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .shield-icon svg,
@@ -1260,14 +1246,12 @@ button:focus-visible {
 }
 
 .shield-card:hover .shield-icon,
-.module-row:hover .module-icon,
 .module-card-header:hover .module-icon {
   color: var(--accent);
   border-color: var(--accent-subtle-border);
 }
 
 .shield-card:has(input:checked) .shield-icon,
-.module-row:has(input:checked) .module-icon,
 .module-card-header:has(input:checked) .module-icon {
   color: var(--accent);
   border-color: var(--accent-subtle-border);
@@ -1275,7 +1259,6 @@ button:focus-visible {
 }
 
 .shield-card:has(input:focus-visible),
-.module-row:has(input:focus-visible),
 .module-card:has(input:focus-visible) {
   border-color: var(--accent);
   box-shadow: 0 0 calc(4px * var(--ui-scale)) var(--accent-glow);
@@ -1318,6 +1301,7 @@ button:focus-visible {
   border-radius: var(--radius-sharp);
   padding: calc(1px * var(--ui-scale)) calc(4px * var(--ui-scale));
   line-height: 1.2;
+  cursor: help;
 }
 
 .module-tag {
@@ -1529,6 +1513,12 @@ input:checked + .slider:before {
   min-width: 0;
 }
 
+.chip-toggle:has(input:focus-visible) {
+  outline: 1.5px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
 /* Active State for Chips */
 .chip-toggle.active {
   background: var(--accent-soft-bg);
@@ -1593,15 +1583,14 @@ input:checked + .slider:before {
     background var(--transition-fast);
 }
 
-.module-card:has(.sponsor-subpanel:not(.is-collapsed)) .module-card-header,
-.module-card:has(.power-subpanel:not(.is-collapsed)) .module-card-header {
+.module-card:has(.sponsor-subpanel:not(.is-collapsed)) .module-card-header {
   border-bottom-color: var(--border-subtle);
   background: rgba(255, 255, 255, 0.015);
 }
 
-.sponsor-subpanel,
-.power-subpanel {
-  padding: calc(6px * var(--ui-scale)) calc(9px * var(--ui-scale)) calc(8px * var(--ui-scale));
+.sponsor-subpanel {
+  padding: calc(6px * var(--ui-scale)) calc(9px * var(--ui-scale))
+    calc(8px * var(--ui-scale));
   background: var(--surface-subtle);
   display: flex;
   flex-direction: column;
@@ -1612,16 +1601,17 @@ input:checked + .slider:before {
   transition:
     max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.2s ease,
-    padding 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    padding 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0.25s;
 }
 
-.sponsor-subpanel.is-collapsed,
-.power-subpanel.is-collapsed {
+.sponsor-subpanel.is-collapsed {
   max-height: 0;
   opacity: 0;
   padding-top: 0;
   padding-bottom: 0;
   pointer-events: none;
+  visibility: hidden;
 }
 
 .sponsor-subpanel-header {
