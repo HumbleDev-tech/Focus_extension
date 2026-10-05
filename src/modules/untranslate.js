@@ -291,8 +291,12 @@ globalThis.Libertad = globalThis.Libertad || {};
       }
     });
 
-    if (document.title && !document.title.startsWith(clean)) {
-      document.title = `${clean} - YouTube`;
+    if (document.title) {
+      const notifPrefix = (document.title.match(/^\(\d+\)\s*/) || [''])[0];
+      const titleWithoutCount = document.title.replace(/^\(\d+\)\s*/, '');
+      if (!titleWithoutCount.startsWith(clean)) {
+        document.title = `${notifPrefix}${clean} - YouTube`;
+      }
     }
 
     return modified;
@@ -327,11 +331,14 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     if (currentOriginalTitle) {
       // Fast path: if the previously updated title element is still connected and intact, avoid running queries
+      const cleanDocTitle = document.title
+        ? document.title.replace(/^\(\d+\)\s*/, '')
+        : '';
       if (
         lastAppliedWatchTitleElement?.isConnected &&
         lastAppliedWatchTitleElement.textContent.trim() ===
           currentOriginalTitle &&
-        (!document.title || document.title.startsWith(currentOriginalTitle))
+        (!document.title || cleanDocTitle.startsWith(currentOriginalTitle))
       ) {
         return;
       }
@@ -342,7 +349,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       );
       if (
         !needsUpdate &&
-        (!document.title || document.title.startsWith(currentOriginalTitle))
+        (!document.title || cleanDocTitle.startsWith(currentOriginalTitle))
       ) {
         return;
       }
@@ -351,7 +358,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
 
     fetchOriginalTitle(videoId).then((orig) => {
-      const currentParam = parseId(window.location.href);
+      const currentParam = getVideoId(window.location.href);
       if (currentParam === videoId && orig) {
         currentOriginalTitle = orig;
         applyWatchTitle(orig, videoId);
@@ -412,7 +419,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         'a[href*="watch?v="], a[href*="/shorts/"], a#video-title-link, a#thumbnail, a.ytd-thumbnail',
       );
       if (link?.href) {
-        return parseId(link.href);
+        return getVideoId(link.href);
       }
     }
 
@@ -583,6 +590,13 @@ globalThis.Libertad = globalThis.Libertad || {};
                   const cached = titlesCache.get(effectiveId);
                   if (cached) {
                     applyTitleToNode(targetNode, cached, effectiveId);
+                  }
+                  const set = observedTitleNodesByVideoId.get(effectiveId);
+                  if (set) {
+                    set.delete(targetNode);
+                    if (set.size === 0) {
+                      observedTitleNodesByVideoId.delete(effectiveId);
+                    }
                   }
                 } else if (!pendingFeedVideoIds.has(effectiveId)) {
                   pendingFeedVideoIds.add(effectiveId);

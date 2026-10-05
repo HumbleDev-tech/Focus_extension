@@ -131,7 +131,8 @@
   let cachedPlayerResponseVideoId = null;
 
   function getPlayerResponse() {
-    const currentVid = getCurrentVideoId();
+    const urlMatch = window.location.href.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+    const currentVid = urlMatch ? urlMatch[1] : getCurrentVideoId();
     if (
       currentVid &&
       currentVid === cachedPlayerResponseVideoId &&
@@ -145,27 +146,33 @@
       if (player && typeof player.getPlayerResponse === 'function') {
         const resp = player.getPlayerResponse();
         if (resp) {
-          if (currentVid && resp.videoDetails) {
+          const respVid = resp.videoDetails?.videoId;
+          if (currentVid && respVid === currentVid) {
             cachedPlayerResponse = resp;
             cachedPlayerResponseVideoId = currentVid;
+            return resp;
           }
-          return resp;
+          if (!currentVid && respVid) {
+            return resp;
+          }
         }
       }
     } catch (_) {}
 
     try {
-      if (window.ytInitialPlayerResponse) {
+      if (
+        window.ytInitialPlayerResponse &&
+        (!currentVid ||
+          window.ytInitialPlayerResponse.videoDetails?.videoId === currentVid)
+      ) {
         return window.ytInitialPlayerResponse;
       }
     } catch (_) {}
 
     try {
-      if (
-        typeof window.ytplayer === 'object' &&
-        window.ytplayer?.config?.args?.raw_player_response
-      ) {
-        return window.ytplayer.config.args.raw_player_response;
+      const raw = window.ytplayer?.config?.args?.raw_player_response;
+      if (raw && (!currentVid || raw.videoDetails?.videoId === currentVid)) {
+        return raw;
       }
     } catch (_) {}
 
@@ -281,6 +288,8 @@
   let audioSwitchAttemptedVideoId = null;
 
   function getCurrentVideoId() {
+    const match = window.location.href.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+    if (match) return match[1];
     try {
       const player = getPlayer();
       if (player && typeof player.getVideoData === 'function') {
@@ -288,8 +297,7 @@
         if (id && /^[a-zA-Z0-9_-]{11}$/.test(id)) return id;
       }
     } catch (_) {}
-    const match = window.location.href.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-    return match ? match[1] : null;
+    return null;
   }
 
   // Enforce the creator's true original audio track (Anti AI-Dubbing)

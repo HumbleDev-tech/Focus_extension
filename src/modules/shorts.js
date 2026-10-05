@@ -30,7 +30,8 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     if (path.startsWith('/shorts')) {
       const videoId =
-        getShortsVideoId(rawUrl) || path.split('/shorts/')[1]?.split(/[?&#/]/)[0];
+        getShortsVideoId(rawUrl) ||
+        path.split('/shorts/')[1]?.split(/[?&#/]/)[0];
       if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
         try {
           const parsedUrl = new URL(rawUrl, window.location.origin);
@@ -72,10 +73,12 @@ globalThis.Libertad = globalThis.Libertad || {};
           : currentModuleSettings;
       if (!settings?.hideShorts) return;
 
+      const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
       const anchor =
-        e.target && typeof e.target.closest === 'function'
+        path.find((el) => el?.tagName === 'A') ||
+        (e.target && typeof e.target.closest === 'function'
           ? e.target.closest('a')
-          : null;
+          : null);
       if (!anchor) return;
 
       const href = anchor.getAttribute('href');
@@ -254,7 +257,6 @@ globalThis.Libertad = globalThis.Libertad || {};
       }
     }
   }
-
 
   const shortsModule = {
     init(settings) {

@@ -633,7 +633,10 @@ globalThis.Libertad = globalThis.Libertad || {};
         ) {
           ignoredSegmentUuids.add(seg.uuid);
           dismissSponsorToast();
-        } else if (toTime < seg.start - 2.0) {
+        } else if (
+          toTime < Math.max(0, seg.start - 2.0) ||
+          (seg.start <= 2.0 && toTime <= 0.5)
+        ) {
           // If the user rewound well before the segment, re-arm it
           ignoredSegmentUuids.delete(seg.uuid);
           if (lastSkippedSegmentUuid === seg.uuid) {
@@ -645,7 +648,10 @@ globalThis.Libertad = globalThis.Libertad || {};
       // Forward seek: if seeked well before a segment, ensure it is re-armed
       for (const seg of currentSponsorSegments) {
         if (!seg.uuid) continue;
-        if (toTime < seg.start - 2.0) {
+        if (
+          toTime < Math.max(0, seg.start - 2.0) ||
+          (seg.start <= 2.0 && toTime <= 0.5)
+        ) {
           ignoredSegmentUuids.delete(seg.uuid);
           if (lastSkippedSegmentUuid === seg.uuid) {
             lastSkippedSegmentUuid = null;

@@ -33,6 +33,9 @@
         "useOptionalChain": "info",
         "useArrowFunction": "off"
       },
+      "correctness": {
+        "noUndeclaredVariables": "error"
+      },
       "style": {
         "useTemplate": "off"
       }
@@ -44,8 +47,42 @@
       "window",
       "document",
       "navigator",
+      "location",
+      "globalThis",
+      "sessionStorage",
+      "localStorage",
       "MutationObserver",
-      "fetch"
+      "IntersectionObserver",
+      "CustomEvent",
+      "Event",
+      "setTimeout",
+      "clearTimeout",
+      "setInterval",
+      "clearInterval",
+      "requestAnimationFrame",
+      "cancelAnimationFrame",
+      "fetch",
+      "atob",
+      "btoa",
+      "URL",
+      "URLSearchParams",
+      "AbortController",
+      "Node",
+      "Element",
+      "matchMedia",
+      "console",
+      "importScripts",
+      "DEFAULT_SETTINGS",
+      "PRESET_MAP",
+      "TOGGLE_KEYS",
+      "ALL_TOGGLE_KEYS",
+      "POWER_MODULE_KEYS",
+      "POWER_MODULE_DEFAULTS",
+      "POWER_MODULE_OFF",
+      "DEFAULT_PROFILES",
+      "MAX_PROFILES",
+      "extractToggles",
+      "getTranslation"
     ],
     "formatter": {
       "quoteStyle": "single"

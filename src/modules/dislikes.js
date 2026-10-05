@@ -340,7 +340,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     dislikePollAttempts = 0;
     dislikePollTimer = setInterval(() => {
       dislikePollAttempts++;
-      const currentVid = parseId(window.location.href);
+      const currentVid = getVideoId(window.location.href);
 
       // Abort if route changed or max polling attempts (12 seconds) reached
       if (currentVid !== vid || dislikePollAttempts > 40) {
@@ -427,7 +427,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     fetchPromise
       .then((result) => {
         inFlightDislikes.delete(videoId);
-        const currentVideoId = parseId(window.location.href);
+        const currentVideoId = getVideoId(window.location.href);
         if (
           result?.ok &&
           result.data &&

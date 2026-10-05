@@ -36,49 +36,47 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (isInterceptorBound) return;
     isInterceptorBound = true;
 
-    document.addEventListener(
-      'click',
-      (e) => {
-        const settings =
-          typeof getSettings === 'function'
-            ? getSettings()
-            : currentModuleSettings;
-        if (!settings?.redirectHomeToSubscriptions) return;
+    const handleIntercept = (e) => {
+      const settings =
+        typeof getSettings === 'function'
+          ? getSettings()
+          : currentModuleSettings;
+      if (!settings?.redirectHomeToSubscriptions) return;
 
-        const anchor =
-          e.target && typeof e.target.closest === 'function'
-            ? e.target.closest('a')
-            : null;
-        if (!anchor) return;
+      const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
+      const anchor =
+        path.find((el) => el?.tagName === 'A') ||
+        (e.target && typeof e.target.closest === 'function'
+          ? e.target.closest('a')
+          : null);
+      if (!anchor) return;
 
-        const href = anchor.getAttribute('href');
-        if (!href) return;
-        try {
-          const parsed = new URL(href, window.location.origin);
-          const isYouTube =
-            parsed.hostname === window.location.hostname ||
-            parsed.hostname.endsWith('youtube.com');
-          if (
-            isYouTube &&
-            (parsed.pathname === '/' || parsed.pathname === '')
-          ) {
-            anchor.setAttribute('href', '/feed/subscriptions');
-          }
-        } catch (_) {
-          if (
-            href === '/' ||
-            href === '' ||
-            href.startsWith('/?') ||
-            href.startsWith('/#') ||
-            href === 'https://www.youtube.com/' ||
-            href === 'https://youtube.com/'
-          ) {
-            anchor.setAttribute('href', '/feed/subscriptions');
-          }
+      const href = anchor.getAttribute('href');
+      if (!href) return;
+      try {
+        const parsed = new URL(href, window.location.origin);
+        const isYouTube =
+          parsed.hostname === window.location.hostname ||
+          parsed.hostname.endsWith('youtube.com');
+        if (isYouTube && (parsed.pathname === '/' || parsed.pathname === '')) {
+          anchor.setAttribute('href', '/feed/subscriptions');
         }
-      },
-      { capture: true },
-    );
+      } catch (_) {
+        if (
+          href === '/' ||
+          href === '' ||
+          href.startsWith('/?') ||
+          href.startsWith('/#') ||
+          href === 'https://www.youtube.com/' ||
+          href === 'https://youtube.com/'
+        ) {
+          anchor.setAttribute('href', '/feed/subscriptions');
+        }
+      }
+    };
+
+    document.addEventListener('click', handleIntercept, { capture: true });
+    document.addEventListener('auxclick', handleIntercept, { capture: true });
   }
 
   const subscriptionsModule = {
