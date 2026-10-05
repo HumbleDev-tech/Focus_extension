@@ -38,8 +38,18 @@ globalThis.Libertad = globalThis.Libertad || {};
     music_offtopic: '#ff9900',
   };
 
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+
   const sponsorCache = new BoundedCache(200);
   const ignoredSegmentUuids = new Set();
+
+  function getVideoId(url) {
+    if (typeof globalThis.Libertad?.parseYouTubeVideoId === 'function') {
+      return globalThis.Libertad.parseYouTubeVideoId(url);
+    }
+    const m = (url || '').match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
   let currentSponsorVideoId = null;
   let currentSponsorSegments = [];
   let currentSponsorVideoDuration = 0;
@@ -135,13 +145,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   function getActiveVideoId() {
-    const parseId =
-      globalThis.Libertad.parseYouTubeVideoId ||
-      function (u) {
-        const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-        return m ? m[1] : null;
-      };
-    const urlId = parseId(window.location.href);
+    const urlId = getVideoId(window.location.href);
     if (urlId) return urlId;
 
     const watchFlexy = document.querySelector('ytd-watch-flexy');
@@ -341,12 +345,27 @@ globalThis.Libertad = globalThis.Libertad || {};
     // Skip Icon (Fast-forward)
     const iconSpan = document.createElement('span');
     iconSpan.className = 'libertad-sponsor-toast-icon';
-    iconSpan.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="5 4 15 12 5 20 5 4" fill="currentColor"></polygon>
-        <line x1="19" y1="5" x2="19" y2="19"></line>
-      </svg>
-    `;
+    const skipSvg = document.createElementNS(SVG_NS, 'svg');
+    skipSvg.setAttribute('viewBox', '0 0 24 24');
+    skipSvg.setAttribute('fill', 'none');
+    skipSvg.setAttribute('stroke', 'currentColor');
+    skipSvg.setAttribute('stroke-width', '2.2');
+    skipSvg.setAttribute('stroke-linecap', 'round');
+    skipSvg.setAttribute('stroke-linejoin', 'round');
+
+    const polygon = document.createElementNS(SVG_NS, 'polygon');
+    polygon.setAttribute('points', '5 4 15 12 5 20 5 4');
+    polygon.setAttribute('fill', 'currentColor');
+    skipSvg.appendChild(polygon);
+
+    const line = document.createElementNS(SVG_NS, 'line');
+    line.setAttribute('x1', '19');
+    line.setAttribute('y1', '5');
+    line.setAttribute('x2', '19');
+    line.setAttribute('y2', '19');
+    skipSvg.appendChild(line);
+
+    iconSpan.appendChild(skipSvg);
     toast.appendChild(iconSpan);
 
     // Main Category Label
@@ -376,13 +395,28 @@ globalThis.Libertad = globalThis.Libertad || {};
       const unskipBtn = document.createElement('button');
       unskipBtn.type = 'button';
       unskipBtn.className = 'libertad-sponsor-toast-unskip';
-      unskipBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 7v6h6"></path>
-          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
-        </svg>
-        <span>${unskipText}</span>
-      `;
+
+      const unskipSvg = document.createElementNS(SVG_NS, 'svg');
+      unskipSvg.setAttribute('viewBox', '0 0 24 24');
+      unskipSvg.setAttribute('fill', 'none');
+      unskipSvg.setAttribute('stroke', 'currentColor');
+      unskipSvg.setAttribute('stroke-width', '2.5');
+      unskipSvg.setAttribute('stroke-linecap', 'round');
+      unskipSvg.setAttribute('stroke-linejoin', 'round');
+
+      const path1 = document.createElementNS(SVG_NS, 'path');
+      path1.setAttribute('d', 'M3 7v6h6');
+      unskipSvg.appendChild(path1);
+
+      const path2 = document.createElementNS(SVG_NS, 'path');
+      path2.setAttribute('d', 'M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13');
+      unskipSvg.appendChild(path2);
+
+      const unskipLabel = document.createElement('span');
+      unskipLabel.textContent = unskipText;
+
+      unskipBtn.appendChild(unskipSvg);
+      unskipBtn.appendChild(unskipLabel);
       unskipBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();

@@ -34,6 +34,14 @@ globalThis.Libertad = globalThis.Libertad || {};
   let dislikePollTimer = null;
   let dislikePollAttempts = 0;
 
+  function getVideoId(url) {
+    if (typeof globalThis.Libertad?.parseYouTubeVideoId === 'function') {
+      return globalThis.Libertad.parseYouTubeVideoId(url);
+    }
+    const m = (url || '').match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
+
   function getNativeButton(control) {
     if (!control) return null;
     if (control.matches?.('button, tp-yt-paper-button#button')) {
@@ -312,14 +320,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       return;
     }
 
-    const parseId =
-      globalThis.Libertad.parseYouTubeVideoId ||
-      function (u) {
-        const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-        return m ? m[1] : null;
-      };
-
-    const vid = targetVideoId || parseId(window.location.href);
+    const vid = targetVideoId || getVideoId(window.location.href);
     if (!vid) return;
 
     // Fast bailout: if already polling for this specific video, allow the existing interval to proceed
@@ -371,14 +372,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       return;
     }
 
-    const parseId =
-      globalThis.Libertad.parseYouTubeVideoId ||
-      function (u) {
-        const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-        return m ? m[1] : null;
-      };
-
-    const videoId = parseId(window.location.href);
+    const videoId = getVideoId(window.location.href);
     if (!videoId) {
       removeDislikeBadge();
       return;
@@ -520,13 +514,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         window.location.pathname.startsWith('/live');
       if (!isWatch) return;
 
-      const parseId =
-        globalThis.Libertad.parseYouTubeVideoId ||
-        function (u) {
-          const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-          return m ? m[1] : null;
-        };
-      const currentVid = parseId(window.location.href);
+      const currentVid = getVideoId(window.location.href);
       const activeBadge =
         lastDislikeBtn?.isConnected &&
         lastDislikeBtn.querySelector('.libertad-dislike-badge');

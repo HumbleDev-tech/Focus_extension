@@ -11,6 +11,14 @@ globalThis.Libertad = globalThis.Libertad || {};
   let isInterceptorBound = false;
   let currentModuleSettings = null;
 
+  function getShortsVideoId(url) {
+    if (typeof globalThis.Libertad?.parseYouTubeVideoId === 'function') {
+      return globalThis.Libertad.parseYouTubeVideoId(url);
+    }
+    const m = (url || '').match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
+
   function redirectShortsIfActive(settings, targetUrl) {
     const activeSettings = settings || currentModuleSettings;
     if (!activeSettings?.hideShorts) return;
@@ -21,14 +29,8 @@ globalThis.Libertad = globalThis.Libertad || {};
     } catch (_) {}
 
     if (path.startsWith('/shorts')) {
-      const parseId =
-        globalThis.Libertad.parseYouTubeVideoId ||
-        function (u) {
-          const m = u.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
-          return m ? m[1] : null;
-        };
       const videoId =
-        parseId(rawUrl) || path.split('/shorts/')[1]?.split(/[?&#/]/)[0];
+        getShortsVideoId(rawUrl) || path.split('/shorts/')[1]?.split(/[?&#/]/)[0];
       if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
         try {
           const parsedUrl = new URL(rawUrl, window.location.origin);
@@ -253,23 +255,6 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
   }
 
-  // DOM lifecycle event listeners to catch dynamically rendered chips as early as possible
-  if (typeof document !== 'undefined') {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => cleanShortsChips(), {
-        passive: true,
-      });
-    }
-    window.addEventListener('load', () => cleanShortsChips(), {
-      passive: true,
-    });
-    window.addEventListener('yt-navigate-finish', () => cleanShortsChips(), {
-      passive: true,
-    });
-    window.addEventListener('yt-page-data-updated', () => cleanShortsChips(), {
-      passive: true,
-    });
-  }
 
   const shortsModule = {
     init(settings) {

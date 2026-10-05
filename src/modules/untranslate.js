@@ -40,6 +40,14 @@ globalThis.Libertad = globalThis.Libertad || {};
   let latestOriginalMetadata = null;
   let activeUntranslateSettings = null;
 
+  function getVideoId(url) {
+    if (typeof globalThis.Libertad?.parseYouTubeVideoId === 'function') {
+      return globalThis.Libertad.parseYouTubeVideoId(url);
+    }
+    const m = (url || '').match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
+
   const feedFetchQueue = [];
   const pendingFeedVideoIds = new Set();
   const observedTitleNodesByVideoId = new Map();
@@ -71,14 +79,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       return;
     }
 
-    const parseId =
-      globalThis.Libertad.parseYouTubeVideoId ||
-      function (u) {
-        const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-        return m ? m[1] : null;
-      };
-
-    const currentVid = parseId(window.location.href);
+    const currentVid = getVideoId(window.location.href);
     if (currentVid && currentVid !== videoId) {
       return;
     }
@@ -262,14 +263,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   function applyWatchTitle(originalTitle, videoId) {
     if (!originalTitle?.trim()) return false;
 
-    const parseId =
-      globalThis.Libertad.parseYouTubeVideoId ||
-      function (u) {
-        const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-        return m ? m[1] : null;
-      };
-
-    const currentParam = parseId(window.location.href);
+    const currentParam = getVideoId(window.location.href);
     if (videoId && currentParam && currentParam !== videoId) {
       return false;
     }
@@ -316,14 +310,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
     if (window.location.pathname !== '/watch') return;
 
-    const parseId =
-      globalThis.Libertad.parseYouTubeVideoId ||
-      function (u) {
-        const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-        return m ? m[1] : null;
-      };
-
-    const videoId = parseId(window.location.href);
+    const videoId = getVideoId(window.location.href);
     if (!videoId) return;
 
     if (currentWatchVideoId !== videoId) {
@@ -406,21 +393,14 @@ globalThis.Libertad = globalThis.Libertad || {};
   function extractVideoId(el) {
     if (!el) return null;
 
-    const parseId =
-      globalThis.Libertad.parseYouTubeVideoId ||
-      function (u) {
-        const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-        return m ? m[1] : null;
-      };
-
     if (el.tagName === 'A' && el.href) {
-      const foundId = parseId(el.href);
+      const foundId = getVideoId(el.href);
       if (foundId) return foundId;
     }
 
     const a = el.closest('a');
     if (a?.href) {
-      const foundId = parseId(a.href);
+      const foundId = getVideoId(a.href);
       if (foundId) return foundId;
     }
 
@@ -724,14 +704,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
     if (window.location.pathname !== '/watch') return;
 
-    const parseId =
-      globalThis.Libertad.parseYouTubeVideoId ||
-      function (u) {
-        const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-        return m ? m[1] : null;
-      };
-
-    const videoId = parseId(window.location.href);
+    const videoId = getVideoId(window.location.href);
     if (!videoId) return;
 
     if (!latestOriginalMetadata || latestOriginalMetadata.videoId !== videoId) {
@@ -817,14 +790,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
     if (window.location.pathname !== '/watch') return;
 
-    const parseId =
-      globalThis.Libertad.parseYouTubeVideoId ||
-      function (u) {
-        const m = u.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-        return m ? m[1] : null;
-      };
-
-    const videoId = parseId(window.location.href);
+    const videoId = getVideoId(window.location.href);
     if (!videoId) return;
 
     if (lastRestoredChaptersVideoId === videoId) return;
@@ -869,6 +835,189 @@ globalThis.Libertad = globalThis.Libertad || {};
       });
       lastRestoredChaptersVideoId = videoId;
     }
+  }
+
+  const untranslateModule = {
+    init(settings) {
+      activeUntranslateSettings = settings;
+      if (
+        settings?.untranslateMaster !== false &&
+        settings?.untranslateTitles !== false
+      ) {
+        untranslateFeed(settings);
+        if (window.location.pathname === '/watch') {
+          updateWatchTitle(settings);
+        }
+      }
+      if (
+        settings?.untranslateMaster !== false &&
+        settings?.untranslateAudio !== false &&
+        window.location.pathname === '/watch'
+      ) {
+        enforceOriginalAudioTrack(settings);
+      }
+      if (
+        settings?.untranslateMaster !== false &&
+        settings?.untranslateDescription !== false &&
+        window.location.pathname === '/watch'
+      ) {
+        restoreOriginalDescription(settings);
+      }
+      if (
+        settings?.untranslateMaster !== false &&
+        settings?.untranslateCaptions !== false &&
+        window.location.pathname === '/watch'
+      ) {
+        neutralizeAutoTranslatedCaptions(settings);
+      }
+      if (
+        settings?.untranslateMaster !== false &&
+        settings?.untranslateChapters !== false &&
+        window.location.pathname === '/watch'
+      ) {
+        restoreOriginalChapters(settings);
+      }
+    },
+
+    onNavigate(_url, settings, phase) {
+      activeUntranslateSettings = settings;
+      if (phase === 'start') {
+        resetUntranslateNavigation();
+        return;
+      }
+      if (
+        settings?.untranslateMaster !== false &&
+        settings?.untranslateTitles !== false
+      ) {
+        const isWatch = window.location.pathname === '/watch';
+        const isHome =
+          window.location.pathname === '/' || window.location.pathname === '';
+        if (
+          (!isHome || !settings?.hideHomeFeed) &&
+          (!isWatch || !settings?.hideSidebar)
+        ) {
+          debouncedUntranslateFeed(settings);
+        }
+        if (isWatch) {
+          updateWatchTitle(settings);
+        }
+      }
+      if (window.location.pathname === '/watch') {
+        if (
+          settings?.untranslateMaster !== false &&
+          settings?.untranslateAudio !== false
+        ) {
+          enforceOriginalAudioTrack(settings);
+        }
+        if (
+          settings?.untranslateMaster !== false &&
+          settings?.untranslateDescription !== false
+        ) {
+          restoreOriginalDescription(settings);
+        }
+        if (
+          settings?.untranslateMaster !== false &&
+          settings?.untranslateCaptions !== false
+        ) {
+          neutralizeAutoTranslatedCaptions(settings);
+        }
+        if (
+          settings?.untranslateMaster !== false &&
+          settings?.untranslateChapters !== false
+        ) {
+          restoreOriginalChapters(settings);
+        }
+      }
+    },
+
+    onSettingsChange(settings, changes) {
+      activeUntranslateSettings = settings;
+      const untranslateKeys = [
+        'untranslateMaster',
+        'untranslateTitles',
+        'untranslateAudio',
+        'untranslateDescription',
+        'untranslateCaptions',
+        'untranslateChapters',
+      ];
+      const hasUntranslateChange = changes
+        ? untranslateKeys.some((k) => Object.hasOwn(changes, k))
+        : true;
+
+      if (!hasUntranslateChange) return;
+
+      if (
+        settings?.untranslateMaster !== false &&
+        settings?.untranslateTitles !== false
+      ) {
+        updateWatchTitle(settings);
+        untranslateFeed(settings);
+      }
+      if (
+        settings?.untranslateMaster !== false &&
+        settings?.untranslateAudio !== false
+      ) {
+        enforceOriginalAudioTrack(settings);
+      }
+      if (
+        settings?.untranslateMaster !== false &&
+        settings?.untranslateDescription !== false
+      ) {
+        restoreOriginalDescription(settings);
+      }
+      if (
+        settings?.untranslateMaster !== false &&
+        settings?.untranslateCaptions !== false
+      ) {
+        neutralizeAutoTranslatedCaptions(settings);
+      }
+      if (
+        settings?.untranslateMaster !== false &&
+        settings?.untranslateChapters !== false
+      ) {
+        restoreOriginalChapters(settings);
+      }
+    },
+
+    onDomMutation(settings) {
+      activeUntranslateSettings = settings;
+      if (settings?.untranslateMaster === false) return;
+
+      const activePath = window.location.pathname;
+      const isWatch = activePath === '/watch';
+
+      if (isWatch) {
+        if (settings?.untranslateTitles !== false) {
+          updateWatchTitle(settings);
+        }
+        if (settings?.untranslateDescription !== false) {
+          restoreOriginalDescription(settings);
+        }
+        if (settings?.untranslateChapters !== false) {
+          restoreOriginalChapters(settings);
+        }
+      }
+
+      if (settings?.untranslateTitles !== false) {
+        const isHome = activePath === '/' || activePath === '';
+        if (
+          (!isHome || !settings?.hideHomeFeed) &&
+          (!isWatch || !settings?.hideSidebar)
+        ) {
+          debouncedUntranslateFeed(settings);
+        }
+      }
+    },
+
+    destroy() {
+      resetUntranslateNavigation();
+      activeUntranslateSettings = null;
+    },
+  };
+
+  // Self-register in the plugin engine
+  if (typeof globalThis.Libertad.registerModule === 'function') {
+    globalThis.Libertad.registerModule('untranslate', untranslateModule);
   }
 
   globalThis.Libertad.updateWatchTitle = updateWatchTitle;

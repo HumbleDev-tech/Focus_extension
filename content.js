@@ -82,28 +82,6 @@
     safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
     safeRun('cleanAutoplay', Libertad.cleanAutoplay, currentSettings);
     safeRun('cleanSidebar', Libertad.cleanSidebar, currentSettings);
-    safeRun('updateWatchTitle', Libertad.updateWatchTitle, currentSettings);
-    safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
-    safeRun(
-      'enforceOriginalAudioTrack',
-      Libertad.enforceOriginalAudioTrack,
-      currentSettings,
-    );
-    safeRun(
-      'restoreOriginalDescription',
-      Libertad.restoreOriginalDescription,
-      currentSettings,
-    );
-    safeRun(
-      'neutralizeAutoTranslatedCaptions',
-      Libertad.neutralizeAutoTranslatedCaptions,
-      currentSettings,
-    );
-    safeRun(
-      'restoreOriginalChapters',
-      Libertad.restoreOriginalChapters,
-      currentSettings,
-    );
     broadcastAgentSettings();
   }
 
@@ -159,15 +137,11 @@
     if (areaName !== 'local' && chrome.storage?.local) return;
 
     let stylesChanged = false;
-    let titleChanged = false;
 
     for (const key in changes) {
       currentSettings[key] = changes[key].newValue;
       if (key === 'showDislikes' || key === 'hideLikeDislike') {
         stylesChanged = true;
-      }
-      if (key.startsWith('untranslate')) {
-        titleChanged = true;
       }
       if (key === 'hideShorts' || key === 'redirectHomeToSubscriptions') {
         stylesChanged = true;
@@ -205,30 +179,6 @@
       currentSettings,
       changes,
     );
-    if (titleChanged) {
-      safeRun('updateWatchTitle', Libertad.updateWatchTitle, currentSettings);
-      safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
-      safeRun(
-        'enforceOriginalAudioTrack',
-        Libertad.enforceOriginalAudioTrack,
-        currentSettings,
-      );
-      safeRun(
-        'restoreOriginalDescription',
-        Libertad.restoreOriginalDescription,
-        currentSettings,
-      );
-      safeRun(
-        'neutralizeAutoTranslatedCaptions',
-        Libertad.neutralizeAutoTranslatedCaptions,
-        currentSettings,
-      );
-      safeRun(
-        'restoreOriginalChapters',
-        Libertad.restoreOriginalChapters,
-        currentSettings,
-      );
-    }
   });
 
   let lastCheckedHref = window.location.href;
@@ -368,54 +318,6 @@
           }
           if (currentSettings.hideLiveChat) {
             safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
-          }
-          if (
-            currentSettings.untranslateMaster !== false &&
-            currentSettings.untranslateTitles !== false
-          ) {
-            safeRun(
-              'updateWatchTitle',
-              Libertad.updateWatchTitle,
-              currentSettings,
-            );
-          }
-          if (
-            currentSettings.untranslateMaster !== false &&
-            currentSettings.untranslateDescription !== false
-          ) {
-            safeRun(
-              'restoreOriginalDescription',
-              Libertad.restoreOriginalDescription,
-              currentSettings,
-            );
-          }
-          if (
-            currentSettings.untranslateMaster !== false &&
-            currentSettings.untranslateChapters !== false
-          ) {
-            safeRun(
-              'restoreOriginalChapters',
-              Libertad.restoreOriginalChapters,
-              currentSettings,
-            );
-          }
-        }
-
-        if (
-          currentSettings.untranslateMaster !== false &&
-          currentSettings.untranslateTitles !== false
-        ) {
-          const isWatch = activePath === '/watch';
-          const isHome = activePath === '/' || activePath === '';
-          if (
-            (!isHome || !currentSettings.hideHomeFeed) &&
-            (!isWatch || !currentSettings.hideSidebar)
-          ) {
-            safeRun(
-              'debouncedUntranslateFeed',
-              Libertad.debouncedUntranslateFeed,
-              currentSettings,
-            );
           }
         }
       });
