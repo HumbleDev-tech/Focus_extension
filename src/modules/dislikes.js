@@ -297,10 +297,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         } catch (_) {}
         if (!lang) {
           try {
-            if (
-              typeof chrome !== 'undefined' &&
-              chrome.i18n?.getUILanguage
-            ) {
+            if (typeof chrome !== 'undefined' && chrome.i18n?.getUILanguage) {
               const uiLang = chrome.i18n.getUILanguage();
               if (globalThis.Libertad?.isSpanishLocale?.(uiLang)) lang = 'es';
               else if (globalThis.Libertad?.isPortugueseLocale?.(uiLang))

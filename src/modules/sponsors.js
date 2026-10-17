@@ -966,7 +966,8 @@ globalThis.Libertad = globalThis.Libertad || {};
   globalThis.Libertad.getMainPlayerProgressBar = getMainPlayerProgressBar;
   globalThis.Libertad.hasActiveSponsorContainer = () =>
     Boolean(activeSponsorContainer?.isConnected);
-  globalThis.Libertad.getCurrentSponsorSegments = () =>
-    [...currentSponsorSegments];
+  globalThis.Libertad.getCurrentSponsorSegments = () => [
+    ...currentSponsorSegments,
+  ];
   globalThis.Libertad.getCurrentSponsorVideoId = () => currentSponsorVideoId;
 })();

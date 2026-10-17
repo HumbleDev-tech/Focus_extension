@@ -1932,7 +1932,11 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   function matchesWatchPlayText(str) {
     if (!str || typeof str !== 'string') return false;
-    const clean = str.replace(/[–—]/g, '-').replace(/\s+/g, ' ').trim().toLowerCase();
+    const clean = str
+      .replace(/[–—]/g, '-')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
     for (let i = 0; i < WATCH_PLAY_PHRASES.length; i++) {
       if (clean.includes(WATCH_PLAY_PHRASES[i])) return true;
     }
@@ -1956,9 +1960,9 @@ globalThis.Libertad = globalThis.Libertad || {};
       // 1. Tag explicit link targets (e.g. /playables, list=WL, watch-and-play)
       const explicitAnchors = document.querySelectorAll(
         '#guide a[href*="/playables"], #mini-guide a[href*="/playables"], ytd-guide-renderer a[href*="/playables"], ytd-mini-guide-renderer a[href*="/playables"], ' +
-        '#secondary a[href*="/playables"], ytd-watch-next-secondary-results-renderer a[href*="/playables"], ytd-horizontal-card-list-renderer a[href*="/playables"], ' +
-'#guide a[href*="list=WL"], #mini-guide a[href*="list=WL"], ytd-guide-renderer a[href*="list=WL"], ytd-mini-guide-renderer a[href*="list=WL"], ' +
-        'a[href*="watch_and_play"], a[href*="watch-and-play"]',
+          '#secondary a[href*="/playables"], ytd-watch-next-secondary-results-renderer a[href*="/playables"], ytd-horizontal-card-list-renderer a[href*="/playables"], ' +
+          '#guide a[href*="list=WL"], #mini-guide a[href*="list=WL"], ytd-guide-renderer a[href*="list=WL"], ytd-mini-guide-renderer a[href*="list=WL"], ' +
+          'a[href*="watch_and_play"], a[href*="watch-and-play"]',
       );
       for (let i = 0; i < explicitAnchors.length; i++) {
         const anchor = explicitAnchors[i];
@@ -1976,8 +1980,8 @@ globalThis.Libertad = globalThis.Libertad || {};
       // 2. Scan all candidate entries in sidebar and feed containers for title, aria, and textContent
       const containers = document.querySelectorAll(
         'ytd-guide-entry-renderer, ytd-mini-guide-entry-renderer, ytd-guide-collapsible-entry-renderer, ytd-guide-sub-entry-renderer, ' +
-        'yt-list-item-view-model, ytd-guide-section-renderer, ytd-rich-section-renderer, ytd-rich-shelf-renderer, ' +
-        'ytd-statement-banner-renderer, ytd-banner-promo-renderer, ytd-feed-nudge-renderer, ytd-horizontal-card-list-renderer',
+          'yt-list-item-view-model, ytd-guide-section-renderer, ytd-rich-section-renderer, ytd-rich-shelf-renderer, ' +
+          'ytd-statement-banner-renderer, ytd-banner-promo-renderer, ytd-feed-nudge-renderer, ytd-horizontal-card-list-renderer',
       );
 
       for (let i = 0; i < containers.length; i++) {
