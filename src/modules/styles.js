@@ -786,6 +786,43 @@ globalThis.Libertad = globalThis.Libertad || {};
       `);
     }
 
+    // Left Drawer & Home Feed Watch & Play ("Play while watching videos")
+    if (settings.hideWatchPlay) {
+      rules.push(`
+        /* Watch & Play: Sidebar & Guide entries by exact or partial title/aria */
+        ytd-guide-entry-renderer:has(:is([title*="Watch & Play" i], [aria-label*="Watch & Play" i], [title*="Watch and Play" i], [aria-label*="Watch and Play" i], [title*="Play while watching" i], [aria-label*="Play while watching" i])),
+        ytd-mini-guide-entry-renderer:has(:is([title*="Watch & Play" i], [aria-label*="Watch & Play" i], [title*="Watch and Play" i], [aria-label*="Watch and Play" i], [title*="Play while watching" i], [aria-label*="Play while watching" i])),
+        ytd-guide-collapsible-entry-renderer:has(:is([title*="Watch & Play" i], [aria-label*="Watch & Play" i], [title*="Watch and Play" i], [aria-label*="Watch and Play" i], [title*="Play while watching" i], [aria-label*="Play while watching" i])),
+        ytd-guide-sub-entry-renderer:has(:is([title*="Watch & Play" i], [aria-label*="Watch & Play" i], [title*="Watch and Play" i], [aria-label*="Watch and Play" i], [title*="Play while watching" i], [aria-label*="Play while watching" i])),
+        ytd-guide-section-renderer:has(:is([title*="Watch & Play" i], [aria-label*="Watch & Play" i], [title*="Watch and Play" i], [aria-label*="Watch and Play" i], [title*="Play while watching" i], [aria-label*="Play while watching" i])),
+        yt-list-item-view-model:has(:is([title*="Watch & Play" i], [aria-label*="Watch & Play" i], [title*="Watch and Play" i], [aria-label*="Watch and Play" i], [title*="Play while watching" i], [aria-label*="Play while watching" i])),
+
+        /* Watch & Play: Home feed shelves and promo banners */
+        ytd-rich-section-renderer:has(:is([title*="Watch & Play" i], [aria-label*="Watch & Play" i], [title*="Watch and Play" i], [aria-label*="Watch and Play" i], [title*="Play while watching" i], [aria-label*="Play while watching" i])),
+        ytd-rich-shelf-renderer:has(:is([title*="Watch & Play" i], [aria-label*="Watch & Play" i], [title*="Watch and Play" i], [aria-label*="Watch and Play" i], [title*="Play while watching" i], [aria-label*="Play while watching" i])),
+        ytd-statement-banner-renderer:has(:is([title*="Watch & Play" i], [aria-label*="Watch & Play" i], [title*="Play while watching" i], [aria-label*="Play while watching" i])),
+        ytd-banner-promo-renderer:has(:is([title*="Watch & Play" i], [aria-label*="Watch & Play" i], [title*="Play while watching" i], [aria-label*="Play while watching" i])),
+        ytd-feed-nudge-renderer:has(:is([title*="Watch & Play" i], [aria-label*="Watch & Play" i], [title*="Play while watching" i], [aria-label*="Play while watching" i])),
+
+        /* Multilingual variants (ES / PT) */
+        ytd-guide-entry-renderer:has(:is([title*="Ver y jugar" i], [aria-label*="Ver y jugar" i], [title*="Juega mientras" i], [aria-label*="Juega mientras" i], [title*="Jugar mientras" i], [aria-label*="Jugar mientras" i])),
+        ytd-guide-section-renderer:has(:is([title*="Ver y jugar" i], [aria-label*="Ver y jugar" i], [title*="Juega mientras" i], [aria-label*="Juega mientras" i], [title*="Jugar mientras" i], [aria-label*="Jugar mientras" i])),
+        ytd-rich-section-renderer:has(:is([title*="Ver y jugar" i], [aria-label*="Ver y jugar" i], [title*="Juega mientras" i], [aria-label*="Juega mientras" i])),
+
+        /* Playables & Watch Later URLs */
+        ytd-guide-entry-renderer:has(a[href*="/playables"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="/playables"]),
+        ytd-rich-section-renderer:has(a[href*="/playables"]),
+        ytd-guide-entry-renderer:has(a[href*="list=WL"]),
+        ytd-mini-guide-entry-renderer:has(a[href*="list=WL"]),
+
+        /* Dynamically Tagged Entries (Any Container, Language-Independent) */
+        [data-libertad-watchplay="true"] {
+          display: none !important;
+        }
+      `);
+    }
+
     // Left Drawer Trending Links
     if (settings.hideTrending) {
       rules.push(`
@@ -1409,6 +1446,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       styleEl.textContent = cachedStylesheetCss;
     }
     cleanSidebar(settings);
+    cleanWatchPlay(settings);
   }
 
   let chatResizeTimer = null;
@@ -1875,6 +1913,94 @@ globalThis.Libertad = globalThis.Libertad || {};
     } catch (_) {}
   }
 
+  // Resilient DOM tagger for Watch & Play ("Play while watching videos") shortcuts and cards
+  const WATCH_PLAY_PHRASES = [
+    'watch & play',
+    'watch and play',
+    'play while watching',
+    'ver y jugar',
+    'ver & jugar',
+    'juega mientras miras',
+    'jugar mientras miras',
+    'jugar mientras ves',
+    'juega mientras ves',
+    'assistir e jogar',
+    'assistir & jogar',
+    'jogue enquanto assiste',
+  ];
+
+  function matchesWatchPlayText(str) {
+    if (!str || typeof str !== 'string') return false;
+    const clean = str.replace(/[–—]/g, '-').replace(/\s+/g, ' ').trim().toLowerCase();
+    for (let i = 0; i < WATCH_PLAY_PHRASES.length; i++) {
+      if (clean.includes(WATCH_PLAY_PHRASES[i])) return true;
+    }
+    return false;
+  }
+
+  function cleanWatchPlay(settings) {
+    if (!settings?.hideWatchPlay) {
+      const taggedEntries = document.querySelectorAll(
+        '[data-libertad-watchplay]',
+      );
+      for (let i = 0; i < taggedEntries.length; i++) {
+        taggedEntries[i].removeAttribute('data-libertad-watchplay');
+        taggedEntries[i].classList.remove('libertad-force-hide');
+        taggedEntries[i].style.removeProperty('display');
+      }
+      return;
+    }
+
+    try {
+      // 1. Tag explicit link targets (e.g. /playables, list=WL, watch-and-play)
+      const explicitAnchors = document.querySelectorAll(
+        '#guide a[href*="/playables"], #mini-guide a[href*="/playables"], ytd-guide-renderer a[href*="/playables"], ytd-mini-guide-renderer a[href*="/playables"], ' +
+        '#guide a[href*="list=WL"], #mini-guide a[href*="list=WL"], ytd-guide-renderer a[href*="list=WL"], ytd-mini-guide-renderer a[href*="list=WL"], ' +
+        'a[href*="watch_and_play"], a[href*="watch-and-play"]',
+      );
+      for (let i = 0; i < explicitAnchors.length; i++) {
+        const anchor = explicitAnchors[i];
+        const container =
+          anchor.closest(
+            'ytd-guide-entry-renderer, ytd-mini-guide-entry-renderer, ytd-guide-collapsible-entry-renderer, ytd-guide-sub-entry-renderer, yt-list-item-view-model, ytd-rich-section-renderer, ytd-rich-shelf-renderer',
+          ) || anchor;
+        if (container.getAttribute('data-libertad-watchplay') !== 'true') {
+          container.setAttribute('data-libertad-watchplay', 'true');
+          container.classList.add('libertad-force-hide');
+          container.style.setProperty('display', 'none', 'important');
+        }
+      }
+
+      // 2. Scan all candidate entries in sidebar and feed containers for title, aria, and textContent
+      const containers = document.querySelectorAll(
+        'ytd-guide-entry-renderer, ytd-mini-guide-entry-renderer, ytd-guide-collapsible-entry-renderer, ytd-guide-sub-entry-renderer, ' +
+        'yt-list-item-view-model, ytd-guide-section-renderer, ytd-rich-section-renderer, ytd-rich-shelf-renderer, ' +
+        'ytd-statement-banner-renderer, ytd-banner-promo-renderer, ytd-feed-nudge-renderer',
+      );
+
+      for (let i = 0; i < containers.length; i++) {
+        const c = containers[i];
+        if (c.getAttribute('data-libertad-watchplay') === 'true') continue;
+
+        const aria = c.getAttribute('aria-label') || '';
+        const title = c.getAttribute('title') || '';
+        const text = c.textContent || '';
+        const shadowText = c.shadowRoot ? c.shadowRoot.textContent || '' : '';
+
+        if (
+          matchesWatchPlayText(aria) ||
+          matchesWatchPlayText(title) ||
+          matchesWatchPlayText(text) ||
+          matchesWatchPlayText(shadowText)
+        ) {
+          c.setAttribute('data-libertad-watchplay', 'true');
+          c.classList.add('libertad-force-hide');
+          c.style.setProperty('display', 'none', 'important');
+        }
+      }
+    } catch (_) {}
+  }
+
   // Physical DOM switch sync for Autoplay suppression
   function cleanAutoplay(settings) {
     if (
@@ -1943,5 +2069,35 @@ globalThis.Libertad = globalThis.Libertad || {};
   globalThis.Libertad.cleanExplore = cleanExplore;
   globalThis.Libertad.cleanAutoplay = cleanAutoplay;
   globalThis.Libertad.cleanSidebar = cleanSidebar;
+  globalThis.Libertad.cleanWatchPlay = cleanWatchPlay;
   globalThis.Libertad.resetStylesNavigation = resetStylesNavigation;
+
+  // Self-register in the plugin engine (autonomous lifecycle: init, navigate, settings, mutations)
+  const watchPlayModule = {
+    init(settings) {
+      cleanWatchPlay(settings);
+    },
+
+    onNavigate(_url, settings) {
+      cleanWatchPlay(settings);
+    },
+
+    onSettingsChange(newSettings, _changes) {
+      cleanWatchPlay(newSettings);
+    },
+
+    onDomMutation(settings) {
+      if (settings?.hideWatchPlay) {
+        cleanWatchPlay(settings);
+      }
+    },
+
+    destroy() {
+      cleanWatchPlay({ hideWatchPlay: false });
+    },
+  };
+
+  if (typeof globalThis.Libertad.registerModule === 'function') {
+    globalThis.Libertad.registerModule('watchPlay', watchPlayModule);
+  }
 })();

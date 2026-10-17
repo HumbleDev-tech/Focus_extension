@@ -97,6 +97,7 @@ Whenever you fine-tune switches to your liking, save your configuration with **`
 | **Social Actions (Share, Save, 3-Dots)** | Shown | Shown | Shown | **Hidden** |
 | **Video Metrics (Likes, Views, Subs)** | Shown | Shown | Shown | **Hidden** |
 | **Feeds (Live Chat, Trending, More from YT)** | Shown | Shown | **Hidden** | **Hidden** |
+| **Sidebar Shortcuts (Watch & Play)** | Shown | Shown | **Hidden** | **Hidden** |
 
 *(Fine-tuning any switch dynamically expands the preset selector into 5 columns, activating `CUSTOM` both on the button track and in the header status pill).*
 
@@ -123,13 +124,13 @@ Macro blockers for YouTube's biggest time sinks:
 
 ### 2. UI Cleaner
 
-A modular grid of 29 granular toggles across 5 clear categories to remove visual noise:
+A modular grid of 30 granular toggles across 5 clear categories to remove visual noise:
 
 * **Header & Search:** Hide the voice search microphone, the "+" Create button, notifications bell, Google account avatar/profile picture, and feed filter topic chips.
 * **Player & Overlays:** Hide the autoplay switch, the up-next countdown overlay, channel watermarks, "Includes paid promotion" badges, the miniplayer button, **Play on TV** (Cast/Remote buttons and overlays), **Subtitles** (Closed Captions / CC button and caption overlays), and **Fullscreen Actions** (floating Like, Dislike, Comments, Share, and 3-dots quick action overlay).
 * **Action Buttons:** Strip clutter from the action bar: hide Ask AI, Download, Thanks & Clips, Join/Membership, Share, Save to playlist, and the 3-dots overflow menu.
 * **Metrics & Social Counters:** Hide the Like/Dislike button group, subscribe button, channel subscriber counts, and view/date counts.
-* **Feeds & Navigation:** Hide merch and shopping shelves, live stream chat and chat replays (with automatic Polymer player expansion), explore/trending links, and "More from YouTube" sidebar links.
+* **Feeds & Navigation:** Hide merch and shopping shelves, live stream chat and chat replays (with automatic Polymer player expansion), explore/trending links, the new **Watch & Play** sidebar shortcuts, and "More from YouTube" sidebar links.
 
 ---
 

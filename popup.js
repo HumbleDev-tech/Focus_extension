@@ -174,6 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hideMerchShelf: document.getElementById('toggleMerchShelf'),
     hideLiveChat: document.getElementById('toggleLiveChat'),
     hideExplore: document.getElementById('toggleExplore'),
+    hideWatchPlay: document.getElementById('toggleWatchPlay'),
     hideTrending: document.getElementById('toggleTrending'),
     hideMoreFromYoutube: document.getElementById('toggleMoreFromYoutube'),
     // Power Modules
