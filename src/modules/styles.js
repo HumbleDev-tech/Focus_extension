@@ -813,6 +813,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         ytd-guide-entry-renderer:has(a[href*="/playables"]),
         ytd-mini-guide-entry-renderer:has(a[href*="/playables"]),
         ytd-rich-section-renderer:has(a[href*="/playables"]),
+        ytd-horizontal-card-list-renderer:has(a[href*="/playables"]),
         ytd-guide-entry-renderer:has(a[href*="list=WL"]),
         ytd-mini-guide-entry-renderer:has(a[href*="list=WL"]),
 
@@ -1955,14 +1956,15 @@ globalThis.Libertad = globalThis.Libertad || {};
       // 1. Tag explicit link targets (e.g. /playables, list=WL, watch-and-play)
       const explicitAnchors = document.querySelectorAll(
         '#guide a[href*="/playables"], #mini-guide a[href*="/playables"], ytd-guide-renderer a[href*="/playables"], ytd-mini-guide-renderer a[href*="/playables"], ' +
-        '#guide a[href*="list=WL"], #mini-guide a[href*="list=WL"], ytd-guide-renderer a[href*="list=WL"], ytd-mini-guide-renderer a[href*="list=WL"], ' +
+        '#secondary a[href*="/playables"], ytd-watch-next-secondary-results-renderer a[href*="/playables"], ytd-horizontal-card-list-renderer a[href*="/playables"], ' +
+'#guide a[href*="list=WL"], #mini-guide a[href*="list=WL"], ytd-guide-renderer a[href*="list=WL"], ytd-mini-guide-renderer a[href*="list=WL"], ' +
         'a[href*="watch_and_play"], a[href*="watch-and-play"]',
       );
       for (let i = 0; i < explicitAnchors.length; i++) {
         const anchor = explicitAnchors[i];
         const container =
           anchor.closest(
-            'ytd-guide-entry-renderer, ytd-mini-guide-entry-renderer, ytd-guide-collapsible-entry-renderer, ytd-guide-sub-entry-renderer, yt-list-item-view-model, ytd-rich-section-renderer, ytd-rich-shelf-renderer',
+            'ytd-guide-entry-renderer, ytd-mini-guide-entry-renderer, ytd-guide-collapsible-entry-renderer, ytd-guide-sub-entry-renderer, yt-list-item-view-model, ytd-rich-section-renderer, ytd-rich-shelf-renderer, ytd-horizontal-card-list-renderer',
           ) || anchor;
         if (container.getAttribute('data-libertad-watchplay') !== 'true') {
           container.setAttribute('data-libertad-watchplay', 'true');
@@ -1975,7 +1977,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       const containers = document.querySelectorAll(
         'ytd-guide-entry-renderer, ytd-mini-guide-entry-renderer, ytd-guide-collapsible-entry-renderer, ytd-guide-sub-entry-renderer, ' +
         'yt-list-item-view-model, ytd-guide-section-renderer, ytd-rich-section-renderer, ytd-rich-shelf-renderer, ' +
-        'ytd-statement-banner-renderer, ytd-banner-promo-renderer, ytd-feed-nudge-renderer',
+        'ytd-statement-banner-renderer, ytd-banner-promo-renderer, ytd-feed-nudge-renderer, ytd-horizontal-card-list-renderer',
       );
 
       for (let i = 0; i < containers.length; i++) {
