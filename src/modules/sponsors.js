@@ -8,10 +8,11 @@ globalThis.Libertad = globalThis.Libertad || {};
 (function () {
   'use strict';
 
+  // Safe fallback: only used if cache.js failed to load (should not happen in production).
   const BoundedCache =
-    globalThis.Libertad.BoundedCache ||
+    globalThis.Libertad?.BoundedCache ||
     class {
-      constructor() {
+      constructor(_maxSize) {
         this.map = new Map();
       }
       get(k) {
@@ -22,6 +23,9 @@ globalThis.Libertad = globalThis.Libertad || {};
       }
       has(k) {
         return this.map.has(k);
+      }
+      delete(k) {
+        return this.map.delete(k);
       }
       clear() {
         this.map.clear();
@@ -962,6 +966,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   globalThis.Libertad.getMainPlayerProgressBar = getMainPlayerProgressBar;
   globalThis.Libertad.hasActiveSponsorContainer = () =>
     Boolean(activeSponsorContainer?.isConnected);
-  globalThis.Libertad.getCurrentSponsorSegments = () => currentSponsorSegments;
+  globalThis.Libertad.getCurrentSponsorSegments = () =>
+    [...currentSponsorSegments];
   globalThis.Libertad.getCurrentSponsorVideoId = () => currentSponsorVideoId;
 })();

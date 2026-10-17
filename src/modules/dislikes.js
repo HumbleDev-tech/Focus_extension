@@ -8,10 +8,12 @@ globalThis.Libertad = globalThis.Libertad || {};
 (function () {
   'use strict';
 
+  // Safe fallback: only used if cache.js failed to load (should not happen in production).
+  // Kept unbounded but API-compatible so the module never crashes on instantiation.
   const BoundedCache =
-    globalThis.Libertad.BoundedCache ||
+    globalThis.Libertad?.BoundedCache ||
     class {
-      constructor() {
+      constructor(_maxSize) {
         this.map = new Map();
       }
       get(k) {
@@ -22,6 +24,9 @@ globalThis.Libertad = globalThis.Libertad || {};
       }
       has(k) {
         return this.map.has(k);
+      }
+      delete(k) {
+        return this.map.delete(k);
       }
       clear() {
         this.map.clear();
@@ -275,7 +280,60 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (targetNode.textContent !== formattedCount) {
       targetNode.textContent = formattedCount;
     }
-    nativeBtn.setAttribute('aria-label', `Dislike (${formattedCount})`);
+
+    // Preserve the original (localized) aria label and only append the restored count,
+    // falling back to a localized base label when the original was missing.
+    const origAria = nativeBtn.getAttribute('data-libertad-orig-aria');
+    const baseLabel =
+      origAria ||
+      (function resolveDislikeBaseLabel() {
+        let lang = null;
+        try {
+          const cached = sessionStorage.getItem('libertad_settings');
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (parsed?.lang && parsed.lang !== 'auto') lang = parsed.lang;
+          }
+        } catch (_) {}
+        if (!lang) {
+          try {
+            if (
+              typeof chrome !== 'undefined' &&
+              chrome.i18n?.getUILanguage
+            ) {
+              const uiLang = chrome.i18n.getUILanguage();
+              if (globalThis.Libertad?.isSpanishLocale?.(uiLang)) lang = 'es';
+              else if (globalThis.Libertad?.isPortugueseLocale?.(uiLang))
+                lang = 'pt';
+            }
+          } catch (_) {}
+        }
+        if (!lang && typeof navigator !== 'undefined') {
+          const navLangs = Array.isArray(navigator.languages)
+            ? navigator.languages
+            : navigator.language
+              ? [navigator.language]
+              : [];
+          for (let i = 0; i < navLangs.length; i++) {
+            const l = navLangs[i];
+            if (globalThis.Libertad?.isSpanishLocale?.(l)) {
+              lang = 'es';
+              break;
+            }
+            if (globalThis.Libertad?.isPortugueseLocale?.(l)) {
+              lang = 'pt';
+              break;
+            }
+          }
+        }
+        if (!lang) lang = 'en';
+        return lang === 'es'
+          ? 'No me gusta'
+          : lang === 'pt'
+            ? 'Não gostei'
+            : 'Dislike';
+      })();
+    nativeBtn.setAttribute('aria-label', `${baseLabel} (${formattedCount})`);
   }
 
   function removeDislikeBadge() {

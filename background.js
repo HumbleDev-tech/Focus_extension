@@ -160,6 +160,13 @@ const titlesCache = new Map();
 const sponsorsCache = new Map();
 const MAX_SW_CACHE_SIZE = 200;
 const YOUTUBE_VIDEO_ID_REGEX = /^[a-zA-Z0-9_-]{11}$/;
+// Time-to-live (ms) for cached payloads per cache prefix. Prevents stale data in long-lived sessions.
+const CACHE_TTL_MS = {
+  dislikes: 10 * 60 * 1000,
+  titles: 30 * 60 * 1000,
+  sponsors: 30 * 60 * 1000,
+};
+const DEFAULT_CACHE_TTL_MS = 10 * 60 * 1000;
 
 const inFlightDislikes = new Map();
 const inFlightTitles = new Map();
@@ -214,19 +221,41 @@ function recordSessionKey(prefix, storageKey) {
 }
 
 async function getFromCache(cacheMap, prefix, key) {
+  const ttl = CACHE_TTL_MS[prefix] || DEFAULT_CACHE_TTL_MS;
+  // L1 (in-memory)
   if (cacheMap.has(key)) {
-    const val = cacheMap.get(key);
-    cacheMap.delete(key);
-    cacheMap.set(key, val);
-    return val;
+    const entry = cacheMap.get(key);
+    if (entry && typeof entry === 'object' && '__lib_ts' in entry) {
+      if (Date.now() - entry.__lib_ts > (entry.__lib_ttl || ttl)) {
+        cacheMap.delete(key);
+      } else {
+        // Refresh LRU order without eviction
+        cacheMap.delete(key);
+        cacheMap.set(key, entry);
+        return entry.value;
+      }
+    } else {
+      // Legacy unwrapped entry: return as-is for backward compatibility
+      return entry;
+    }
   }
+  // L2 (session storage)
   if (chrome.storage?.session) {
     try {
       const storageKey = `${prefix}_${key}`;
       const res = await chrome.storage.session.get(storageKey);
       if (res && res[storageKey] !== undefined) {
-        setBoundedCache(cacheMap, key, res[storageKey]);
-        return res[storageKey];
+        const entry = res[storageKey];
+        if (entry && typeof entry === 'object' && '__lib_ts' in entry) {
+          if (Date.now() - entry.__lib_ts > (entry.__lib_ttl || ttl)) {
+            await chrome.storage.session.remove(storageKey);
+            return undefined;
+          }
+          setBoundedCache(cacheMap, key, entry);
+          return entry.value;
+        }
+        // Legacy unwrapped entry
+        return entry;
       }
     } catch (_) {}
   }
@@ -234,11 +263,13 @@ async function getFromCache(cacheMap, prefix, key) {
 }
 
 async function setToCache(cacheMap, prefix, key, value) {
-  setBoundedCache(cacheMap, key, value);
+  const ttl = CACHE_TTL_MS[prefix] || DEFAULT_CACHE_TTL_MS;
+  const entry = { __lib_ts: Date.now(), __lib_ttl: ttl, value };
+  setBoundedCache(cacheMap, key, entry);
   if (chrome.storage?.session) {
     try {
       const storageKey = `${prefix}_${key}`;
-      await chrome.storage.session.set({ [storageKey]: value });
+      await chrome.storage.session.set({ [storageKey]: entry });
       await recordSessionKey(prefix, storageKey);
     } catch (_) {}
   }

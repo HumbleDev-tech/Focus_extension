@@ -2074,6 +2074,108 @@ globalThis.Libertad = globalThis.Libertad || {};
   globalThis.Libertad.cleanWatchPlay = cleanWatchPlay;
   globalThis.Libertad.resetStylesNavigation = resetStylesNavigation;
 
+  // Autonomous styles module: owns applyStyles + DOM cleaners (decoupled from content.js orchestrator)
+  let stylesLastFlexySyncedHref = null;
+  const stylesModule = {
+    init(settings) {
+      applyStyles(settings);
+      cleanLiveChat(settings);
+      cleanExplore(settings);
+      cleanAutoplay(settings);
+      cleanSidebar(settings);
+    },
+    onNavigate(_url, settings, phase) {
+      if (phase === 'start') {
+        stylesLastFlexySyncedHref = null;
+        resetStylesNavigation();
+        // Restore YouTube's collapsed-chat state between SPA navigations
+        // (mirrors the cleanup that previously lived in content.js).
+        const flexy = document.querySelector('ytd-watch-flexy');
+        if (flexy?.hasAttribute('flexy-chat-collapsed_')) {
+          flexy.removeAttribute('flexy-chat-collapsed_');
+        }
+        return;
+      }
+      if (phase === 'finish') {
+        stylesLastFlexySyncedHref = window.location.href;
+        resetStylesNavigation();
+        applyStyles(settings);
+        cleanLiveChat(settings);
+        cleanExplore(settings);
+        cleanAutoplay(settings);
+        cleanSidebar(settings);
+      }
+    },
+    onSettingsChange(newSettings, changes) {
+      if (changes) {
+        const keys = Object.keys(changes);
+        const relevant =
+          keys.length === 0 ||
+          keys.some((k) => {
+            if (
+              k === 'preset' ||
+              k === 'lang' ||
+              k === 'theme' ||
+              k === 'scale' ||
+              k === 'showDislikes' ||
+              k === 'hideLikeDislike'
+            ) {
+              return true;
+            }
+            return (
+              typeof TOGGLE_KEYS !== 'undefined' && TOGGLE_KEYS.includes(k)
+            );
+          });
+        if (!relevant) return;
+      }
+      applyStyles(newSettings);
+      cleanLiveChat(newSettings);
+      cleanExplore(newSettings);
+      cleanAutoplay(newSettings);
+      cleanSidebar(newSettings);
+    },
+    onDomMutation(settings) {
+      const activePath = window.location.pathname;
+      const activeHref = window.location.href;
+
+      if (settings?.hideExplore) {
+        const isWatch =
+          activePath === '/watch' || activePath.startsWith('/live');
+        const isGuideOpen = Boolean(
+          document.querySelector(
+            'ytd-app[guide-persistent-and-visible], ytd-guide-renderer[opened]',
+          ),
+        );
+        if (!isWatch || isGuideOpen) {
+          cleanExplore(settings);
+        }
+      }
+
+      if (activePath === '/watch') {
+        if (
+          stylesLastFlexySyncedHref !== activeHref &&
+          document.querySelector('ytd-watch-flexy')
+        ) {
+          stylesLastFlexySyncedHref = activeHref;
+          cleanSidebar(settings);
+        }
+        if (settings?.hideAutoplay) {
+          cleanAutoplay(settings);
+        }
+        if (settings?.hideLiveChat) {
+          cleanLiveChat(settings);
+        }
+      }
+    },
+    destroy() {
+      stylesLastFlexySyncedHref = null;
+    },
+  };
+
+  if (typeof globalThis.Libertad.registerModule === 'function') {
+    globalThis.Libertad.registerModule('styles', stylesModule);
+  }
+
   // Self-register in the plugin engine (autonomous lifecycle: init, navigate, settings, mutations)
   const watchPlayModule = {
     init(settings) {

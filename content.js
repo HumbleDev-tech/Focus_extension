@@ -3,7 +3,6 @@
  * Central lifecycle entry point connecting modular engines:
  * Cache, Utils, Styles, Shorts, Subscriptions, Dislikes, Sponsors, and Untranslate.
  */
-
 (function () {
   'use strict';
 
@@ -75,26 +74,12 @@
   // Apply styles immediately at document_start
   safeRun('applyStyles', Libertad.applyStyles, currentSettings);
 
-  // Synchronize all modules with current settings
+  // Synchronize agent-facing state (style/DOM cleaners are owned by the styles plugin)
   function syncAllModules() {
-    safeRun('applyStyles', Libertad.applyStyles, currentSettings);
-    safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
-    safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
-    safeRun('cleanAutoplay', Libertad.cleanAutoplay, currentSettings);
-    safeRun('cleanSidebar', Libertad.cleanSidebar, currentSettings);
     broadcastAgentSettings();
   }
 
-  // Initial load and DOMContentLoaded events
-  if (document.readyState !== 'loading') {
-    safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
-  }
-  document.addEventListener('DOMContentLoaded', () => {
-    safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
-  });
-  window.addEventListener('load', () => {
-    safeRun('untranslateFeed', Libertad.untranslateFeed, currentSettings);
-  });
+  // Module DOM work is delegated to registered plugins via lifecycle events.
 
   // Load saved settings from storage with local priority and sync fallback
   const applyLoadedSettings = (saved) => {
@@ -136,25 +121,8 @@
     // Only react to local storage events (fallback to sync only if local is unsupported)
     if (areaName !== 'local' && chrome.storage?.local) return;
 
-    let stylesChanged = false;
-
     for (const key in changes) {
       currentSettings[key] = changes[key].newValue;
-      if (key === 'showDislikes' || key === 'hideLikeDislike') {
-        stylesChanged = true;
-      }
-      if (key === 'hideShorts' || key === 'redirectHomeToSubscriptions') {
-        stylesChanged = true;
-      }
-      if (
-        key === 'preset' ||
-        (typeof TOGGLE_KEYS !== 'undefined' && TOGGLE_KEYS.includes(key)) ||
-        key === 'lang' ||
-        key === 'theme' ||
-        key === 'scale'
-      ) {
-        stylesChanged = true;
-      }
     }
 
     try {
@@ -164,13 +132,7 @@
       );
     } catch (_) {}
 
-    if (stylesChanged) {
-      safeRun('applyStyles', Libertad.applyStyles, currentSettings);
-      safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
-      safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
-      safeRun('cleanAutoplay', Libertad.cleanAutoplay, currentSettings);
-      safeRun('cleanSidebar', Libertad.cleanSidebar, currentSettings);
-    }
+    // Style/DOM cleaners are owned by the styles plugin via broadcastSettingsChange below.
 
     broadcastAgentSettings();
     safeRun(
@@ -182,18 +144,10 @@
   });
 
   let lastCheckedHref = window.location.href;
-  let lastFlexySyncedHref = null;
 
   // Handle YouTube SPA Navigation events
   window.addEventListener('yt-navigate-start', (event) => {
-    lastFlexySyncedHref = null;
-    const flexy = document.querySelector('ytd-watch-flexy');
-    if (flexy?.hasAttribute('flexy-chat-collapsed_')) {
-      flexy.removeAttribute('flexy-chat-collapsed_');
-    }
     const targetUrl = event?.detail?.url;
-    safeRun('resetUntranslateNavigation', Libertad.resetUntranslateNavigation);
-    safeRun('resetStylesNavigation', Libertad.resetStylesNavigation);
     safeRun(
       'broadcastNavigation',
       Libertad.broadcastNavigation,
@@ -205,8 +159,6 @@
 
   window.addEventListener('yt-navigate-finish', () => {
     lastCheckedHref = window.location.href;
-    lastFlexySyncedHref = window.location.href;
-    safeRun('resetStylesNavigation', Libertad.resetStylesNavigation);
     safeRun(
       'broadcastNavigation',
       Libertad.broadcastNavigation,
@@ -219,8 +171,6 @@
 
   window.addEventListener('popstate', () => {
     lastCheckedHref = window.location.href;
-    lastFlexySyncedHref = null;
-    safeRun('resetStylesNavigation', Libertad.resetStylesNavigation);
     safeRun(
       'broadcastNavigation',
       Libertad.broadcastNavigation,
@@ -282,44 +232,13 @@
 
       // Deferred Idle Phase: non-blocking execution of heavier DOM cleaners and feed analyzers
       scheduleIdleTask(() => {
-        const activePath = window.location.pathname;
-        const activeHref = window.location.href;
-
         // Delegated module DOM mutations for all registered modules
+        // (styles plugin owns cleanExplore/cleanSidebar/cleanAutoplay/cleanLiveChat)
         safeRun(
           'broadcastDomMutation',
           Libertad.broadcastDomMutation,
           currentSettings,
         );
-
-        if (currentSettings.hideExplore) {
-          const isWatch =
-            activePath === '/watch' || activePath.startsWith('/live');
-          const isGuideOpen = Boolean(
-            document.querySelector(
-              'ytd-app[guide-persistent-and-visible], ytd-guide-renderer[opened]',
-            ),
-          );
-          if (!isWatch || isGuideOpen) {
-            safeRun('cleanExplore', Libertad.cleanExplore, currentSettings);
-          }
-        }
-
-        if (activePath === '/watch') {
-          if (
-            lastFlexySyncedHref !== activeHref &&
-            document.querySelector('ytd-watch-flexy')
-          ) {
-            lastFlexySyncedHref = activeHref;
-            safeRun('cleanSidebar', Libertad.cleanSidebar, currentSettings);
-          }
-          if (currentSettings.hideAutoplay) {
-            safeRun('cleanAutoplay', Libertad.cleanAutoplay, currentSettings);
-          }
-          if (currentSettings.hideLiveChat) {
-            safeRun('cleanLiveChat', Libertad.cleanLiveChat, currentSettings);
-          }
-        }
       });
     });
   });
