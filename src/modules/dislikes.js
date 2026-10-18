@@ -38,6 +38,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   let dislikePollTimer = null;
   let dislikePollAttempts = 0;
+  let moduleHydrated = true;
 
   function getVideoId(url) {
     if (typeof globalThis.Libertad?.parseYouTubeVideoId === 'function') {
@@ -531,8 +532,13 @@ globalThis.Libertad = globalThis.Libertad || {};
   const dislikeModule = {
     name: 'dislikes',
 
-    init(settings) {
-      if (settings?.showDislikes && !settings?.hideLikeDislike) {
+    init(settings, ctx) {
+      moduleHydrated = !(ctx && ctx.hydrated === false);
+      if (
+        moduleHydrated &&
+        settings?.showDislikes &&
+        !settings?.hideLikeDislike
+      ) {
         pollForDislikeButton(settings);
       }
     },
@@ -541,7 +547,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       lastDislikeBtn = null;
       if (phase === 'start') {
         resetDislikesNavigation();
-      } else if (phase === 'finish') {
+      } else if (phase === 'finish' && moduleHydrated) {
         if (settings?.showDislikes && !settings?.hideLikeDislike) {
           pollForDislikeButton(settings);
         }
@@ -549,6 +555,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
 
     onSettingsChange(settings, changes) {
+      moduleHydrated = true;
       const showChanged =
         changes && ('showDislikes' in changes || 'hideLikeDislike' in changes);
       if (showChanged || !changes) {
@@ -561,6 +568,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
 
     onDomMutation(settings) {
+      if (!moduleHydrated) return;
       if (!settings?.showDislikes || settings?.hideLikeDislike) {
         return;
       }

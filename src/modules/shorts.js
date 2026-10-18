@@ -10,6 +10,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   let isInterceptorBound = false;
   let currentModuleSettings = null;
+  let moduleHydrated = true;
 
   function getShortsVideoId(url) {
     if (typeof globalThis.Libertad?.parseYouTubeVideoId === 'function') {
@@ -293,20 +294,25 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   const shortsModule = {
-    init(settings) {
+    init(settings, ctx) {
+      moduleHydrated = !(ctx && ctx.hydrated === false);
       currentModuleSettings = settings;
       setupShortsLinkInterceptor(() => currentModuleSettings);
-      redirectShortsIfActive(settings);
+      if (moduleHydrated) {
+        redirectShortsIfActive(settings);
+      }
       cleanShortsChips(settings);
     },
 
     onNavigate(url, settings, _phase) {
       currentModuleSettings = settings;
+      if (!moduleHydrated) return;
       redirectShortsIfActive(settings, url);
       cleanShortsChips(settings);
     },
 
     onSettingsChange(newSettings, _changes) {
+      moduleHydrated = true;
       currentModuleSettings = newSettings;
       if (chipsScanTimer) {
         pendingChipsSettings = newSettings;
@@ -318,6 +324,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
 
     onDomMutation(settings) {
+      if (!moduleHydrated) return;
       if (
         settings?.hideShorts &&
         window.location.pathname.startsWith('/shorts')

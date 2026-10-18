@@ -130,6 +130,82 @@ assert(
   'agent.js main-world parity verified between manifest.json and background.js'
 );
 
+// 13. Verify bootstrap hydration guards (no irreversible actions with default settings)
+const utilsJs = fs.readFileSync(path.join(__dirname, '../src/core/utils.js'), 'utf8');
+const shortsJs = fs.readFileSync(path.join(__dirname, '../src/modules/shorts.js'), 'utf8');
+const subscriptionsJs = fs.readFileSync(path.join(__dirname, '../src/modules/subscriptions.js'), 'utf8');
+const dislikesJs = fs.readFileSync(path.join(__dirname, '../src/modules/dislikes.js'), 'utf8');
+
+assert(
+  utilsJs.includes('function broadcastInit(settings, ctx)') &&
+    utilsJs.includes('settings, ctx'),
+  'utils.js broadcastInit forwards the hydration context to modules'
+);
+assert(
+  contentJs.includes('hydrated: false') &&
+    contentJs.includes('hydrated: true') &&
+    contentJs.includes('settingsHydrated'),
+  'content.js marks bootstrap init as pre-hydration and re-inits as hydrated'
+);
+for (const [label, source] of [
+  ['shorts.js', shortsJs],
+  ['subscriptions.js', subscriptionsJs],
+  ['sponsors.js', sponsorsJs],
+  ['dislikes.js', dislikesJs],
+]) {
+  assert(
+    source.includes('init(settings, ctx)') && source.includes('moduleHydrated'),
+    `${label} consumes the hydration context before acting`
+  );
+}
+
+// 14. Verify untranslate writes text in place instead of wiping live nodes
+const untranslateJs = fs.readFileSync(path.join(__dirname, '../src/modules/untranslate.js'), 'utf8');
+const textWipeTargets = [
+  'node.textContent = clean',
+  'expandedSpan.textContent =',
+  'snippetSpan.textContent =',
+  'titleEl.textContent =',
+];
+assert(
+  textWipeTargets.every((needle) => !untranslateJs.includes(needle)),
+  'untranslate.js never wipes live YouTube nodes via textContent assignments'
+);
+assert(
+  (untranslateJs.match(/setTitleText\(/g) || []).length >= 7,
+  'untranslate.js routes title, description, and chapter writes through setTitleText'
+);
+
+// 15. Verify autoplay suppression is reversible and ownership-tracked
+assert(
+  agentJs.includes('hydrated: false') &&
+    agentJs.includes('restoreAutonavIfOurs') &&
+    agentJs.includes('setAutonav(true)'),
+  'agent.js gates enforcement on hydration and restores autoplay it suppressed'
+);
+assert(
+  stylesJs.includes('libertadAutonavOurs'),
+  'styles.js records autoplay suppression ownership'
+);
+
+// 16. Verify welcome preset application never persists internal UI keys
+const welcomeJs = fs.readFileSync(path.join(__dirname, '../welcome.js'), 'utf8');
+assert(
+  welcomeJs.includes('extractToggles(PRESET_MAP[presetName])') &&
+    !welcomeJs.includes('...PRESET_MAP[presetName]'),
+  'welcome.js applies presets through extractToggles (no descKey leak)'
+);
+assert(
+  backgroundJs.includes("remove(['descKey'])"),
+  'background.js purges legacy descKey keys from storage'
+);
+
+// 17. Verify over-cap profiles are archived instead of silently destroyed
+assert(
+  popupJs.includes('profiles_orphaned'),
+  'popup.js archives over-cap profiles instead of deleting them'
+);
+
 console.log(`\n=== PARITY AUDIT COMPLETE: ${failures} FAILURES ===`);
 if (failures > 0) {
   process.exit(1);

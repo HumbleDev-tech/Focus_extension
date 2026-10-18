@@ -275,6 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cachedPopupState) {
       const parsed = JSON.parse(cachedPopupState);
       if (parsed && typeof parsed === 'object') {
+        delete parsed.descKey;
         state = { ...state, ...parsed };
       }
     }
@@ -309,7 +310,10 @@ document.addEventListener('DOMContentLoaded', () => {
       renderUI();
       return;
     }
+    // Internal preset label key leaked by older welcome-page builds
+    delete saved.descKey;
     const loadedProfiles = {};
+    const orphanedProfiles = {};
     if (saved.profiles && typeof saved.profiles === 'object') {
       Object.keys(saved.profiles)
         .slice(0, MAX_PROFILES)
@@ -326,6 +330,22 @@ document.addEventListener('DOMContentLoaded', () => {
             };
           }
         });
+      // Preserve profiles beyond the 3 UI slots instead of silently
+      // destroying them on the next full save.
+      Object.keys(saved.profiles).forEach((pId) => {
+        const pData = saved.profiles[pId];
+        if (!loadedProfiles[pId] && pData && typeof pData === 'object') {
+          orphanedProfiles[pId] = pData;
+        }
+      });
+    }
+    if (Object.keys(orphanedProfiles).length > 0 && chrome.storage?.local) {
+      chrome.storage.local.get('profiles_orphaned', (res) => {
+        const prev = res?.profiles_orphaned || {};
+        chrome.storage.local.set({
+          profiles_orphaned: { ...prev, ...orphanedProfiles },
+        });
+      });
     }
 
     // Do NOT hijack activeProfile if saved.activeProfile is null or unset

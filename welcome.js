@@ -182,12 +182,18 @@
         typeof chrome !== 'undefined'
       ) {
         const applyUpdated = (saved) => {
+          const toggles =
+            typeof extractToggles === 'function'
+              ? extractToggles(PRESET_MAP[presetName])
+              : PRESET_MAP[presetName];
           const updated = {
             ...(saved || {}),
-            ...PRESET_MAP[presetName],
+            ...toggles,
             preset: presetName,
             isOff: false,
           };
+          // Never persist internal UI label keys into settings storage
+          delete updated.descKey;
           if (chrome.storage?.local) chrome.storage.local.set(updated);
           if (chrome.storage?.sync) {
             chrome.storage.sync.set(updated, () => {

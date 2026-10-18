@@ -44,6 +44,10 @@ async function injectYouTubeTabs() {
 }
 
 chrome.runtime.onStartup.addListener(async () => {
+  // 0. Purge internal UI keys leaked into settings storage by older builds
+  if (chrome.storage?.local) chrome.storage.local.remove(['descKey']);
+  if (chrome.storage?.sync) chrome.storage.sync.remove(['descKey']);
+
   // 1. Ensure local storage integrity and cross-storage migration on browser launch
   if (chrome.storage?.local) {
     chrome.storage.local.get(null, (localSaved) => {
@@ -51,6 +55,8 @@ chrome.runtime.onStartup.addListener(async () => {
         if (chrome.storage?.sync) {
           chrome.storage.sync.get(null, (syncSaved) => {
             if (syncSaved && Object.keys(syncSaved).length > 0) {
+              // Never migrate internal UI label keys back into local storage
+              delete syncSaved.descKey;
               chrome.storage.local.set(syncSaved);
             } else {
               chrome.storage.local.set(DEFAULT_SETTINGS);
@@ -104,6 +110,10 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       if (chrome.storage?.local)
         chrome.storage.local.remove('hideSearchSuggestions');
     }
+    // Purge internal UI label keys leaked into settings by older builds
+    delete merged.descKey;
+    if (chrome.storage?.local) chrome.storage.local.remove(['descKey']);
+    if (chrome.storage?.sync) chrome.storage.sync.remove(['descKey']);
     merged.profiles = {
       ...DEFAULT_SETTINGS.profiles,
       ...(saved.profiles || {}),

@@ -65,6 +65,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   let lastKnownPlaybackTime = 0;
   let isProgrammaticSkip = false;
   let programmaticSkipTimer = null;
+  let moduleHydrated = true;
 
   function resetSponsorNavigation() {
     currentSponsorVideoId = null;
@@ -569,7 +570,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     return settings.sponsorSkipSponsors !== false;
   }
 
-  function checkVideoSponsors(video, settings, knownActiveVid, isKnownNotAd) {
+  function checkVideoSponsors(video, settings, knownActiveVid) {
     const conf = settings || activeSponsorSettings;
     if (!conf?.skipSponsors || !currentSponsorSegments.length || !video) {
       return;
@@ -578,7 +579,8 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (isProgrammaticSkip || video.seeking) {
       return;
     }
-    if (!isKnownNotAd && isAdPlaying()) return;
+    // Defense in depth: never evaluate skips while an ad is on screen
+    if (isAdPlaying()) return;
 
     // Strict Guard: Never evaluate segments unless they verifiably match the active video
     const activeVid = knownActiveVid || getActiveVideoId();
@@ -699,12 +701,7 @@ globalThis.Libertad = globalThis.Libertad || {};
           }
         }
 
-        checkVideoSponsors(
-          video,
-          activeSponsorSettings,
-          cachedActiveVid,
-          hasSegments,
-        );
+        checkVideoSponsors(video, activeSponsorSettings, cachedActiveVid);
         if (
           hasSegments &&
           !activeSponsorContainer?.isConnected &&
@@ -886,9 +883,14 @@ globalThis.Libertad = globalThis.Libertad || {};
   const sponsorsModule = {
     name: 'sponsors',
 
-    init(settings) {
+    init(settings, ctx) {
+      moduleHydrated = !(ctx && ctx.hydrated === false);
       activeSponsorSettings = settings;
-      if (settings?.skipSponsors && window.location.pathname === '/watch') {
+      if (
+        moduleHydrated &&
+        settings?.skipSponsors &&
+        window.location.pathname === '/watch'
+      ) {
         updateSponsorSegments(settings);
         bindVideoSponsorListener(settings);
       }
@@ -898,7 +900,10 @@ globalThis.Libertad = globalThis.Libertad || {};
       activeSponsorSettings = settings;
       if (phase === 'start') {
         resetSponsorNavigation();
-      } else if (phase === 'finish' || phase === 'mutation') {
+      } else if (
+        moduleHydrated &&
+        (phase === 'finish' || phase === 'mutation')
+      ) {
         if (settings?.skipSponsors && window.location.pathname === '/watch') {
           updateSponsorSegments(settings);
           bindVideoSponsorListener(settings);
@@ -907,6 +912,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
 
     onSettingsChange(newSettings, changes) {
+      moduleHydrated = true;
       activeSponsorSettings = newSettings;
       const isSponsorToggleChanged =
         !changes ||
@@ -926,6 +932,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
 
     onDomMutation(settings) {
+      if (!moduleHydrated) return;
       if (!settings?.skipSponsors) return;
       if (window.location.pathname !== '/watch') return;
 

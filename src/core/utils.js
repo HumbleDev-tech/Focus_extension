@@ -116,10 +116,10 @@ globalThis.Libertad = globalThis.Libertad || {};
     return Array.from(registeredModules.values());
   }
 
-  function broadcastInit(settings) {
+  function broadcastInit(settings, ctx) {
     for (const [name, mod] of registeredModules) {
       if (typeof mod.init === 'function') {
-        safeRun(name, mod.init.bind(mod), settings);
+        safeRun(name, mod.init.bind(mod), settings, ctx);
       }
     }
   }

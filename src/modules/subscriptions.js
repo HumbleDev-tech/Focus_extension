@@ -10,6 +10,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   let isInterceptorBound = false;
   let currentModuleSettings = null;
+  let moduleHydrated = true;
 
   function redirectHomeToSubscriptions(settings, targetUrl) {
     const activeSettings = settings || currentModuleSettings;
@@ -80,18 +81,23 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   const subscriptionsModule = {
-    init(settings) {
+    init(settings, ctx) {
+      moduleHydrated = !(ctx && ctx.hydrated === false);
       currentModuleSettings = settings;
       setupSubscriptionsLinkInterceptor(() => currentModuleSettings);
-      redirectHomeToSubscriptions(settings);
+      if (moduleHydrated) {
+        redirectHomeToSubscriptions(settings);
+      }
     },
 
     onNavigate(url, settings, _phase) {
       currentModuleSettings = settings;
+      if (!moduleHydrated) return;
       redirectHomeToSubscriptions(settings, url);
     },
 
     onSettingsChange(newSettings, _changes) {
+      moduleHydrated = true;
       currentModuleSettings = newSettings;
       if (newSettings?.redirectHomeToSubscriptions) {
         redirectHomeToSubscriptions(newSettings);
@@ -99,6 +105,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
 
     onDomMutation(settings) {
+      if (!moduleHydrated) return;
       if (settings?.redirectHomeToSubscriptions) {
         const path = window.location.pathname;
         if (path === '/' || path === '') {

@@ -35,6 +35,7 @@ Para evitar romper componentes no relacionados:
    - **Prohibido exponer estado interno** en `window` o `globalThis.Libertad` (ej. variables como `lastDislikeBtn` o banderas internas no deben ser globales).
 2. **Contrato de Ciclo de Vida**:
    - Los módulos se comunican con el orquestador mediante el contrato estándar de ciclo de vida (`init`, `onNavigate`, `onSettingsChange`, `onDomMutation`, `destroy`).
+   - `init(settings, ctx)` puede recibir un contexto de hidratación (`ctx.hydrated`): el bootstrap en `document_start` llega como `{ hydrated: false }` (solo trabajo reversible/anti-FOUC) y, tras consultar `chrome.storage`, el orquestador re-invoca `init` con `{ hydrated: true }`. Las acciones irreversibles (redirecciones, peticiones a APIs externas, cambios de estado del reproductor) deben esperar a esa segunda invocación.
    - Los módulos no deben llamarse directamente entre sí ni alterar variables de otros módulos.
 
 ---

@@ -11,6 +11,10 @@
 
   const Libertad = globalThis.Libertad || {};
 
+  // Settings hydration state: irreversible module actions (redirects, network
+  // fetches) must wait until storage has been consulted at least once.
+  let settingsHydrated = false;
+
   // Single source of truth defaults from constants.js
   let currentSettings =
     typeof DEFAULT_SETTINGS !== 'undefined'
@@ -35,6 +39,7 @@
     window.dispatchEvent(
       new CustomEvent('libertad-agent-settings', {
         detail: {
+          hydrated: settingsHydrated,
           isOff: Boolean(
             currentSettings.isOff || currentSettings.preset === 'off',
           ),
@@ -68,8 +73,12 @@
     }
   }
 
-  // Initialize registered plugin modules at document_start
-  safeRun('broadcastInit', Libertad.broadcastInit, currentSettings);
+  // Initialize registered plugin modules at document_start. Bootstrap init is
+  // explicitly marked as pre-hydration: modules only perform reversible,
+  // FOUC-critical DOM work; irreversible actions wait for the hydrated pass.
+  safeRun('broadcastInit', Libertad.broadcastInit, currentSettings, {
+    hydrated: false,
+  });
 
   // Apply styles immediately at document_start
   safeRun('applyStyles', Libertad.applyStyles, currentSettings);
@@ -83,6 +92,7 @@
 
   // Load saved settings from storage with local priority and sync fallback
   const applyLoadedSettings = (saved) => {
+    settingsHydrated = true;
     if (saved && Object.keys(saved).length > 0) {
       currentSettings = { ...currentSettings, ...saved };
       try {
@@ -92,7 +102,9 @@
         );
       } catch (_) {}
     }
-    safeRun('broadcastInit', Libertad.broadcastInit, currentSettings);
+    safeRun('broadcastInit', Libertad.broadcastInit, currentSettings, {
+      hydrated: true,
+    });
     syncAllModules();
   };
 
@@ -120,6 +132,8 @@
   chrome.storage.onChanged.addListener((changes, areaName) => {
     // Only react to local storage events (fallback to sync only if local is unsupported)
     if (areaName !== 'local' && chrome.storage?.local) return;
+
+    settingsHydrated = true;
 
     for (const key in changes) {
       currentSettings[key] = changes[key].newValue;

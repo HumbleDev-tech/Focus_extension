@@ -32,6 +32,7 @@
   let retryTimer = null;
 
   let agentSettings = {
+    hydrated: false,
     isOff: false,
     hideAutoplay: false,
     untranslateMaster: true,
@@ -71,8 +72,14 @@
       ...agentSettings,
       ...detail,
     };
+    // Wait for the first hydrated broadcast before touching player state
+    if (agentSettings.hydrated === false) {
+      return;
+    }
     if (agentSettings.hideAutoplay && !agentSettings.isOff) {
       enforceAutoplaySuppression();
+    } else {
+      restoreAutonavIfOurs();
     }
     if (
       agentSettings.isOff ||
@@ -99,7 +106,13 @@
   }
 
   function enforceAutoplaySuppression() {
-    if (agentSettings.isOff || !agentSettings.hideAutoplay) return;
+    if (
+      agentSettings.hydrated === false ||
+      agentSettings.isOff ||
+      !agentSettings.hideAutoplay
+    ) {
+      return;
+    }
     try {
       const player = getPlayer();
       if (player) {
@@ -107,6 +120,7 @@
         if (typeof player.getAutonav === 'function') {
           if (player.getAutonav() === true) {
             player.setAutonav(false);
+            markAutonavOwnership();
           }
           suppressed = true;
         } else if (typeof player.setAutonav === 'function') {
@@ -117,6 +131,40 @@
           document.documentElement.dataset.libertadAutonav = 'suppressed';
         }
       }
+    } catch (_) {}
+  }
+
+  // Ownership bookkeeping: only restore what Libertad itself changed
+  function markAutonavOwnership() {
+    if (document.documentElement) {
+      document.documentElement.dataset.libertadAutonavOurs = '1';
+    }
+  }
+
+  // Re-enable autoplay only when suppression was applied by Libertad and the
+  // user disables hideAutoplay (or pauses the extension)
+  function restoreAutonavIfOurs() {
+    const root = document.documentElement;
+    if (root?.dataset.libertadAutonavOurs !== '1') return;
+    try {
+      const player = getPlayer();
+      if (!player) return;
+      if (typeof player.setAutonav === 'function') {
+        if (typeof player.getAutonav === 'function') {
+          if (player.getAutonav() === false) {
+            player.setAutonav(true);
+          }
+        } else {
+          const toggle = document.querySelector('.ytp-autonav-toggle-button');
+          if (toggle && toggle.getAttribute('aria-checked') === 'false') {
+            toggle.click();
+          }
+        }
+      } else {
+        return;
+      }
+      delete root.dataset.libertadAutonavOurs;
+      delete root.dataset.libertadAutonav;
     } catch (_) {}
   }
 
@@ -303,6 +351,7 @@
   // Enforce the creator's true original audio track (Anti AI-Dubbing)
   function enforceOriginalAudio(force = false) {
     if (
+      agentSettings.hydrated === false ||
       agentSettings.isOff ||
       !agentSettings.untranslateMaster ||
       !agentSettings.untranslateAudio
@@ -417,6 +466,7 @@
   // Clear algorithmic auto-translated subtitles
   function neutralizeAutoCaptions() {
     if (
+      agentSettings.hydrated === false ||
       agentSettings.isOff ||
       !agentSettings.untranslateMaster ||
       !agentSettings.untranslateCaptions

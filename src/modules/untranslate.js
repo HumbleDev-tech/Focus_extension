@@ -290,7 +290,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
     titleNodes.forEach((node) => {
       if (node.textContent !== clean) {
-        node.textContent = clean;
+        setTitleText(node, clean);
         node.removeAttribute('is-empty');
         node.setAttribute('title', clean);
         modified = true;
@@ -828,7 +828,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         lastRestoredExpandedVideoId !== videoId ||
         expandedSpan.textContent !== rawDescription
       ) {
-        expandedSpan.textContent = rawDescription;
+        setTitleText(expandedSpan, rawDescription);
         expandedSpan.dataset.libertadOrigApplied = videoId;
         lastRestoredExpandedVideoId = videoId;
       }
@@ -857,7 +857,7 @@ globalThis.Libertad = globalThis.Libertad || {};
             : firstLines;
 
         if (previewText && snippetSpan.textContent !== previewText) {
-          snippetSpan.textContent = previewText;
+          setTitleText(snippetSpan, previewText);
         }
         snippetSpan.dataset.libertadOrigApplied = videoId;
         lastRestoredSnippetVideoId = videoId;
@@ -917,7 +917,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         if (!chapters[index]) return;
         const titleEl = item.querySelector('#details #title, h4');
         if (titleEl && titleEl.textContent.trim() !== chapters[index]) {
-          titleEl.textContent = chapters[index];
+          setTitleText(titleEl, chapters[index]);
         }
       });
       lastRestoredChaptersVideoId = videoId;

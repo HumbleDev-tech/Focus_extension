@@ -2008,6 +2008,11 @@ globalThis.Libertad = globalThis.Libertad || {};
       if (autonavBtn) {
         if (autonavBtn.getAttribute('aria-checked') === 'true') {
           autonavBtn.click();
+          // Record ownership so the player agent can restore autoplay if the
+          // user disables hideAutoplay later (only what we changed).
+          if (document.documentElement) {
+            document.documentElement.dataset.libertadAutonavOurs = '1';
+          }
         }
         lastAutoplayHandledUrl = currentUrl;
       }
