@@ -59,6 +59,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   const MAX_CONCURRENT_FEED_FETCHES = 3;
   let feedIntersectionObserver = null;
   let untranslateDebounceTimer = null;
+  const titleHealTimers = new Map();
 
   // Helper to send command to Main World Agent
   function sendAgentCommand(action) {
@@ -154,6 +155,10 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (feedIntersectionObserver) {
       feedIntersectionObserver.disconnect();
     }
+    for (const timer of titleHealTimers.values()) {
+      clearTimeout(timer);
+    }
+    titleHealTimers.clear();
   }
 
   // Fetch true original title (direct same-origin oEmbed + background fallback)
@@ -430,6 +435,64 @@ globalThis.Libertad = globalThis.Libertad || {};
     return null;
   }
 
+  // In-place text writer: only updates existing text nodes, never wipes the
+  // element. A full textContent wipe destroys YouTube's internal Lit markers
+  // and node references, which blanked titles after SPA re-renders.
+  function setTitleText(el, text) {
+    const walker = el.ownerDocument.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    let node = walker.nextNode();
+    let target = null;
+    while (node) {
+      textNodes.push(node);
+      if (!target && (node.nodeValue || '').trim()) {
+        target = node;
+      }
+      node = walker.nextNode();
+    }
+
+    if (textNodes.length === 0) {
+      el.appendChild(el.ownerDocument.createTextNode(text));
+      return;
+    }
+
+    if (!target) {
+      target = textNodes[0];
+    }
+    for (let i = 0; i < textNodes.length; i++) {
+      const current = textNodes[i];
+      if (current === target) {
+        current.nodeValue = text;
+      } else if ((current.nodeValue || '').trim()) {
+        current.nodeValue = '';
+      }
+    }
+  }
+
+  // Self-healing: if a later YouTube re-render empties a title we already
+  // applied, re-apply it (bounded to avoid any tug-of-war).
+  const TITLE_HEAL_DELAY = 1000;
+  const TITLE_HEAL_MAX_ATTEMPTS = 2;
+  function scheduleTitleHeal(titleNode, clean, videoId) {
+    const pending = titleHealTimers.get(titleNode);
+    if (pending) {
+      clearTimeout(pending);
+    }
+    const attempts = Number(titleNode.dataset.libertadHealTries || '0');
+    if (attempts >= TITLE_HEAL_MAX_ATTEMPTS) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      titleHealTimers.delete(titleNode);
+      if (!titleNode.isConnected) return;
+      if (titleNode.dataset.libertadApplied !== videoId) return;
+      if (titleNode.textContent.trim()) return;
+      titleNode.dataset.libertadHealTries = String(attempts + 1);
+      applyTitleToNode(titleNode, clean, videoId);
+    }, TITLE_HEAL_DELAY);
+    titleHealTimers.set(titleNode, timer);
+  }
+
   function applyTitleToNode(titleNode, cleanTitle, videoId) {
     if (
       !titleNode ||
@@ -452,17 +515,18 @@ globalThis.Libertad = globalThis.Libertad || {};
       'span.yt-core-attributed-string, span[role="text"], #video-title, yt-formatted-string',
     );
     if (childSpan && childSpan !== titleNode) {
-      childSpan.textContent = clean;
+      setTitleText(childSpan, clean);
       childSpan.dataset.libertadApplied = videoId;
       childSpan.setAttribute('title', clean);
     } else {
-      titleNode.textContent = clean;
+      setTitleText(titleNode, clean);
     }
 
     titleNode.dataset.libertadApplied = videoId;
     delete titleNode.dataset.libertadPendingId;
     titleNode.setAttribute('title', clean);
     titleNode.removeAttribute('is-empty');
+    scheduleTitleHeal(titleNode, clean, videoId);
 
     const parentCard = titleNode.closest(
       'ytd-rich-item-renderer, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, yt-lockup-view-model',
@@ -642,7 +706,12 @@ globalThis.Libertad = globalThis.Libertad || {};
       const appliedId = node.dataset.libertadApplied;
       if (appliedId) {
         const directAnchor = node.tagName === 'A' ? node : node.closest('a');
-        if (directAnchor?.href?.includes(appliedId)) {
+        // Heal titles emptied by a later YouTube re-render: only skip when
+        // the previously applied text is still visible.
+        if (
+          directAnchor?.href?.includes(appliedId) &&
+          node.textContent.trim()
+        ) {
           continue;
         }
       }
@@ -666,8 +735,8 @@ globalThis.Libertad = globalThis.Libertad || {};
           applyTitleToNode(node, cached, videoId);
         }
       } else if (
-        node.dataset.libertadApplied !== videoId &&
-        node.dataset.libertadPendingId !== videoId
+        node.dataset.libertadPendingId !== videoId &&
+        (node.dataset.libertadApplied !== videoId || !node.textContent.trim())
       ) {
         observeVideoTitleForFeed(node, videoId);
       }
