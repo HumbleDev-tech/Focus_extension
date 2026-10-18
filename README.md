@@ -44,7 +44,7 @@ I built **Libertad** to change that. It is a lightweight, distraction-free layer
 * [Feature Tour](#feature-tour)
   * [Focus Shield (Macro Distraction Blockers)](#1-focus-shield)
   * [UI Cleaner (Decluttering the Interface)](#2-ui-cleaner)
-  * [Extras & Power Modules](#3-extras--power-modules)
+  * [Power Tools](#3-power-tools)
 * [Themes & Ergonomics](#themes--ergonomics)
 * [Under the Hood (Architecture)](#under-the-hood)
 * [Installation](#installation)
@@ -134,7 +134,7 @@ A modular grid of 30 granular toggles across 5 clear categories to remove visual
 
 ---
 
-### 3. Extras & Power Modules
+### 3. Power Tools
 
 Community-powered utilities built right into the extension:
 
@@ -256,7 +256,7 @@ Works on any Chromium-based browser (Chrome, Brave, Edge, Opera, Vivaldi, Arc):
 Code formatting, linting, and quality testing:
 
 ```bash
-# Run automated pre-flight parity test suite (48 toggles, 127 i18n keys)
+# Run automated pre-flight parity test suite (50 toggles, 125 i18n keys)
 npm test
 
 # Check formatting and linting
@@ -289,7 +289,8 @@ Focus_extension/
 │       ├── sponsors.js    # SponsorBlock engine, visual timeline & rewind unskip
 │       ├── styles.js      # Dynamic stylesheet generator & Zen card interface
 │       ├── subscriptions.js # Direct subscriptions router & SPA link interceptor
-│       └── untranslate.js # Title, description, caption & chapter restoration
+│       ├── untranslate.js # Title, description, caption & chapter restoration
+│       └── zen.js         # Intentional Zen home screen & focus banner engine
 ├── test/
 │   └── parity-check.js    # Automated toggle parity and locale integrity test suite
 ├── background.js          # Service worker with dual-layer caching & tab injection
@@ -306,6 +307,8 @@ Focus_extension/
 ├── pack.py                # Automated extension packager & pre-flight validator
 ├── package.json           # Scripts, test runners & metadata
 ├── biome.json             # Biome formatting and linting rules
+├── AGENTS.md              # AI agent governance & modular isolation protocol
+├── LICENSE                # MIT License
 ├── CHANGELOG.md           # Comprehensive version history & release notes
 └── PRIVACY.md             # Dedicated privacy policy
 ```

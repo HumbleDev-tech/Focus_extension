@@ -8,7 +8,7 @@ Este documento establece las reglas obligatorias e inmutables que cualquier agen
 ## 🛡️ 1. Protocolo de Auditoría (Modo Solo Lectura Obligatorio)
 
 Cuando el usuario solicite **"auditar"**, **"revisar"**, **"analizar"**, **"diagnosticar"** o **"evaluar"**:
-1. **Prohibido editar archivos**: No utilices herramientas de escritura o reemplazo (`write_to_file`, `replace_file_content`, `multi_replace_file_content`) durante una solicitud de auditoría.
+1. **Prohibido editar archivos**: No utilices ninguna herramienta de escritura, edición o reemplazo de archivos durante una solicitud de auditoría.
 2. **Entregar informe previo**: Entrega un informe claro que describa:
    - Diagnóstico del estado actual y hallazgos.
    - Puntos de acoplamiento o riesgos detectados.
@@ -22,7 +22,7 @@ Cuando el usuario solicite **"auditar"**, **"revisar"**, **"analizar"**, **"diag
 Para evitar romper componentes no relacionados:
 1. **Límite estricto de edición**:
    - Si la tarea concierne a un módulo específico (ej. dislikes, sponsors, untranslate, shorts, subscriptions, styles), **modifica exclusivamente el archivo de dicho módulo** (`src/modules/<modulo>.js`).
-   - **Archivos protegidos**: No modifiques [content.js](file:///home/humble/Focus_extension/content.js), [popup.js](file:///home/humble/Focus_extension/popup.js), [popup.html](file:///home/humble/Focus_extension/popup.html) ni [constants.js](file:///home/humble/Focus_extension/constants.js) a menos que el usuario lo haya ordenado explícitamente.
+   - **Archivos protegidos**: No modifiques [content.js](content.js), [popup.js](popup.js), [popup.html](popup.html) ni [constants.js](constants.js) a menos que el usuario lo haya ordenado explícitamente.
 2. **Regla de consulta previa**:
    - Si consideras que para resolver un problema en un módulo es indispensable alterar el orquestador (`content.js`) o una constante global, **detente y pregunta primero al usuario** antes de editar.
 
@@ -49,7 +49,7 @@ Antes de reportar cualquier tarea o cambio como completado:
    Todas las pruebas deben pasar (0 failures).
 2. **Linter y Formato**: Asegúrate de que el código cumpla con los estándares de Biome:
    ```bash
-   npm run lint
+   npm run check
    ```
 3. **No logs de depuración**: Prohibido dejar sentencias `console.log()` en código de producción.
 
@@ -64,7 +64,7 @@ Antes de reportar cualquier tarea o cambio como completado:
        │
        └── ¿Es Implementación/Fix? ──> EDITAR ÚNICAMENTE EL ARCHIVO DEL MÓDULO CORRESPONDIENTE
                                              │
-                                             └── EJECUTAR `npm test` Y `npm run lint`
+                                             └── EJECUTAR `npm test` Y `npm run check`
                                                    │
                                                    └── REPORTAR RESULTADO CON LINKS CLICKABLES
 ```
