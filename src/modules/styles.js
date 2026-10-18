@@ -141,7 +141,6 @@ globalThis.Libertad = globalThis.Libertad || {};
         yt-tab-shape:has(a[href*="/shorts"]),
         tp-yt-paper-tab:has(a[href*="/shorts"]),
         tp-yt-paper-tab:has([title*="Shorts" i]),
-        ytd-c4-tabbed-header-renderer tp-yt-paper-tab:has(a[href*="/shorts"]),
 
         /* Shelves and Containers */
         ytd-reel-shelf-renderer,
@@ -181,33 +180,21 @@ globalThis.Libertad = globalThis.Libertad || {};
         yt-chip-shape[data-libertad-shorts-chip="true"],
         yt-chip-cloud-chip-renderer:has([title="Shorts" i]),
         yt-chip-cloud-chip-renderer:has([title="#Shorts" i]),
-        yt-chip-cloud-chip-renderer:has([aria-label="Shorts" i]),
         yt-chip-cloud-chip-renderer:has([aria-label^="Shorts" i]),
         yt-chip-cloud-chip-renderer:has([aria-label^="#Shorts" i]),
         yt-chip-cloud-chip-view-model:has([title="Shorts" i]),
         yt-chip-cloud-chip-view-model:has([title="#Shorts" i]),
-        yt-chip-cloud-chip-view-model:has([aria-label="Shorts" i]),
         yt-chip-cloud-chip-view-model:has([aria-label^="Shorts" i]),
         yt-chip-cloud-chip-view-model:has([aria-label^="#Shorts" i]),
-        chip-shape:has([aria-label="Shorts" i]),
         chip-shape:has([aria-label^="Shorts" i]),
         chip-shape:has([aria-label^="#Shorts" i]),
         chip-shape:has([title="Shorts" i]),
         chip-shape:has([title="#Shorts" i]),
-        yt-chip-shape:has([aria-label="Shorts" i]),
         yt-chip-shape:has([aria-label^="Shorts" i]),
         yt-chip-shape:has([aria-label^="#Shorts" i]),
         yt-chip-shape:has([title="Shorts" i]),
         yt-chip-shape:has([title="#Shorts" i]),
-        yt-chip-cloud-chip-renderer:has(a[href*="/shorts"]),
-        ytd-feed-filter-chip-bar-renderer yt-chip-cloud-chip-renderer:has([title="Shorts" i]),
-        ytd-feed-filter-chip-bar-renderer yt-chip-cloud-chip-renderer:has([title="#Shorts" i]),
-        yt-related-chip-cloud-renderer yt-chip-cloud-chip-renderer:has([title="Shorts" i]),
-        yt-related-chip-cloud-renderer yt-chip-cloud-chip-renderer:has([title="#Shorts" i]),
-        ytd-feed-filter-chip-bar-renderer yt-chip-cloud-chip-renderer:has([aria-label="Shorts" i]),
-        ytd-feed-filter-chip-bar-renderer yt-chip-cloud-chip-renderer:has([aria-label^="Shorts" i]),
-        yt-related-chip-cloud-renderer yt-chip-cloud-chip-renderer:has([aria-label="Shorts" i]),
-        yt-related-chip-cloud-renderer yt-chip-cloud-chip-renderer:has([aria-label^="Shorts" i]) {
+        yt-chip-cloud-chip-renderer:has(a[href*="/shorts"]) {
           display: none !important;
         }
       `);
@@ -963,14 +950,6 @@ globalThis.Libertad = globalThis.Libertad || {};
         #teaser-carousel:has([aria-label*="reprise" i]),
         #teaser-carousel:has(button[aria-label*="chat" i]),
         #teaser-carousel:has([class*="ytTextCarouselItemViewModel"]),
-        ytd-watch-metadata #teaser-carousel:has(yt-text-carousel-item-view-model),
-        ytd-watch-metadata #teaser-carousel:has([aria-label*="chat" i]),
-        ytd-watch-metadata #teaser-carousel:has([aria-label*="repetición" i]),
-        ytd-watch-metadata #teaser-carousel:has([aria-label*="reprise" i]),
-        watch-metadata-view-model #teaser-carousel:has(yt-text-carousel-item-view-model),
-        watch-metadata-view-model #teaser-carousel:has([aria-label*="chat" i]),
-        watch-metadata-view-model #teaser-carousel:has([aria-label*="repetición" i]),
-        watch-metadata-view-model #teaser-carousel:has([aria-label*="reprise" i]),
         yt-video-metadata-carousel-view-model[aria-label*="chat" i],
         yt-video-metadata-carousel-view-model[aria-label*="repetición" i],
         yt-video-metadata-carousel-view-model[aria-label*="reprise" i],
@@ -2058,13 +2037,16 @@ globalThis.Libertad = globalThis.Libertad || {};
     }, 40);
   }
 
-  function cleanSidebar(_settings) {
+  function cleanSidebar(settings) {
     const isWatch =
       window.location.pathname.startsWith('/watch') ||
       window.location.pathname.startsWith('/live') ||
       Boolean(document.querySelector('ytd-watch-flexy'));
 
     if (!isWatch) return;
+    // With the sidebar visible YouTube owns the layout and recalibrates the
+    // player itself; forcing synthetic resizes only adds layout work.
+    if (!settings?.hideSidebar) return;
 
     schedulePlayerResize();
   }
@@ -2137,6 +2119,12 @@ globalThis.Libertad = globalThis.Libertad || {};
       cleanExplore(newSettings);
       cleanAutoplay(newSettings);
       cleanSidebar(newSettings);
+
+      // Turning the sidebar back on removes our layout CSS vars, so nudge
+      // YouTube once to recalculate the player with its default layout.
+      if (changes && 'hideSidebar' in changes && !newSettings?.hideSidebar) {
+        schedulePlayerResize();
+      }
     },
     onDomMutation(settings) {
       const activePath = window.location.pathname;

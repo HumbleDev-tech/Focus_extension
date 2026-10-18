@@ -155,6 +155,12 @@ globalThis.Libertad = globalThis.Libertad || {};
         hidden[i].classList.remove('libertad-force-hide');
         hidden[i].style.removeProperty('display');
       }
+      const examined = document.querySelectorAll(
+        '[data-libertad-shorts-checked]',
+      );
+      for (let i = 0; i < examined.length; i++) {
+        examined[i].removeAttribute('data-libertad-shorts-checked');
+      }
       return;
     }
 
@@ -178,6 +184,15 @@ globalThis.Libertad = globalThis.Libertad || {};
     for (let i = 0; i < chips.length; i++) {
       const chip = chips[i];
       if (chip.getAttribute('data-libertad-shorts-chip') === 'true') {
+        continue;
+      }
+      // Memoized skip: same raw label as the previous examination. Cheap
+      // property read, and YouTube recycling a node with new text re-triggers it.
+      const rawSnapshot = (chip.textContent || '').trim();
+      if (
+        rawSnapshot &&
+        chip.getAttribute('data-libertad-shorts-checked') === rawSnapshot
+      ) {
         continue;
       }
       let rawText = (chip.textContent || '')
@@ -229,6 +244,8 @@ globalThis.Libertad = globalThis.Libertad || {};
           chip.classList.add('libertad-force-hide');
           chip.style.setProperty('display', 'none', 'important');
         }
+      } else if (rawSnapshot) {
+        chip.setAttribute('data-libertad-shorts-checked', rawSnapshot);
       }
     }
 
@@ -258,6 +275,23 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
   }
 
+  // Coalesce mutation bursts: the chip scan is document-wide, so one pass per
+  // ~400 ms window is plenty (init/navigation scans stay immediate).
+  let chipsScanTimer = null;
+  let pendingChipsSettings = null;
+
+  function scheduleChipsScan(settings) {
+    pendingChipsSettings = settings;
+    if (chipsScanTimer) return;
+    chipsScanTimer = setTimeout(() => {
+      chipsScanTimer = null;
+      if (pendingChipsSettings) {
+        cleanShortsChips(pendingChipsSettings);
+      }
+      pendingChipsSettings = null;
+    }, 400);
+  }
+
   const shortsModule = {
     init(settings) {
       currentModuleSettings = settings;
@@ -274,6 +308,9 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     onSettingsChange(newSettings, _changes) {
       currentModuleSettings = newSettings;
+      if (chipsScanTimer) {
+        pendingChipsSettings = newSettings;
+      }
       if (newSettings?.hideShorts) {
         redirectShortsIfActive(newSettings);
       }
@@ -288,12 +325,17 @@ globalThis.Libertad = globalThis.Libertad || {};
         redirectShortsIfActive(settings);
       }
       if (settings?.hideShorts) {
-        cleanShortsChips(settings);
+        scheduleChipsScan(settings);
       }
     },
 
     destroy() {
       currentModuleSettings = null;
+      if (chipsScanTimer) {
+        clearTimeout(chipsScanTimer);
+        chipsScanTimer = null;
+      }
+      pendingChipsSettings = null;
       cleanShortsChips({ hideShorts: false });
     },
   };
