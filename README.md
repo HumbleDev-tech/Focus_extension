@@ -333,7 +333,7 @@ Special thanks to the open-source projects that make Libertad possible:
 
 * **[Return YouTube Dislike](https://returnyoutubedislike.com):** For public dislike counter metrics.
 * **[SponsorBlock](https://sponsor.ajay.app):** For community-sourced sponsorship timestamps (licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)).
-* **[Feather Icons](https://feathericons.com) & [Lucide](https://lucide.dev):** For clean UI iconography.
+* **[Lucide](https://lucide.dev):** The single source for Libertad's UI iconography (all UI icons ship as verbatim Lucide artwork; legacy Feather glyphs have been replaced). See [ICONS.md](ICONS.md).
 * **[Biome](https://biomejs.dev):** For lightning-fast linting and formatting.
 * **Distraction-Free Community:** Inspired by the minimalist philosophy of open-source focus tools.
 
