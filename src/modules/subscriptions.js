@@ -169,8 +169,4 @@ globalThis.Libertad = globalThis.Libertad || {};
   if (typeof globalThis.Libertad.registerModule === 'function') {
     globalThis.Libertad.registerModule('subscriptions', subscriptionsModule);
   }
-
-  globalThis.Libertad.redirectHomeToSubscriptions = redirectHomeToSubscriptions;
-  globalThis.Libertad.setupSubscriptionsLinkInterceptor =
-    setupSubscriptionsLinkInterceptor;
 })();

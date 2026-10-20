@@ -337,6 +337,12 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
           }
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json();
+          // Validate before caching: a malformed body (an HTML error page,
+          // for instance) would be cached for 10 minutes and the content
+          // script could never use it, so the badge would silently vanish.
+          if (!data || typeof data.dislikes !== 'number') {
+            throw new Error('Malformed API response');
+          }
           await setToCache(dislikesCache, 'dislikes', videoId, data);
           return { success: true, data };
         } catch (err) {

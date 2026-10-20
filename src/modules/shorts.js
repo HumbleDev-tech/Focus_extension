@@ -178,6 +178,61 @@ globalThis.Libertad = globalThis.Libertad || {};
     interceptHandler = handleIntercept;
   }
 
+  // True when the chip label says "Shorts", in any of the shapes YouTube
+  // uses for it (raw text, inner label, aria label or tooltip).
+  function isShortsChipLabel(chip) {
+    let rawText = (chip.textContent || '')
+      .replace(/[\s\u200B\u00A0\u202F\r\n\t]+/g, ' ')
+      .trim()
+      .toLowerCase();
+    if (!rawText && chip.shadowRoot) {
+      rawText = (chip.shadowRoot.textContent || '')
+        .replace(/[\s\u200B\u00A0\u202F\r\n\t]+/g, ' ')
+        .trim()
+        .toLowerCase();
+    }
+    const innerLabel = chip.querySelector(
+      '#text, yt-formatted-string, span, .yt-core-attributed-string',
+    );
+    const labelText = (innerLabel?.textContent || '')
+      .replace(/[\s\u200B\u00A0\u202F\r\n\t]+/g, ' ')
+      .trim()
+      .toLowerCase();
+    const aria = (
+      chip.getAttribute('aria-label') ||
+      chip.getAttribute('title') ||
+      innerLabel?.getAttribute('title') ||
+      innerLabel?.getAttribute('aria-label') ||
+      ''
+    )
+      .trim()
+      .toLowerCase();
+    return (
+      rawText === 'shorts' ||
+      rawText === '#shorts' ||
+      labelText === 'shorts' ||
+      labelText === '#shorts' ||
+      aria === 'shorts' ||
+      aria === '#shorts'
+    );
+  }
+
+  // Undoes the hiding applied to a chip and to the element wrapping it.
+  function unhideShortsChip(chip) {
+    const target =
+      chip.closest(
+        'yt-chip-cloud-chip-renderer, yt-chip-cloud-chip-view-model, iron-selector#chips > *, #chips > *',
+      ) ||
+      chip.closest('chip-shape, yt-chip-shape, [role="tab"]') ||
+      chip;
+    const nodes = target === chip ? [chip] : [target, chip];
+    for (let i = 0; i < nodes.length; i++) {
+      nodes[i].removeAttribute('data-libertad-shorts-chip');
+      nodes[i].classList.remove('libertad-force-hide');
+      nodes[i].style.removeProperty('display');
+    }
+  }
+
   // Dynamic DOM cleaner for individual Shorts filter chips in feeds, search, and watch related bar
   function cleanShortsChips(settings) {
     const activeSettings = settings || currentModuleSettings;
@@ -196,6 +251,17 @@ globalThis.Libertad = globalThis.Libertad || {};
       for (let i = 0; i < examined.length; i++) {
         examined[i].removeAttribute('data-libertad-shorts-checked');
       }
+      return;
+    }
+
+    // The chip cloud only exists on feed, search and channel pages. The scan
+    // below is document-wide, so bail out early instead of walking the whole
+    // document on every page.
+    if (
+      !document.querySelector(
+        'ytd-feed-filter-chip-bar-renderer, yt-related-chip-cloud-renderer, yt-chip-cloud-renderer, iron-selector#chips, #chips',
+      )
+    ) {
       return;
     }
 
@@ -218,53 +284,29 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     for (let i = 0; i < chips.length; i++) {
       const chip = chips[i];
+      const rawSnapshot = (chip.textContent || '').trim();
+      const isShorts = isShortsChipLabel(chip);
+
       if (chip.getAttribute('data-libertad-shorts-chip') === 'true') {
+        // YouTube recycles chip elements between filters: a chip that no
+        // longer says "Shorts" must be shown again, otherwise the user
+        // cannot select that filter.
+        if (!isShorts) {
+          unhideShortsChip(chip);
+        }
         continue;
       }
+
       // Memoized skip: same raw label as the previous examination. Cheap
       // property read, and YouTube recycling a node with new text re-triggers it.
-      const rawSnapshot = (chip.textContent || '').trim();
       if (
         rawSnapshot &&
         chip.getAttribute('data-libertad-shorts-checked') === rawSnapshot
       ) {
         continue;
       }
-      let rawText = (chip.textContent || '')
-        .replace(/[\s\u200B\u00A0\u202F\r\n\t]+/g, ' ')
-        .trim()
-        .toLowerCase();
-      if (!rawText && chip.shadowRoot) {
-        rawText = (chip.shadowRoot.textContent || '')
-          .replace(/[\s\u200B\u00A0\u202F\r\n\t]+/g, ' ')
-          .trim()
-          .toLowerCase();
-      }
-      const innerLabel = chip.querySelector(
-        '#text, yt-formatted-string, span, .yt-core-attributed-string',
-      );
-      const labelText = (innerLabel?.textContent || '')
-        .replace(/[\s\u200B\u00A0\u202F\r\n\t]+/g, ' ')
-        .trim()
-        .toLowerCase();
-      const aria = (
-        chip.getAttribute('aria-label') ||
-        chip.getAttribute('title') ||
-        innerLabel?.getAttribute('title') ||
-        innerLabel?.getAttribute('aria-label') ||
-        ''
-      )
-        .trim()
-        .toLowerCase();
 
-      if (
-        rawText === 'shorts' ||
-        rawText === '#shorts' ||
-        labelText === 'shorts' ||
-        labelText === '#shorts' ||
-        aria === 'shorts' ||
-        aria === '#shorts'
-      ) {
+      if (isShorts) {
         const target =
           chip.closest(
             'yt-chip-cloud-chip-renderer, yt-chip-cloud-chip-view-model, iron-selector#chips > *, #chips > *',
@@ -405,8 +447,4 @@ globalThis.Libertad = globalThis.Libertad || {};
   if (typeof globalThis.Libertad.registerModule === 'function') {
     globalThis.Libertad.registerModule('shorts', shortsModule);
   }
-
-  globalThis.Libertad.setupShortsLinkInterceptor = setupShortsLinkInterceptor;
-  globalThis.Libertad.redirectShortsIfActive = redirectShortsIfActive;
-  globalThis.Libertad.cleanShortsChips = cleanShortsChips;
 })();

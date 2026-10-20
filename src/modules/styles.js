@@ -1394,7 +1394,10 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   function getStylesheetKey(settings) {
     if (!settings || typeof settings !== 'object') return '';
-    let key = `${settings.theme || 'auto'}_${settings.scale || 'auto'}_${settings.lang || 'auto'}|`;
+    // Only the toggles shape the stylesheet. Theme, scale and language are
+    // handled by other layers, so including them here forced a full rebuild
+    // of the whole sheet whenever the user changed the theme.
+    let key = '';
     const keysToTrack =
       typeof ALL_TOGGLE_KEYS !== 'undefined' && Array.isArray(ALL_TOGGLE_KEYS)
         ? ALL_TOGGLE_KEYS
@@ -1426,7 +1429,8 @@ globalThis.Libertad = globalThis.Libertad || {};
       styleEl.textContent = cachedStylesheetCss;
     }
     cleanSidebar(settings);
-    cleanWatchPlay(settings);
+    // The Watch & Play cleaner is owned by the watchPlay module: calling it
+    // from here ran the same document-wide scan twice per navigation.
   }
 
   let chatResizeTimer = null;
@@ -1471,6 +1475,15 @@ globalThis.Libertad = globalThis.Libertad || {};
     for (let i = 0; i < checkedElements.length; i++) {
       checkedElements[i].removeAttribute('data-libertad-chat-checked');
     }
+    // The native collapse button must be clickable again: the marker left it
+    // on the element forever, so re-enabling the toggle never collapsed the
+    // chat natively and the player layout stayed collapsed.
+    const clickedElements = document.querySelectorAll(
+      '[data-libertad-clicked="true"]',
+    );
+    for (let i = 0; i < clickedElements.length; i++) {
+      clickedElements[i].removeAttribute('data-libertad-clicked');
+    }
     const flexy = document.querySelector('ytd-watch-flexy');
     if (flexy) {
       flexy.removeAttribute('flexy-chat-collapsed_');
@@ -1480,6 +1493,13 @@ globalThis.Libertad = globalThis.Libertad || {};
   function resetStylesNavigation() {
     lastNonChatWatchUrl = null;
     lastAutoplayHandledUrl = null;
+    // Give the persistent sidebar entries a fresh chance on every route.
+    const checkedEntries = document.querySelectorAll(
+      '[data-libertad-watchplay-checked]',
+    );
+    for (let i = 0; i < checkedEntries.length; i++) {
+      checkedEntries[i].removeAttribute('data-libertad-watchplay-checked');
+    }
   }
 
   // Dynamic DOM cleaner for Live Chat & Replay elements (handles Shadow DOM, dynamic Lit/Polymer elements, and localized button text)
@@ -1523,12 +1543,15 @@ globalThis.Libertad = globalThis.Libertad || {};
       liveChatFrame || (chatContainer && chatContainer.childElementCount > 0),
     );
 
-    // Quick exit if this is a regular video without live chat or chat replay triggers
+    // Quick exit if this is a regular video without live chat or chat replay triggers.
+    // The generic text carousels are not a chat signal: they exist on most
+    // watch pages, and treating them as one ran the whole suppression path
+    // on every video. Every other trigger is kept exactly as it was.
     const hasChatTriggers =
       hasPopulatedChat ||
       Boolean(
         document.querySelector(
-          '[target-id*="live-chat"], [target-id*="chat-replay"], .ytp-live-chat-button, ytd-button-renderer[target-id*="chat"], yt-button-view-model:has(button[aria-label*="chat" i]), #teaser-carousel, yt-text-carousel-item-view-model, .ytTextCarouselItemViewModelHost, yt-video-metadata-carousel-view-model[aria-label*="chat" i], yt-video-metadata-carousel-view-model[aria-label*="repetición" i], yt-video-metadata-carousel-view-model[aria-label*="reprise" i]',
+          '[target-id*="live-chat"], [target-id*="chat-replay"], .ytp-live-chat-button, ytd-button-renderer[target-id*="chat"], yt-button-view-model:has(button[aria-label*="chat" i]), #teaser-carousel, yt-video-metadata-carousel-view-model[aria-label*="chat" i], yt-video-metadata-carousel-view-model[aria-label*="repetición" i], yt-video-metadata-carousel-view-model[aria-label*="reprise" i]',
         ),
       );
 
@@ -1941,6 +1964,12 @@ globalThis.Libertad = globalThis.Libertad || {};
         taggedEntries[i].classList.remove('libertad-force-hide');
         taggedEntries[i].style.removeProperty('display');
       }
+      const checkedEntries = document.querySelectorAll(
+        '[data-libertad-watchplay-checked]',
+      );
+      for (let i = 0; i < checkedEntries.length; i++) {
+        checkedEntries[i].removeAttribute('data-libertad-watchplay-checked');
+      }
       return;
     }
 
@@ -1975,6 +2004,12 @@ globalThis.Libertad = globalThis.Libertad || {};
       for (let i = 0; i < containers.length; i++) {
         const c = containers[i];
         if (c.getAttribute('data-libertad-watchplay') === 'true') continue;
+        // Already inspected and not a match: skip it. Re-reading the text of
+        // every shelf on every mutation burst was the most expensive routine
+        // in the bundle.
+        if (c.getAttribute('data-libertad-watchplay-checked') === 'true') {
+          continue;
+        }
 
         const aria = c.getAttribute('aria-label') || '';
         const title = c.getAttribute('title') || '';
@@ -1990,6 +2025,8 @@ globalThis.Libertad = globalThis.Libertad || {};
           c.setAttribute('data-libertad-watchplay', 'true');
           c.classList.add('libertad-force-hide');
           c.style.setProperty('display', 'none', 'important');
+        } else {
+          c.setAttribute('data-libertad-watchplay-checked', 'true');
         }
       }
     } catch (_) {}
@@ -2008,7 +2045,10 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (lastAutoplayHandledUrl === currentUrl) {
       return;
     }
-    if (document.documentElement?.dataset?.libertadAutonav === 'suppressed') {
+    // Only step aside when Libertad owns the suppression: the agent marks
+    // the ownership flag exactly when it turned autoplay off, so a stale
+    // "suppressed" marker alone must not disable this path.
+    if (document.documentElement?.dataset?.libertadAutonavOurs === '1') {
       lastAutoplayHandledUrl = currentUrl;
       return;
     }
@@ -2030,23 +2070,28 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   // Dynamic player dimension calibrator when toggling or navigating with hideSidebar
   let playerResizeTimer = null;
+  let playerResizeFollowupTimer = null;
   function schedulePlayerResize() {
     if (playerResizeTimer) clearTimeout(playerResizeTimer);
+    if (playerResizeFollowupTimer) clearTimeout(playerResizeFollowupTimer);
     playerResizeTimer = setTimeout(() => {
+      playerResizeTimer = null;
       window.dispatchEvent(new Event('resize'));
       window.dispatchEvent(
         new CustomEvent('libertad-agent-cmd', {
           detail: { action: 'RESIZE_PLAYER' },
         }),
       );
-      setTimeout(() => {
+      // The follow-up resize is tracked too: an untracked handle survived
+      // destroy() and kept dispatching events on a torn down module.
+      playerResizeFollowupTimer = setTimeout(() => {
+        playerResizeFollowupTimer = null;
         window.dispatchEvent(new Event('resize'));
         window.dispatchEvent(
           new CustomEvent('libertad-agent-cmd', {
             detail: { action: 'RESIZE_PLAYER' },
           }),
         );
-        playerResizeTimer = null;
       }, 180);
     }, 40);
   }
@@ -2080,14 +2125,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     delete root.dataset.libertadAutonav;
   }
 
-  globalThis.Libertad.buildStylesheet = buildStylesheet;
   globalThis.Libertad.applyStyles = applyStyles;
-  globalThis.Libertad.cleanLiveChat = cleanLiveChat;
-  globalThis.Libertad.cleanExplore = cleanExplore;
-  globalThis.Libertad.cleanAutoplay = cleanAutoplay;
-  globalThis.Libertad.cleanSidebar = cleanSidebar;
-  globalThis.Libertad.cleanWatchPlay = cleanWatchPlay;
-  globalThis.Libertad.resetStylesNavigation = resetStylesNavigation;
 
   // Autonomous styles module: owns applyStyles + DOM cleaners (decoupled from content.js orchestrator)
   let stylesLastFlexySyncedHref = null;
@@ -2172,7 +2210,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         }
       }
 
-      if (activePath === '/watch') {
+      if (activePath === '/watch' || activePath.startsWith('/live')) {
         if (
           stylesLastFlexySyncedHref !== activeHref &&
           document.querySelector('ytd-watch-flexy')
@@ -2211,6 +2249,10 @@ globalThis.Libertad = globalThis.Libertad || {};
       if (playerResizeTimer) {
         clearTimeout(playerResizeTimer);
         playerResizeTimer = null;
+      }
+      if (playerResizeFollowupTimer) {
+        clearTimeout(playerResizeFollowupTimer);
+        playerResizeFollowupTimer = null;
       }
     },
   };

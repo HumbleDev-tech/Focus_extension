@@ -425,9 +425,18 @@ document.addEventListener('DOMContentLoaded', () => {
           if (chrome.storage?.sync) {
             chrome.storage.sync.get(null, (syncSaved) => {
               if (!syncSaved || Object.keys(syncSaved).length === 0) {
-                chrome.storage.sync.set(localSaved, () => {
+                // Internal UI keys must never reach sync: they are not
+                // settings, they eat into the per-item quota and they would
+                // leak the local state to every synced device. The archived
+                // profiles bucket alone was enough to blow the 8 KB limit and
+                // break syncing silently.
+                chrome.storage.sync.set(stripInternalKeys(localSaved), () => {
                   // Consume lastError to prevent unhandled runtime warnings if sync is unavailable
                   if (chrome.runtime?.lastError) {
+                    console.warn(
+                      '[Libertad] Cloud sync failed:',
+                      chrome.runtime.lastError.message,
+                    );
                   }
                 });
               }
@@ -497,7 +506,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderUI() {
     // Internationalization update
     i18nElements.forEach((el) => {
-      if (el === resetBtn && resetBtn.classList.contains('is-success')) {
+      if (
+        el === resetBtn &&
+        (resetBtn.classList.contains('is-success') ||
+          resetBtn.classList.contains('is-confirm-stage'))
+      ) {
+        // The reset button owns its own label while it is confirming: a
+        // re-render here used to wipe "CONFIRM?" and leave the destructive
+        // action armed with no visible warning.
         return;
       }
       const key = el.getAttribute('data-i18n');
@@ -792,21 +808,36 @@ document.addEventListener('DOMContentLoaded', () => {
   function saveState(partialPatch) {
     markInternalSave();
     if (partialPatch && typeof partialPatch === 'object') {
-      Object.assign(state, partialPatch);
+      // Only the keys that actually changed reach storage: writing the whole
+      // state on every click sent ~5 KB to sync per interaction and burned
+      // the per-minute write quota.
+      const patch = stripInternalKeys(partialPatch);
+      Object.assign(state, patch);
       try {
-        const snapshot = { ...state };
+        const snapshot = stripInternalKeys(state);
         delete snapshot.activeTab;
         localStorage.setItem('libertad_popup_state', JSON.stringify(snapshot));
       } catch (_) {}
       renderUI();
       if (typeof chrome !== 'undefined') {
         if (chrome.storage?.local) {
-          chrome.storage.local.set(partialPatch);
+          chrome.storage.local.set(patch, () => {
+            if (chrome.runtime?.lastError) {
+              console.warn(
+                '[Libertad] Failed to save settings:',
+                chrome.runtime.lastError.message,
+              );
+            }
+          });
         }
         if (chrome.storage?.sync) {
-          chrome.storage.sync.set(partialPatch, () => {
+          chrome.storage.sync.set(patch, () => {
             // Consume lastError to prevent unhandled runtime warnings if sync is unavailable
             if (chrome.runtime?.lastError) {
+              console.warn(
+                '[Libertad] Cloud sync failed:',
+                chrome.runtime.lastError.message,
+              );
             }
           });
         }
@@ -821,7 +852,14 @@ document.addEventListener('DOMContentLoaded', () => {
     renderUI();
     if (typeof chrome !== 'undefined') {
       if (chrome.storage?.local) {
-        chrome.storage.local.set(syncPayload);
+        chrome.storage.local.set(syncPayload, () => {
+          if (chrome.runtime?.lastError) {
+            console.warn(
+              '[Libertad] Failed to save settings:',
+              chrome.runtime.lastError.message,
+            );
+          }
+        });
       }
       if (chrome.storage?.sync) {
         chrome.storage.sync.set(syncPayload, () => {
@@ -863,7 +901,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const chosenTheme = btn.getAttribute('data-theme');
       state.theme = chosenTheme;
       applyThemeAndScale();
-      saveState();
+      saveState({ theme: chosenTheme });
     });
   });
 
@@ -872,7 +910,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
       const chosenLang = btn.getAttribute('data-lang');
       state.lang = chosenLang;
-      saveState();
+      saveState({ lang: chosenLang });
     });
   });
 
@@ -883,7 +921,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.scale === chosenScale) return;
       state.scale = chosenScale;
       applyThemeAndScale();
-      saveState();
+      saveState({ scale: chosenScale });
     });
   });
 
@@ -1557,6 +1595,9 @@ document.addEventListener('DOMContentLoaded', () => {
     state[key] = checked;
     state.preset = 'custom';
     state.isOff = false;
+    // Write only what changed: the toggle, the preset marker and, when a
+    // profile is active, the profile itself.
+    const patch = { [key]: checked, preset: 'custom', isOff: false };
     if (state.activeProfile && state.profiles?.[state.activeProfile]) {
       state.profiles[state.activeProfile].preset = 'custom';
       if (!state.profiles[state.activeProfile].toggles) {
@@ -1565,8 +1606,9 @@ document.addEventListener('DOMContentLoaded', () => {
       ALL_TOGGLE_KEYS.forEach((k) => {
         state.profiles[state.activeProfile].toggles[k] = Boolean(state[k]);
       });
+      patch.profiles = state.profiles;
     }
-    saveState();
+    saveState(patch);
   }
 
   // Individual UI cleaner and distraction toggle changes

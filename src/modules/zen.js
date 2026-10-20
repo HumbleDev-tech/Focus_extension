@@ -285,7 +285,4 @@ globalThis.Libertad = globalThis.Libertad || {};
   if (typeof globalThis.Libertad.registerModule === 'function') {
     globalThis.Libertad.registerModule('zen', zenModule);
   }
-
-  // Backward compatibility facade
-  globalThis.Libertad.updateZenBanner = updateZenBanner;
 })();

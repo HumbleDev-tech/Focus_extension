@@ -419,6 +419,15 @@ globalThis.Libertad = globalThis.Libertad || {};
         return;
       }
 
+      // The API already answered "no data" for this video: the badge will
+      // never appear, so stop the timer instead of polling for 12 seconds.
+      if (dislikeCache.has(vid) && !dislikeCache.get(vid)) {
+        clearInterval(dislikePollTimer);
+        dislikePollTimer = null;
+        currentPollingVid = null;
+        return;
+      }
+
       const btn = findDislikeButton();
       if (btn) {
         const badge = btn.querySelector('.libertad-dislike-badge');
@@ -643,12 +652,4 @@ globalThis.Libertad = globalThis.Libertad || {};
   if (typeof globalThis.Libertad.registerModule === 'function') {
     globalThis.Libertad.registerModule('dislikes', dislikeModule);
   }
-
-  // Preserve backward compatibility with current orchestrator
-  globalThis.Libertad.findDislikeButton = findDislikeButton;
-  globalThis.Libertad.injectDislikeBadge = injectDislikeBadge;
-  globalThis.Libertad.removeDislikeBadge = removeDislikeBadge;
-  globalThis.Libertad.resetDislikesNavigation = resetDislikesNavigation;
-  globalThis.Libertad.pollForDislikeButton = pollForDislikeButton;
-  globalThis.Libertad.updateDislikeCount = updateDislikeCount;
 })();

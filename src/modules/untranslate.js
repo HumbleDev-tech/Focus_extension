@@ -36,6 +36,9 @@ globalThis.Libertad = globalThis.Libertad || {};
   const inFlightTitles = new Map();
   let currentWatchVideoId = null;
   let currentOriginalTitle = null;
+  // Localized text captured before this module overwrites it, so the change
+  // can be reverted when the user turns Untranslate off.
+  let originalDocumentTitle = null;
   let lastAppliedWatchTitleElement = null;
   let lastRestoredChaptersVideoId = null;
   let lastRestoredSnippetVideoId = null;
@@ -62,6 +65,17 @@ globalThis.Libertad = globalThis.Libertad || {};
   const observedTitleNodesByVideoId = new Map();
   let activeFeedFetches = 0;
   const MAX_CONCURRENT_FEED_FETCHES = 3;
+  // Minimum spacing between oEmbed lookups. Without it a busy home feed
+  // fires one request per visible card at once and trips YouTube's own rate
+  // limiter, which makes the feature degrade itself.
+  const MIN_FEED_FETCH_INTERVAL_MS = 200;
+  // Bounded retries per card: a transient network failure must not disable
+  // the translation forever, but a permanently failing video must not be
+  // requested on every DOM mutation either.
+  const MAX_TITLE_FETCH_TRIES = 2;
+  let lastFeedFetchStartedAt = 0;
+  let feedThrottleTimer = null;
+  let feedRetryTimer = null;
   let feedIntersectionObserver = null;
   let untranslateDebounceTimer = null;
   const titleHealTimers = new Map();
@@ -166,6 +180,14 @@ globalThis.Libertad = globalThis.Libertad || {};
       clearTimeout(pruneTimer);
       pruneTimer = null;
     }
+    if (feedThrottleTimer) {
+      clearTimeout(feedThrottleTimer);
+      feedThrottleTimer = null;
+    }
+    if (feedRetryTimer) {
+      clearTimeout(feedRetryTimer);
+      feedRetryTimer = null;
+    }
     if (feedIntersectionObserver) {
       feedIntersectionObserver.disconnect();
     }
@@ -187,10 +209,15 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
 
     const fetchPromise = (async () => {
-      // 1. Direct same-origin oEmbed fetch (~25ms response)
+      // 1. Direct same-origin oEmbed fetch (~25ms response).
+      // Bounded by an AbortController: a stalled connection would keep the
+      // in-flight entry alive forever and block the background fallback for
+      // this video.
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
       try {
         const oembedUrl = `/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`;
-        const res = await fetch(oembedUrl);
+        const res = await fetch(oembedUrl, { signal: controller.signal });
         if (res.ok) {
           const data = await res.json();
           if (data?.title) {
@@ -207,7 +234,10 @@ globalThis.Libertad = globalThis.Libertad || {};
           titlesCache.set(videoId, false);
           return null;
         }
-      } catch (_) {}
+      } catch (_) {
+      } finally {
+        clearTimeout(timeout);
+      }
 
       // 2. Fallback to background worker
       if (!chrome.runtime?.id) return null;
@@ -299,12 +329,19 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     let modified = false;
     const titleNodes = getWatchTitleElements();
-    if (titleNodes.length > 0) {
-      lastAppliedWatchTitleElement = titleNodes[0];
+    // The h1 contains the yt-formatted-string: writing to both of them puts
+    // the title twice on screen. Only the innermost match owns the text.
+    const leafNodes = titleNodes.filter(
+      (node) =>
+        !titleNodes.some((other) => other !== node && node.contains(other)),
+    );
+    if (leafNodes.length > 0) {
+      lastAppliedWatchTitleElement = leafNodes[0];
     }
-    titleNodes.forEach((node) => {
+    leafNodes.forEach((node) => {
       if (node.textContent !== clean) {
-        setTitleText(node, clean);
+        captureOriginalText(node);
+        if (!setTitleText(node, clean)) return;
         node.removeAttribute('is-empty');
         node.setAttribute('title', clean);
         modified = true;
@@ -318,6 +355,9 @@ globalThis.Libertad = globalThis.Libertad || {};
       const notifPrefix = (document.title.match(/^\(\d+\)\s*/) || [''])[0];
       const titleWithoutCount = document.title.replace(/^\(\d+\)\s*/, '');
       if (!titleWithoutCount.startsWith(clean)) {
+        if (originalDocumentTitle === null) {
+          originalDocumentTitle = document.title;
+        }
         document.title = `${notifPrefix}${clean} - YouTube`;
       }
     }
@@ -465,9 +505,11 @@ globalThis.Libertad = globalThis.Libertad || {};
       node = walker.nextNode();
     }
 
+    // No text nodes yet: YouTube has not rendered this title. Creating one
+    // here looks like a fix, but YouTube renders its own right after and the
+    // two end up concatenated. Skip it and retry on the next pass.
     if (textNodes.length === 0) {
-      el.appendChild(el.ownerDocument.createTextNode(text));
-      return;
+      return false;
     }
 
     if (!target) {
@@ -481,6 +523,58 @@ globalThis.Libertad = globalThis.Libertad || {};
         current.nodeValue = '';
       }
     }
+    return true;
+  }
+
+  // Captures the localized text before this module overwrites it. Only the
+  // first capture wins: later writes (heals, re-renders) must keep the
+  // original localized text, not the already translated one.
+  function captureOriginalText(node) {
+    if (!node || node.dataset.libertadOrigText !== undefined) return;
+    const text = node.textContent;
+    // An empty title has nothing to restore: capturing it would let a later
+    // restore wipe the text YouTube rendered in the meantime.
+    if (!text?.trim()) return;
+    node.dataset.libertadOrigText = text;
+  }
+
+  // Reverts every text this module rewrote (titles, description, chapters)
+  // and clears its tracking markers. Called when the user disables
+  // Untranslate: without it the translated text stays on screen until
+  // YouTube happens to re-render the node.
+  function restoreOriginalTexts() {
+    const nodes = document.querySelectorAll('[data-libertad-orig-text]');
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
+      setTitleText(node, node.dataset.libertadOrigText);
+      delete node.dataset.libertadOrigText;
+      delete node.dataset.libertadOrigApplied;
+      delete node.dataset.libertadPendingId;
+      delete node.dataset.libertadHealTries;
+      delete node.dataset.libertadFetchTries;
+      // The applied marker may sit on a wrapper while the text was written
+      // to a child element: clear it on the node and its direct ancestors,
+      // otherwise the feed pass believes the card is still translated.
+      let owner = node;
+      for (let up = 0; up < 3 && owner; up++) {
+        delete owner.dataset.libertadApplied;
+        owner = owner.parentElement;
+      }
+      node.removeAttribute('title');
+      if (node.parentElement?.tagName === 'H1') {
+        node.parentElement.removeAttribute('title');
+      }
+    }
+    if (originalDocumentTitle) {
+      document.title = originalDocumentTitle;
+      originalDocumentTitle = null;
+    }
+    // Reset the "already applied" bookkeeping so the features that are
+    // still enabled re-apply their content in the same tick.
+    currentOriginalTitle = null;
+    lastRestoredExpandedVideoId = null;
+    lastRestoredSnippetVideoId = null;
+    lastRestoredChaptersVideoId = null;
   }
 
   // Self-healing: if a later YouTube re-render empties a title we already
@@ -529,31 +623,23 @@ globalThis.Libertad = globalThis.Libertad || {};
       'span.yt-core-attributed-string, span[role="text"], #video-title, yt-formatted-string',
     );
     if (childSpan && childSpan !== titleNode) {
-      setTitleText(childSpan, clean);
+      captureOriginalText(childSpan);
+      // Nothing was written: YouTube has not rendered the title yet. Leave
+      // the node unmarked so the next pass picks it up again.
+      if (!setTitleText(childSpan, clean)) return;
       childSpan.dataset.libertadApplied = videoId;
       childSpan.setAttribute('title', clean);
     } else {
-      setTitleText(titleNode, clean);
+      captureOriginalText(titleNode);
+      if (!setTitleText(titleNode, clean)) return;
     }
 
     titleNode.dataset.libertadApplied = videoId;
     delete titleNode.dataset.libertadPendingId;
+    delete titleNode.dataset.libertadFetchTries;
     titleNode.setAttribute('title', clean);
     titleNode.removeAttribute('is-empty');
     scheduleTitleHeal(titleNode, clean, videoId);
-
-    const parentCard = titleNode.closest(
-      'ytd-rich-item-renderer, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, yt-lockup-view-model',
-    );
-    if (parentCard) {
-      const mainLink = parentCard.querySelector(
-        'a#video-title-link, a#video-title, h3 a',
-      );
-      if (mainLink) {
-        mainLink.setAttribute('title', cleanTitle);
-        mainLink.setAttribute('aria-label', cleanTitle);
-      }
-    }
   }
 
   let pruneTimer = null;
@@ -599,9 +685,54 @@ globalThis.Libertad = globalThis.Libertad || {};
     schedulePruneDisconnectedNodes();
   }
 
+  // Releases the nodes tracked for a video whose title lookup failed.
+  // The pending marker is cleared so the next pass can retry the card:
+  // keeping it would make the fast bailout in untranslateFeed() skip that
+  // card forever. The attempt counter bounds the retries.
+  function releaseObservedNodes(videoId) {
+    const observedNodes = observedTitleNodesByVideoId.get(videoId);
+    if (observedNodes) {
+      observedNodes.forEach((node) => {
+        if (feedIntersectionObserver) {
+          feedIntersectionObserver.unobserve(node);
+        }
+        delete node.dataset.libertadPendingId;
+        node.dataset.libertadFetchTries = String(
+          Number(node.dataset.libertadFetchTries || '0') + 1,
+        );
+      });
+    }
+    observedTitleNodesByVideoId.delete(videoId);
+    scheduleFeedRetry();
+  }
+
+  // Schedules one more pass after a failed lookup so the retry does not
+  // depend on the page mutating again.
+  function scheduleFeedRetry() {
+    if (feedRetryTimer) return;
+    feedRetryTimer = setTimeout(() => {
+      feedRetryTimer = null;
+      if (!moduleHydrated) return;
+      debouncedUntranslateFeed(activeUntranslateSettings);
+    }, 2000);
+  }
+
   function processFeedFetchQueue() {
     if (activeFeedFetches >= MAX_CONCURRENT_FEED_FETCHES) return;
     if (feedFetchQueue.length === 0) return;
+
+    // Space the requests out: a feed that renders twenty cards at once
+    // would otherwise hit YouTube's own limiter.
+    const sinceLastFetch = Date.now() - lastFeedFetchStartedAt;
+    if (sinceLastFetch < MIN_FEED_FETCH_INTERVAL_MS) {
+      if (feedThrottleTimer) return;
+      feedThrottleTimer = setTimeout(() => {
+        feedThrottleTimer = null;
+        processFeedFetchQueue();
+      }, MIN_FEED_FETCH_INTERVAL_MS - sinceLastFetch);
+      return;
+    }
+    lastFeedFetchStartedAt = Date.now();
 
     const videoId = feedFetchQueue.shift();
     pendingFeedVideoIds.delete(videoId);
@@ -622,25 +753,13 @@ globalThis.Libertad = globalThis.Libertad || {};
         if (origTitle) {
           updateFeedElementsForVideoId(videoId, origTitle);
         } else {
-          const observedNodes = observedTitleNodesByVideoId.get(videoId);
-          if (observedNodes && feedIntersectionObserver) {
-            observedNodes.forEach((node) => {
-              feedIntersectionObserver.unobserve(node);
-            });
-          }
-          observedTitleNodesByVideoId.delete(videoId);
+          releaseObservedNodes(videoId);
         }
         processFeedFetchQueue();
       })
       .catch(() => {
         activeFeedFetches--;
-        const observedNodes = observedTitleNodesByVideoId.get(videoId);
-        if (observedNodes && feedIntersectionObserver) {
-          observedNodes.forEach((node) => {
-            feedIntersectionObserver.unobserve(node);
-          });
-        }
-        observedTitleNodesByVideoId.delete(videoId);
+        releaseObservedNodes(videoId);
         processFeedFetchQueue();
       });
   }
@@ -750,6 +869,8 @@ globalThis.Libertad = globalThis.Libertad || {};
         }
       } else if (
         node.dataset.libertadPendingId !== videoId &&
+        Number(node.dataset.libertadFetchTries || '0') <
+          MAX_TITLE_FETCH_TRIES &&
         (node.dataset.libertadApplied !== videoId || !node.textContent.trim())
       ) {
         observeVideoTitleForFeed(node, videoId);
@@ -842,7 +963,8 @@ globalThis.Libertad = globalThis.Libertad || {};
         lastRestoredExpandedVideoId !== videoId ||
         expandedSpan.textContent !== rawDescription
       ) {
-        setTitleText(expandedSpan, rawDescription);
+        captureOriginalText(expandedSpan);
+        if (!setTitleText(expandedSpan, rawDescription)) return;
         expandedSpan.dataset.libertadOrigApplied = videoId;
         lastRestoredExpandedVideoId = videoId;
       }
@@ -871,7 +993,8 @@ globalThis.Libertad = globalThis.Libertad || {};
             : firstLines;
 
         if (previewText && snippetSpan.textContent !== previewText) {
-          setTitleText(snippetSpan, previewText);
+          captureOriginalText(snippetSpan);
+          if (!setTitleText(snippetSpan, previewText)) return;
         }
         snippetSpan.dataset.libertadOrigApplied = videoId;
         lastRestoredSnippetVideoId = videoId;
@@ -931,6 +1054,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         if (!chapters[index]) return;
         const titleEl = item.querySelector('#details #title, h4');
         if (titleEl && titleEl.textContent.trim() !== chapters[index]) {
+          captureOriginalText(titleEl);
           setTitleText(titleEl, chapters[index]);
         }
       });
@@ -1056,6 +1180,18 @@ globalThis.Libertad = globalThis.Libertad || {};
 
       if (!hasUntranslateChange) return;
 
+      // The user turned part of the suite off: put the localized text back
+      // first, then let the branches that are still enabled re-apply their
+      // own content. Both happen in the same tick, so nothing flickers.
+      if (
+        settings?.untranslateMaster === false ||
+        settings?.untranslateTitles === false ||
+        settings?.untranslateDescription === false ||
+        settings?.untranslateChapters === false
+      ) {
+        restoreOriginalTexts();
+      }
+
       if (
         settings?.untranslateMaster !== false &&
         settings?.untranslateTitles !== false
@@ -1142,14 +1278,4 @@ globalThis.Libertad = globalThis.Libertad || {};
   if (typeof globalThis.Libertad.registerModule === 'function') {
     globalThis.Libertad.registerModule('untranslate', untranslateModule);
   }
-
-  globalThis.Libertad.updateWatchTitle = updateWatchTitle;
-  globalThis.Libertad.untranslateFeed = untranslateFeed;
-  globalThis.Libertad.debouncedUntranslateFeed = debouncedUntranslateFeed;
-  globalThis.Libertad.resetUntranslateNavigation = resetUntranslateNavigation;
-  globalThis.Libertad.enforceOriginalAudioTrack = enforceOriginalAudioTrack;
-  globalThis.Libertad.neutralizeAutoTranslatedCaptions =
-    neutralizeAutoTranslatedCaptions;
-  globalThis.Libertad.restoreOriginalDescription = restoreOriginalDescription;
-  globalThis.Libertad.restoreOriginalChapters = restoreOriginalChapters;
 })();

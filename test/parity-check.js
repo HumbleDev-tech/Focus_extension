@@ -407,6 +407,199 @@ assert(
   'zen.js detaches the pending DOMContentLoaded listener on re-init and on destroy'
 );
 
+// 22. Verify the behaviour fixes: the invariants that the grep based checks
+// above cannot prove on their own.
+const moduleSources = {
+  'styles.js': stylesJs,
+  'zen.js': zenJs,
+  'shorts.js': shortsJs,
+  'subscriptions.js': subscriptionsJs,
+  'dislikes.js': dislikesJs,
+  'sponsors.js': sponsorsJs,
+  'untranslate.js': untranslateJs,
+};
+
+// 22a. The chat trigger must keep the chat replay signal and drop only the
+// generic carousels, which exist on nearly every watch page.
+const chatTriggerMatch = stylesJs.match(
+  /hasChatTriggers[\s\S]*?'([^']*target-id\*="live-chat"[^']*)'/,
+);
+assert(
+  chatTriggerMatch !== null &&
+    chatTriggerMatch[1].includes('#teaser-carousel') &&
+    !chatTriggerMatch[1].includes('yt-text-carousel-item-view-model') &&
+    !chatTriggerMatch[1].includes('.ytTextCarouselItemViewModelHost'),
+  'styles.js chat detection keeps the chat replay trigger and drops the generic carousels'
+);
+
+// 22b. The stylesheet cache key must not depend on theme, scale or language:
+// none of them shapes the CSS, so including them forced a full rebuild.
+assert(
+  !stylesJs.includes('settings.theme') &&
+    !stylesJs.includes('settings.scale') &&
+    !stylesJs.includes('settings.lang'),
+  'styles.js stylesheet cache no longer depends on theme, scale or language'
+);
+
+// 22c. cleanWatchPlay must have a single owner: two owners ran the same
+// document-wide scan twice per navigation.
+const applyStylesBody = stylesJs.match(
+  /function applyStyles\(settings\) \{[\s\S]*?\n  \}/,
+);
+assert(
+  applyStylesBody !== null &&
+    !applyStylesBody[0].includes('cleanWatchPlay('),
+  'styles.js cleanWatchPlay has a single owner (the watchPlay module)'
+);
+
+assert(
+  stylesJs.includes('data-libertad-watchplay-checked') &&
+    stylesJs.includes('playerResizeFollowupTimer') &&
+    stylesJs.includes('clearTimeout(playerResizeFollowupTimer)') &&
+    stylesJs.includes('[data-libertad-clicked="true"]'),
+  'styles.js memoizes the Watch & Play scan and releases every timer and marker it creates'
+);
+
+// 22d. The untranslate module must capture the localized text and restore it.
+assert(
+  untranslateJs.includes('function captureOriginalText(') &&
+    untranslateJs.includes('function restoreOriginalTexts(') &&
+    untranslateJs.includes('restoreOriginalTexts();'),
+  'untranslate.js captures the localized text and restores it when disabled'
+);
+
+// The title must be written once per tree and never with a text node of its
+// own: YouTube renders the title right after, and both end up on screen.
+assert(
+  untranslateJs.includes('if (textNodes.length === 0) {') &&
+    !untranslateJs.includes(
+      'el.appendChild(el.ownerDocument.createTextNode(text))',
+    ) &&
+    untranslateJs.includes('node.contains(other)'),
+  'untranslate.js writes the title once per tree and never creates its own text node'
+);
+
+assert(
+  untranslateJs.includes('controller.abort()') &&
+    untranslateJs.includes('MAX_TITLE_FETCH_TRIES') &&
+    untranslateJs.includes('delete node.dataset.libertadPendingId;'),
+  'untranslate.js bounds the title lookup and retries a failed one'
+);
+
+// 22e. The sponsors module must validate the third party payload and probe
+// the ad state once per tick.
+assert(
+  sponsorsJs.includes("typeof s.category === 'string'") &&
+    sponsorsJs.includes('function getCategoryEntry('),
+  'sponsors.js validates the category coming from the SponsorBlock payload'
+);
+const onTimeUpdateBlock = sponsorsJs.match(
+  /const onTimeUpdate = \(\) => \{[\s\S]*?\n      \};/,
+);
+assert(
+  onTimeUpdateBlock !== null &&
+    (onTimeUpdateBlock[0].match(/isAdPlaying\(\)/g) || []).length === 1,
+  'sponsors.js probes the ad state once per timeupdate tick'
+);
+
+// 22f. The popup must never mirror internal UI keys to sync and must keep
+// the reset confirmation armed.
+assert(
+  popupJs.includes('chrome.storage.sync.set(stripInternalKeys(localSaved)') &&
+    popupJs.includes("resetBtn.classList.contains('is-confirm-stage')") &&
+    popupJs.includes('const patch = stripInternalKeys(partialPatch);'),
+  'popup.js keeps internal keys out of sync and preserves the reset confirmation'
+);
+
+// 22g. The welcome page must clear the active profile so the chosen preset
+// is not overwritten when the popup opens.
+assert(
+  welcomeJs.includes('activeProfile: null'),
+  'welcome.js clears the active profile so the chosen preset wins'
+);
+
+// 22h. The agent must track the deferred enforcement routine.
+assert(
+  agentJs.includes('pendingRoutineTimer') &&
+    agentJs.includes('scheduleEnforcementRoutine(100)') &&
+    agentJs.includes('scheduleEnforcementRoutine(150)'),
+  'agent.js tracks the deferred enforcement routine and cancels it on teardown'
+);
+
+// 22i. The service worker must validate the API payload before caching it.
+assert(
+  backgroundJs.includes("typeof data.dislikes !== 'number'"),
+  'background.js validates the API payload before caching it'
+);
+
+// 22j. No module may expose its internals globally any more.
+const deadExportsByModule = {
+  'styles.js': [
+    'buildStylesheet',
+    'cleanLiveChat',
+    'cleanExplore',
+    'cleanAutoplay',
+    'cleanSidebar',
+    'cleanWatchPlay',
+    'resetStylesNavigation',
+  ],
+  'zen.js': ['updateZenBanner'],
+  'shorts.js': [
+    'setupShortsLinkInterceptor',
+    'redirectShortsIfActive',
+    'cleanShortsChips',
+  ],
+  'subscriptions.js': [
+    'redirectHomeToSubscriptions',
+    'setupSubscriptionsLinkInterceptor',
+  ],
+  'dislikes.js': [
+    'findDislikeButton',
+    'injectDislikeBadge',
+    'removeDislikeBadge',
+    'resetDislikesNavigation',
+    'pollForDislikeButton',
+    'updateDislikeCount',
+  ],
+  'sponsors.js': [
+    'getActiveVideoId',
+    'checkVideoSponsors',
+    'bindVideoSponsorListener',
+    'updateSponsorSegments',
+    'renderSponsorProgressBar',
+    'resetSponsorNavigation',
+    'getMainPlayerProgressBar',
+    'hasActiveSponsorContainer',
+    'getCurrentSponsorSegments',
+    'getCurrentSponsorVideoId',
+  ],
+  'untranslate.js': [
+    'updateWatchTitle',
+    'untranslateFeed',
+    'debouncedUntranslateFeed',
+    'resetUntranslateNavigation',
+    'enforceOriginalAudioTrack',
+    'neutralizeAutoTranslatedCaptions',
+    'restoreOriginalDescription',
+    'restoreOriginalChapters',
+  ],
+};
+for (const [file, names] of Object.entries(deadExportsByModule)) {
+  const leaked = names.filter((name) =>
+    moduleSources[file].includes(`globalThis.Libertad.${name} =`),
+  );
+  assert(
+    leaked.length === 0,
+    `${file} exposes none of its ${names.length} internal helpers globally`,
+  );
+}
+
+// 23. Behavioral check: the Untranslate restore cycle, simulated on a DOM
+// mock. This is the only assertion in the suite that proves the behaviour
+// instead of proving the presence of a line of code.
+const { runUntranslateRestoreCheck } = require('./untranslate-restore-check.js');
+runUntranslateRestoreCheck(assert);
+
 console.log(`\n=== PARITY AUDIT COMPLETE: ${failures} FAILURES ===`);
 if (failures > 0) {
   process.exit(1);

@@ -43,6 +43,10 @@
   ];
 
   let retryTimer = null;
+  // Pending deferred enforcement routine. It must be tracked: an untracked
+  // timer survived teardownAgent() and the stale instance kept enforcing
+  // its own settings after the extension updated.
+  let pendingRoutineTimer = null;
 
   let agentSettings = {
     hydrated: false,
@@ -664,6 +668,10 @@
       clearInterval(retryTimer);
       retryTimer = null;
     }
+    if (pendingRoutineTimer) {
+      clearTimeout(pendingRoutineTimer);
+      pendingRoutineTimer = null;
+    }
   }
 
   // Resets the per-video caches shared by the navigation listeners. The autonav
@@ -684,6 +692,19 @@
       clearInterval(retryTimer);
       retryTimer = null;
     }
+    if (pendingRoutineTimer) {
+      clearTimeout(pendingRoutineTimer);
+      pendingRoutineTimer = null;
+    }
+  }
+
+  // Defers the enforcement routine so the player has time to settle.
+  function scheduleEnforcementRoutine(delay) {
+    if (pendingRoutineTimer) clearTimeout(pendingRoutineTimer);
+    pendingRoutineTimer = setTimeout(() => {
+      pendingRoutineTimer = null;
+      startEnforcementRoutine();
+    }, delay);
   }
 
   function startEnforcementRoutine() {
@@ -776,7 +797,7 @@
     resetAgentNavigationState();
     bindPlayerEvents();
     enforceAutoplaySuppression();
-    setTimeout(startEnforcementRoutine, 100);
+    scheduleEnforcementRoutine(100);
   };
 
   const onPopState = () => {
@@ -789,5 +810,5 @@
   // Initial startup hook
   bindPlayerEvents();
   enforceAutoplaySuppression();
-  setTimeout(startEnforcementRoutine, 150);
+  scheduleEnforcementRoutine(150);
 })();

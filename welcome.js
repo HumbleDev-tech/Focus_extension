@@ -196,6 +196,10 @@
             ...toggles,
             preset: presetName,
             isOff: false,
+            // The chosen preset must win over any active profile: the popup
+            // restores the profile toggles on open and the choice made here
+            // was silently discarded.
+            activeProfile: null,
           };
           // Never persist internal UI label keys into settings storage
           delete updated.descKey;

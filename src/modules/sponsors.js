@@ -42,6 +42,12 @@ globalThis.Libertad = globalThis.Libertad || {};
     music_offtopic: '#ff9900',
   };
 
+  // Looks up a category in a plain object without walking the prototype
+  // chain: the category name comes from a third-party payload.
+  function getCategoryEntry(map, category) {
+    return Object.hasOwn(map, category) ? map[category] : undefined;
+  }
+
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
   const sponsorCache = new BoundedCache(200);
@@ -192,7 +198,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     return null;
   }
 
-  function seekVideoPlayer(video, targetTime) {
+  function seekVideoPlayer(video, targetTime, adPlaying = isAdPlaying()) {
     if (!video || !Number.isFinite(targetTime)) return false;
 
     // Guard 1: Media pipeline readiness - abort if initial frames are not yet available
@@ -203,7 +209,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (window.location.pathname.startsWith('/live')) return false;
 
     // Guard 3: In-stream ads and SSAI protection
-    if (isAdPlaying()) return false;
+    if (adPlaying) return false;
 
     // Guard 4: Video startup handshake - avoid aggressive seeking while paused at time 0
     if (video.currentTime < 0.5 && targetTime > 1.0 && video.paused)
@@ -360,7 +366,9 @@ globalThis.Libertad = globalThis.Libertad || {};
       },
     };
 
-    const categoryKey = CATEGORY_LABELS[category] ? category : 'sponsor';
+    const categoryKey = getCategoryEntry(CATEGORY_LABELS, category)
+      ? category
+      : 'sponsor';
     const langKey = isEs ? 'es' : isPt ? 'pt' : 'en';
     const label = CATEGORY_LABELS[categoryKey][langKey];
     const unskipText = isEs ? 'DESHACER' : isPt ? 'DESFAZER' : 'UNSKIP';
@@ -369,7 +377,8 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     // Category Dot
     const catColor =
-      SPONSOR_CATEGORY_COLORS[category] || SPONSOR_CATEGORY_COLORS.sponsor;
+      getCategoryEntry(SPONSOR_CATEGORY_COLORS, category) ||
+      SPONSOR_CATEGORY_COLORS.sponsor;
     const dot = document.createElement('span');
     dot.className = 'libertad-sponsor-toast-dot';
     dot.style.backgroundColor = catColor;
@@ -567,11 +576,12 @@ globalThis.Libertad = globalThis.Libertad || {};
       segmentEl.className = 'libertad-sponsor-bar-segment';
       segmentEl.style.left = `${startPercent.toFixed(3)}%`;
       segmentEl.style.width = `${widthPercent.toFixed(3)}%`;
+      const category = String(seg.category || 'sponsor');
       segmentEl.style.backgroundColor =
-        SPONSOR_CATEGORY_COLORS[seg.category] ||
+        getCategoryEntry(SPONSOR_CATEGORY_COLORS, category) ||
         SPONSOR_CATEGORY_COLORS.sponsor;
-      segmentEl.dataset.category = seg.category;
-      segmentEl.title = `${seg.category.toUpperCase()} (${Math.round(seg.start)}s - ${Math.round(seg.end)}s)`;
+      segmentEl.dataset.category = category;
+      segmentEl.title = `${category.toUpperCase()} (${Math.round(seg.start)}s - ${Math.round(seg.end)}s)`;
 
       container.appendChild(segmentEl);
     }
@@ -599,7 +609,12 @@ globalThis.Libertad = globalThis.Libertad || {};
     return settings.sponsorSkipSponsors !== false;
   }
 
-  function checkVideoSponsors(video, settings, knownActiveVid) {
+  function checkVideoSponsors(
+    video,
+    settings,
+    knownActiveVid,
+    adPlaying = isAdPlaying(),
+  ) {
     const conf = settings || activeSponsorSettings;
     if (!conf?.skipSponsors || !currentSponsorSegments.length || !video) {
       return;
@@ -609,7 +624,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       return;
     }
     // Defense in depth: never evaluate skips while an ad is on screen
-    if (isAdPlaying()) return;
+    if (adPlaying) return;
 
     // Strict Guard: Never evaluate segments unless they verifiably match the active video
     const activeVid = knownActiveVid || getActiveVideoId();
@@ -633,7 +648,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         if (lastSkippedSegmentUuid === seg.uuid) {
           continue;
         }
-        const didSeek = seekVideoPlayer(video, seg.end + 0.05);
+        const didSeek = seekVideoPlayer(video, seg.end + 0.05, adPlaying);
         if (didSeek) {
           lastSkippedSegmentUuid = seg.uuid;
           showSponsorSkipToast(seg, video, conf);
@@ -717,7 +732,10 @@ globalThis.Libertad = globalThis.Libertad || {};
       const onTimeUpdate = () => {
         lastKnownPlaybackTime = video.currentTime;
         const hasSegments = currentSponsorSegments.length > 0;
-        if (hasSegments && isAdPlaying()) return;
+        // One ad probe per tick: the probe walks the ad overlay DOM and
+        // forces visibility checks, and it used to run up to three times.
+        const adPlaying = isAdPlaying();
+        if (hasSegments && adPlaying) return;
 
         const now = Date.now();
         if (!cachedActiveVid || now - lastHeartbeatCheck > 2000) {
@@ -735,7 +753,12 @@ globalThis.Libertad = globalThis.Libertad || {};
           }
         }
 
-        checkVideoSponsors(video, activeSponsorSettings, cachedActiveVid);
+        checkVideoSponsors(
+          video,
+          activeSponsorSettings,
+          cachedActiveVid,
+          adPlaying,
+        );
         if (
           hasSegments &&
           !activeSponsorContainer?.isConnected &&
@@ -929,13 +952,24 @@ globalThis.Libertad = globalThis.Libertad || {};
               ? res.segments
               : [];
           const parsed = rawSegments
+            .filter((s) => s && typeof s === 'object')
             .map((s, index) => {
-              const start = Array.isArray(s.segment) ? s.segment[0] : 0;
-              const end = Array.isArray(s.segment) ? s.segment[1] : 0;
+              const rawSegment = Array.isArray(s.segment) ? s.segment : [];
+              const start = Number.isFinite(Number(rawSegment[0]))
+                ? Number(rawSegment[0])
+                : 0;
+              const end = Number.isFinite(Number(rawSegment[1]))
+                ? Number(rawSegment[1])
+                : 0;
               const fallbackUuid = `seg_${videoId}_${index}_${start.toFixed(2)}_${end.toFixed(2)}`;
               return {
                 uuid: s.UUID || s.uuid || fallbackUuid,
-                category: s.category,
+                // The payload is third-party data: a missing or malformed
+                // category must not crash the progress bar renderer.
+                category:
+                  typeof s.category === 'string' && s.category
+                    ? s.category
+                    : 'sponsor',
                 actionType: s.actionType || 'skip',
                 start,
                 end,
@@ -1054,18 +1088,4 @@ globalThis.Libertad = globalThis.Libertad || {};
   if (typeof globalThis.Libertad.registerModule === 'function') {
     globalThis.Libertad.registerModule('sponsors', sponsorsModule);
   }
-
-  globalThis.Libertad.getActiveVideoId = getActiveVideoId;
-  globalThis.Libertad.checkVideoSponsors = checkVideoSponsors;
-  globalThis.Libertad.bindVideoSponsorListener = bindVideoSponsorListener;
-  globalThis.Libertad.updateSponsorSegments = updateSponsorSegments;
-  globalThis.Libertad.renderSponsorProgressBar = renderSponsorProgressBar;
-  globalThis.Libertad.resetSponsorNavigation = resetSponsorNavigation;
-  globalThis.Libertad.getMainPlayerProgressBar = getMainPlayerProgressBar;
-  globalThis.Libertad.hasActiveSponsorContainer = () =>
-    Boolean(activeSponsorContainer?.isConnected);
-  globalThis.Libertad.getCurrentSponsorSegments = () => [
-    ...currentSponsorSegments,
-  ];
-  globalThis.Libertad.getCurrentSponsorVideoId = () => currentSponsorVideoId;
 })();
