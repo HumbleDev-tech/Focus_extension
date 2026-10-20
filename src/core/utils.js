@@ -8,6 +8,13 @@ globalThis.Libertad = globalThis.Libertad || {};
 (function () {
   'use strict';
 
+  // The service worker re-injects the content bundle after an extension
+  // update. Capture the previous instance's teardown hook BEFORE this module
+  // replaces the plugin registry, so the stale instance can release its
+  // listeners, timers and injected nodes before the new one takes over.
+  const previousBroadcastDestroy =
+    globalThis.Libertad?.broadcastDestroy || null;
+
   // Canonical YouTube 11-character Video ID parser
   function parseYouTubeVideoId(input) {
     if (!input || typeof input !== 'string') return null;
@@ -156,6 +163,29 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
   }
 
+  // Page teardown hook: releases every module's listeners, timers, observers
+  // and injected nodes once the page is discarded. Guarded against duplicate
+  // registration (the service worker can re-inject the content bundle) and
+  // skipped for bfcache snapshots, where the page survives and the extension
+  // must stay fully functional after the user navigates back.
+  function installTeardownHook() {
+    if (globalThis.__LIBERTAD_TEARDOWN_HOOK) return;
+    globalThis.__LIBERTAD_TEARDOWN_HOOK = true;
+    if (typeof globalThis.addEventListener !== 'function') return;
+    globalThis.addEventListener('pagehide', (event) => {
+      if (event?.persisted) return;
+      // Resolve the teardown entry point dynamically instead of capturing it.
+      // The service worker re-injects this bundle after an extension update,
+      // and the live modules then live in the newest plugin registry, not in
+      // the one that installed this hook. A captured closure would tear down
+      // stale instances and leave the running ones attached.
+      const destroy = globalThis.Libertad?.broadcastDestroy;
+      if (typeof destroy === 'function') destroy();
+    });
+  }
+
+  installTeardownHook();
+
   globalThis.Libertad.parseYouTubeVideoId = parseYouTubeVideoId;
   globalThis.Libertad.formatNumber = formatNumber;
   globalThis.Libertad.isSpanishLocale = isSpanishLocale;
@@ -170,4 +200,5 @@ globalThis.Libertad = globalThis.Libertad || {};
   globalThis.Libertad.broadcastSettingsChange = broadcastSettingsChange;
   globalThis.Libertad.broadcastDomMutation = broadcastDomMutation;
   globalThis.Libertad.broadcastDestroy = broadcastDestroy;
+  globalThis.Libertad.destroyPreviousInstance = previousBroadcastDestroy;
 })();

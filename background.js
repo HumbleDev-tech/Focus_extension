@@ -57,7 +57,7 @@ chrome.runtime.onStartup.addListener(async () => {
             if (syncSaved && Object.keys(syncSaved).length > 0) {
               // Never migrate internal UI label keys back into local storage
               delete syncSaved.descKey;
-              chrome.storage.local.set(syncSaved);
+              chrome.storage.local.set(stripInternalKeys(syncSaved));
             } else {
               chrome.storage.local.set(DEFAULT_SETTINGS);
               chrome.storage.sync.set(DEFAULT_SETTINGS, () => {
@@ -100,7 +100,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     const merged = {
       ...DEFAULT_SETTINGS,
       ...presetTemplate,
-      ...saved,
+      ...stripInternalKeys(saved),
     };
     // Purge obsolete settings remnants from storage
     if ('hideSearchSuggestions' in merged) {
@@ -114,6 +114,11 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     delete merged.descKey;
     if (chrome.storage?.local) chrome.storage.local.remove(['descKey']);
     if (chrome.storage?.sync) chrome.storage.sync.remove(['descKey']);
+    // Purge internal UI keys that older builds may have written to sync.
+    // They are not settings and would otherwise eat into the sync quota.
+    if (chrome.storage?.sync && typeof INTERNAL_STORAGE_KEYS !== 'undefined') {
+      chrome.storage.sync.remove(INTERNAL_STORAGE_KEYS);
+    }
     merged.profiles = {
       ...DEFAULT_SETTINGS.profiles,
       ...(saved.profiles || {}),

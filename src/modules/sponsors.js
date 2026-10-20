@@ -66,6 +66,29 @@ globalThis.Libertad = globalThis.Libertad || {};
   let isProgrammaticSkip = false;
   let programmaticSkipTimer = null;
   let moduleHydrated = true;
+  // References to the media element and its listeners, kept so destroy() can
+  // detach them and clear the binding flag (otherwise a re-init could never
+  // re-bind and SponsorBlock skipping would silently stop working).
+  let boundVideoElement = null;
+  let boundVideoHandlers = null;
+
+  function unbindVideoSponsorListener() {
+    const element = boundVideoElement;
+    const handlers = boundVideoHandlers;
+    boundVideoElement = null;
+    boundVideoHandlers = null;
+    if (!element || !handlers) return;
+    element.removeEventListener('timeupdate', handlers.onTimeUpdate);
+    element.removeEventListener('seeking', handlers.onSeeking);
+    element.removeEventListener('seeked', handlers.onSeeked);
+    element.removeEventListener('loadstart', handlers.onMediaTransition);
+    element.removeEventListener('emptied', handlers.onMediaTransition);
+    element.removeEventListener('durationchange', handlers.onDurationChange);
+    element.removeEventListener('loadedmetadata', handlers.onLoadedMetadata);
+    element.removeEventListener('play', handlers.onPlay);
+    element.removeEventListener('playing', handlers.onPlaying);
+    delete element.dataset.libertadSponsorBound;
+  }
 
   function resetSponsorNavigation() {
     currentSponsorVideoId = null;
@@ -674,6 +697,11 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (!video) return;
 
     if (!video.dataset.libertadSponsorBound) {
+      // The media element was replaced (fresh player instance): release the
+      // previous binding before attaching to the new one.
+      if (boundVideoElement && boundVideoElement !== video) {
+        unbindVideoSponsorListener();
+      }
       video.dataset.libertadSponsorBound = 'true';
       lastKnownPlaybackTime = video.currentTime || 0;
       let lastHeartbeatCheck = 0;
@@ -746,33 +774,49 @@ globalThis.Libertad = globalThis.Libertad || {};
         }
       };
 
+      const onDurationChange = () => {
+        renderSponsorProgressBar();
+      };
+
+      const onLoadedMetadata = () => {
+        renderSponsorProgressBar();
+      };
+
+      const onPlay = () => {
+        renderSponsorProgressBar();
+      };
+
+      const onPlaying = () => {
+        renderSponsorProgressBar();
+        checkVideoSponsors(video, activeSponsorSettings);
+      };
+
+      boundVideoElement = video;
+      boundVideoHandlers = {
+        onTimeUpdate,
+        onSeeking,
+        onSeeked,
+        onMediaTransition,
+        onDurationChange,
+        onLoadedMetadata,
+        onPlay,
+        onPlaying,
+      };
+
       video.addEventListener('timeupdate', onTimeUpdate, { passive: true });
       video.addEventListener('seeking', onSeeking, { passive: true });
       video.addEventListener('seeked', onSeeked, { passive: true });
       video.addEventListener('loadstart', onMediaTransition, { passive: true });
       video.addEventListener('emptied', onMediaTransition, { passive: true });
 
-      video.addEventListener('durationchange', () => {
-        renderSponsorProgressBar();
+      video.addEventListener('durationchange', onDurationChange, {
+        passive: true,
       });
-      video.addEventListener('loadedmetadata', () => {
-        renderSponsorProgressBar();
+      video.addEventListener('loadedmetadata', onLoadedMetadata, {
+        passive: true,
       });
-      video.addEventListener(
-        'play',
-        () => {
-          renderSponsorProgressBar();
-        },
-        { passive: true },
-      );
-      video.addEventListener(
-        'playing',
-        () => {
-          renderSponsorProgressBar();
-          checkVideoSponsors(video, activeSponsorSettings);
-        },
-        { passive: true },
-      );
+      video.addEventListener('play', onPlay, { passive: true });
+      video.addEventListener('playing', onPlaying, { passive: true });
 
       if (currentSponsorSegments.length > 0) {
         renderSponsorProgressBar();
@@ -954,6 +998,8 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
 
     destroy() {
+      moduleHydrated = false;
+      unbindVideoSponsorListener();
       resetSponsorNavigation();
       activeSponsorSettings = null;
     },

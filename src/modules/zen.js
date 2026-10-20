@@ -11,6 +11,8 @@ globalThis.Libertad = globalThis.Libertad || {};
   const ZEN_CONTAINER_ID = 'libertad-zen-container';
   let lastZenTargetContainer = null;
   let currentModuleSettings = null;
+  // Kept at module scope so destroy() can detach the pending listener.
+  let domReadyHandler = null;
 
   const ZEN_TEXTS = {
     es: {
@@ -207,13 +209,19 @@ globalThis.Libertad = globalThis.Libertad || {};
         typeof document !== 'undefined' &&
         document.readyState === 'loading'
       ) {
-        document.addEventListener(
-          'DOMContentLoaded',
-          () => {
-            updateZenBanner(currentModuleSettings);
-          },
-          { once: true },
-        );
+        // init() runs twice per page load (pre-hydration and hydrated pass).
+        // Detach the previous pending listener first so it is not orphaned.
+        if (domReadyHandler) {
+          document.removeEventListener('DOMContentLoaded', domReadyHandler);
+          domReadyHandler = null;
+        }
+        domReadyHandler = () => {
+          domReadyHandler = null;
+          updateZenBanner(currentModuleSettings);
+        };
+        document.addEventListener('DOMContentLoaded', domReadyHandler, {
+          once: true,
+        });
       }
     },
 
@@ -262,6 +270,10 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
 
     destroy() {
+      if (domReadyHandler) {
+        document.removeEventListener('DOMContentLoaded', domReadyHandler);
+        domReadyHandler = null;
+      }
       const existing = document.getElementById(ZEN_CONTAINER_ID);
       if (existing) existing.remove();
       lastZenTargetContainer = null;

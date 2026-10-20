@@ -1,320 +1,355 @@
 /**
  * Libertad - Core Constants & Single Source of Truth
  * Shared configuration schema, presets, profiles, and toggle keys across Service Worker, Content Scripts, and Popup.
+ *
+ * Wrapped in an IIFE on purpose: the service worker re-injects the content
+ * bundle into already open tabs after an extension update, and top-level
+ * `const` declarations live in the realm's global lexical environment, which
+ * survives between injections. A second execution would abort the whole file
+ * with "Identifier 'TOGGLE_KEYS' has already been declared", leaving the tab
+ * running stale constants. The IIFE keeps every declaration re-entrant while
+ * still publishing the schema through `globalThis` (and `module.exports`).
  */
+(function () {
+  'use strict';
 
-const TOGGLE_KEYS = [
-  // Focus Shield (Macro Distraction Blockers)
-  'hideHomeFeed',
-  'redirectHomeToSubscriptions',
-  'hideSidebar',
-  'hideComments',
-  'hideShorts',
-  'hideEndScreens',
-  // UI Cleaner: Header & Search
-  'hideVoiceSearch',
-  'hideCreateButton',
-  'hideNotifications',
-  'hideAccountAvatar',
-  'hideFilterChips',
-  // UI Cleaner: Player Controls & Overlays
-  'hideAutoplay',
-  'hideUpNext',
-  'hideWatermark',
-  'hidePaidPromo',
-  'hideMiniplayer',
-  'hidePlayOnTv',
-  'hideSubtitles',
-  'hideFullscreenActions',
-  // UI Cleaner: Action Bar & Social
-  'hideAskAi',
-  'hideDownload',
-  'hideThanksClips',
-  'hideJoinButton',
-  'hideShare',
-  'hideSave',
-  'hideLikeDislike',
-  'hideSubscribeButton',
-  'hideSubscriberCount',
-  'hideViewsDate',
-  'hideMoreActions',
-  // UI Cleaner: Feeds & Navigation
-  'hideMerchShelf',
-  'hideLiveChat',
-  'hideExplore',
-  'hideWatchPlay',
-  'hideTrending',
-  'hideMoreFromYoutube',
-];
+  const TOGGLE_KEYS = [
+    // Focus Shield (Macro Distraction Blockers)
+    'hideHomeFeed',
+    'redirectHomeToSubscriptions',
+    'hideSidebar',
+    'hideComments',
+    'hideShorts',
+    'hideEndScreens',
+    // UI Cleaner: Header & Search
+    'hideVoiceSearch',
+    'hideCreateButton',
+    'hideNotifications',
+    'hideAccountAvatar',
+    'hideFilterChips',
+    // UI Cleaner: Player Controls & Overlays
+    'hideAutoplay',
+    'hideUpNext',
+    'hideWatermark',
+    'hidePaidPromo',
+    'hideMiniplayer',
+    'hidePlayOnTv',
+    'hideSubtitles',
+    'hideFullscreenActions',
+    // UI Cleaner: Action Bar & Social
+    'hideAskAi',
+    'hideDownload',
+    'hideThanksClips',
+    'hideJoinButton',
+    'hideShare',
+    'hideSave',
+    'hideLikeDislike',
+    'hideSubscribeButton',
+    'hideSubscriberCount',
+    'hideViewsDate',
+    'hideMoreActions',
+    // UI Cleaner: Feeds & Navigation
+    'hideMerchShelf',
+    'hideLiveChat',
+    'hideExplore',
+    'hideWatchPlay',
+    'hideTrending',
+    'hideMoreFromYoutube',
+  ];
 
-const POWER_MODULE_KEYS = [
-  'showDislikes',
-  'untranslateMaster',
-  'untranslateTitles',
-  'untranslateAudio',
-  'untranslateDescription',
-  'untranslateCaptions',
-  'untranslateChapters',
-  'skipSponsors',
-  'sponsorSkipSponsors',
-  'sponsorSkipSelfpromo',
-  'sponsorSkipInteraction',
-  'sponsorSkipIntro',
-  'sponsorSkipOutro',
-  'sponsorSkipMusicOfftopic',
-];
+  const POWER_MODULE_KEYS = [
+    'showDislikes',
+    'untranslateMaster',
+    'untranslateTitles',
+    'untranslateAudio',
+    'untranslateDescription',
+    'untranslateCaptions',
+    'untranslateChapters',
+    'skipSponsors',
+    'sponsorSkipSponsors',
+    'sponsorSkipSelfpromo',
+    'sponsorSkipInteraction',
+    'sponsorSkipIntro',
+    'sponsorSkipOutro',
+    'sponsorSkipMusicOfftopic',
+  ];
 
-const POWER_MODULE_DEFAULTS = {
-  showDislikes: true,
-  untranslateMaster: true,
-  untranslateTitles: true,
-  untranslateAudio: true,
-  untranslateDescription: true,
-  untranslateCaptions: true,
-  untranslateChapters: true,
-  skipSponsors: true,
-  sponsorSkipSponsors: true,
-  sponsorSkipSelfpromo: false,
-  sponsorSkipInteraction: true,
-  sponsorSkipIntro: false,
-  sponsorSkipOutro: false,
-  sponsorSkipMusicOfftopic: false,
-};
-
-const POWER_MODULE_OFF = {
-  showDislikes: false,
-  untranslateMaster: false,
-  untranslateTitles: false,
-  untranslateAudio: false,
-  untranslateDescription: false,
-  untranslateCaptions: false,
-  untranslateChapters: false,
-  skipSponsors: false,
-  sponsorSkipSponsors: false,
-  sponsorSkipSelfpromo: false,
-  sponsorSkipInteraction: false,
-  sponsorSkipIntro: false,
-  sponsorSkipOutro: false,
-  sponsorSkipMusicOfftopic: false,
-};
-
-const ALL_TOGGLE_KEYS = [...TOGGLE_KEYS, ...POWER_MODULE_KEYS];
-
-const PRESET_MAP = {
-  off: {
-    hideHomeFeed: false,
-    redirectHomeToSubscriptions: false,
-    hideSidebar: false,
-    hideComments: false,
-    hideShorts: false,
-    hideEndScreens: false,
-    hideVoiceSearch: false,
-    hideCreateButton: false,
-    hideNotifications: false,
-    hideAccountAvatar: false,
-    hideFilterChips: false,
-    hideAutoplay: false,
-    hideUpNext: false,
-    hideWatermark: false,
-    hidePaidPromo: false,
-    hideMiniplayer: false,
-    hidePlayOnTv: false,
-    hideSubtitles: false,
-    hideFullscreenActions: false,
-    hideAskAi: false,
-    hideDownload: false,
-    hideThanksClips: false,
-    hideJoinButton: false,
-    hideShare: false,
-    hideSave: false,
-    hideLikeDislike: false,
-    hideSubscribeButton: false,
-    hideSubscriberCount: false,
-    hideViewsDate: false,
-    hideMoreActions: false,
-    hideMerchShelf: false,
-    hideLiveChat: false,
-    hideExplore: false,
-    hideWatchPlay: false,
-    hideTrending: false,
-    hideMoreFromYoutube: false,
-    ...POWER_MODULE_OFF,
-    descKey: 'descOff',
-  },
-  basic: {
-    hideHomeFeed: false,
-    redirectHomeToSubscriptions: false,
-    hideSidebar: false,
-    hideComments: false,
-    hideShorts: true,
-    hideEndScreens: true,
-    hideVoiceSearch: false,
-    hideCreateButton: false,
-    hideNotifications: false,
-    hideAccountAvatar: false,
-    hideFilterChips: false,
-    hideAutoplay: false,
-    hideUpNext: true,
-    hideWatermark: true,
-    hidePaidPromo: true,
-    hideMiniplayer: false,
-    hidePlayOnTv: false,
-    hideSubtitles: false,
-    hideFullscreenActions: false,
-    hideAskAi: true,
-    hideDownload: true,
-    hideThanksClips: false,
-    hideJoinButton: false,
-    hideShare: false,
-    hideSave: false,
-    hideLikeDislike: false,
-    hideSubscribeButton: false,
-    hideSubscriberCount: false,
-    hideViewsDate: false,
-    hideMoreActions: false,
-    hideMerchShelf: true,
-    hideLiveChat: false,
-    hideExplore: false,
-    hideWatchPlay: false,
-    hideTrending: false,
-    hideMoreFromYoutube: false,
-    ...POWER_MODULE_DEFAULTS,
-    descKey: 'descBasic',
-  },
-  balanced: {
-    hideHomeFeed: false,
-    redirectHomeToSubscriptions: false,
-    hideSidebar: true,
-    hideComments: false,
-    hideShorts: true,
-    hideEndScreens: true,
-    hideVoiceSearch: true,
-    hideCreateButton: true,
-    hideNotifications: true,
-    hideAccountAvatar: false,
-    hideFilterChips: false,
-    hideAutoplay: true,
-    hideUpNext: true,
-    hideWatermark: true,
-    hidePaidPromo: true,
-    hideMiniplayer: true,
-    hidePlayOnTv: true,
-    hideSubtitles: false,
-    hideFullscreenActions: true,
-    hideAskAi: true,
-    hideDownload: true,
-    hideThanksClips: true,
-    hideJoinButton: true,
-    hideShare: false,
-    hideSave: false,
-    hideLikeDislike: false,
-    hideSubscribeButton: false,
-    hideSubscriberCount: false,
-    hideViewsDate: false,
-    hideMoreActions: false,
-    hideMerchShelf: true,
-    hideLiveChat: true,
-    hideExplore: true,
-    hideWatchPlay: true,
-    hideTrending: true,
-    hideMoreFromYoutube: true,
-    ...POWER_MODULE_DEFAULTS,
-    descKey: 'descBalanced',
-  },
-  extreme: {
-    hideHomeFeed: true,
-    redirectHomeToSubscriptions: false,
-    hideSidebar: true,
-    hideComments: true,
-    hideShorts: true,
-    hideEndScreens: true,
-    hideVoiceSearch: true,
-    hideCreateButton: true,
-    hideNotifications: true,
-    hideAccountAvatar: true,
-    hideFilterChips: true,
-    hideAutoplay: true,
-    hideUpNext: true,
-    hideWatermark: true,
-    hidePaidPromo: true,
-    hideMiniplayer: true,
-    hidePlayOnTv: true,
-    hideSubtitles: true,
-    hideFullscreenActions: true,
-    hideAskAi: true,
-    hideDownload: true,
-    hideThanksClips: true,
-    hideJoinButton: true,
-    hideShare: true,
-    hideSave: true,
-    hideLikeDislike: true,
-    hideSubscribeButton: true,
-    hideSubscriberCount: true,
-    hideViewsDate: true,
-    hideMoreActions: true,
-    hideMerchShelf: true,
-    hideLiveChat: true,
-    hideExplore: true,
-    hideWatchPlay: true,
-    hideTrending: true,
-    hideMoreFromYoutube: true,
-    ...POWER_MODULE_DEFAULTS,
-    descKey: 'descExtreme',
-  },
-  custom: {
-    descKey: 'descCustom',
-  },
-};
-
-function extractToggles(config) {
-  const result = {};
-  for (let i = 0; i < ALL_TOGGLE_KEYS.length; i++) {
-    const key = ALL_TOGGLE_KEYS[i];
-    if (config[key] !== undefined) {
-      result[key] = !!config[key];
-    }
-  }
-  return result;
-}
-
-const MAX_PROFILES = 3;
-const DEFAULT_PROFILES = {};
-
-const DEFAULT_SETTINGS = {
-  activeProfile: null,
-  profiles: DEFAULT_PROFILES,
-  preset: 'balanced',
-  theme: 'auto',
-  lang: 'auto',
-  scale: 'auto',
-  activeTab: 'focus',
-  ...extractToggles(PRESET_MAP.balanced),
-};
-
-if (typeof globalThis !== 'undefined') {
-  globalThis.TOGGLE_KEYS = TOGGLE_KEYS;
-  globalThis.POWER_MODULE_KEYS = POWER_MODULE_KEYS;
-  globalThis.POWER_MODULE_DEFAULTS = POWER_MODULE_DEFAULTS;
-  globalThis.POWER_MODULE_OFF = POWER_MODULE_OFF;
-  globalThis.ALL_TOGGLE_KEYS = ALL_TOGGLE_KEYS;
-  globalThis.DEFAULT_SETTINGS = DEFAULT_SETTINGS;
-  globalThis.PRESET_MAP = PRESET_MAP;
-  globalThis.DEFAULT_PROFILES = DEFAULT_PROFILES;
-  globalThis.MAX_PROFILES = MAX_PROFILES;
-  globalThis.extractToggles = extractToggles;
-}
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    TOGGLE_KEYS,
-    POWER_MODULE_KEYS,
-    POWER_MODULE_DEFAULTS,
-    POWER_MODULE_OFF,
-    ALL_TOGGLE_KEYS,
-    DEFAULT_SETTINGS,
-    PRESET_MAP,
-    DEFAULT_PROFILES,
-    MAX_PROFILES,
-    extractToggles,
+  const POWER_MODULE_DEFAULTS = {
+    showDislikes: true,
+    untranslateMaster: true,
+    untranslateTitles: true,
+    untranslateAudio: true,
+    untranslateDescription: true,
+    untranslateCaptions: true,
+    untranslateChapters: true,
+    skipSponsors: true,
+    sponsorSkipSponsors: true,
+    sponsorSkipSelfpromo: false,
+    sponsorSkipInteraction: true,
+    sponsorSkipIntro: false,
+    sponsorSkipOutro: false,
+    sponsorSkipMusicOfftopic: false,
   };
-}
+
+  const POWER_MODULE_OFF = {
+    showDislikes: false,
+    untranslateMaster: false,
+    untranslateTitles: false,
+    untranslateAudio: false,
+    untranslateDescription: false,
+    untranslateCaptions: false,
+    untranslateChapters: false,
+    skipSponsors: false,
+    sponsorSkipSponsors: false,
+    sponsorSkipSelfpromo: false,
+    sponsorSkipInteraction: false,
+    sponsorSkipIntro: false,
+    sponsorSkipOutro: false,
+    sponsorSkipMusicOfftopic: false,
+  };
+
+  const ALL_TOGGLE_KEYS = [...TOGGLE_KEYS, ...POWER_MODULE_KEYS];
+
+  const PRESET_MAP = {
+    off: {
+      hideHomeFeed: false,
+      redirectHomeToSubscriptions: false,
+      hideSidebar: false,
+      hideComments: false,
+      hideShorts: false,
+      hideEndScreens: false,
+      hideVoiceSearch: false,
+      hideCreateButton: false,
+      hideNotifications: false,
+      hideAccountAvatar: false,
+      hideFilterChips: false,
+      hideAutoplay: false,
+      hideUpNext: false,
+      hideWatermark: false,
+      hidePaidPromo: false,
+      hideMiniplayer: false,
+      hidePlayOnTv: false,
+      hideSubtitles: false,
+      hideFullscreenActions: false,
+      hideAskAi: false,
+      hideDownload: false,
+      hideThanksClips: false,
+      hideJoinButton: false,
+      hideShare: false,
+      hideSave: false,
+      hideLikeDislike: false,
+      hideSubscribeButton: false,
+      hideSubscriberCount: false,
+      hideViewsDate: false,
+      hideMoreActions: false,
+      hideMerchShelf: false,
+      hideLiveChat: false,
+      hideExplore: false,
+      hideWatchPlay: false,
+      hideTrending: false,
+      hideMoreFromYoutube: false,
+      ...POWER_MODULE_OFF,
+      descKey: 'descOff',
+    },
+    basic: {
+      hideHomeFeed: false,
+      redirectHomeToSubscriptions: false,
+      hideSidebar: false,
+      hideComments: false,
+      hideShorts: true,
+      hideEndScreens: true,
+      hideVoiceSearch: false,
+      hideCreateButton: false,
+      hideNotifications: false,
+      hideAccountAvatar: false,
+      hideFilterChips: false,
+      hideAutoplay: false,
+      hideUpNext: true,
+      hideWatermark: true,
+      hidePaidPromo: true,
+      hideMiniplayer: false,
+      hidePlayOnTv: false,
+      hideSubtitles: false,
+      hideFullscreenActions: false,
+      hideAskAi: true,
+      hideDownload: true,
+      hideThanksClips: false,
+      hideJoinButton: false,
+      hideShare: false,
+      hideSave: false,
+      hideLikeDislike: false,
+      hideSubscribeButton: false,
+      hideSubscriberCount: false,
+      hideViewsDate: false,
+      hideMoreActions: false,
+      hideMerchShelf: true,
+      hideLiveChat: false,
+      hideExplore: false,
+      hideWatchPlay: false,
+      hideTrending: false,
+      hideMoreFromYoutube: false,
+      ...POWER_MODULE_DEFAULTS,
+      descKey: 'descBasic',
+    },
+    balanced: {
+      hideHomeFeed: false,
+      redirectHomeToSubscriptions: false,
+      hideSidebar: true,
+      hideComments: false,
+      hideShorts: true,
+      hideEndScreens: true,
+      hideVoiceSearch: true,
+      hideCreateButton: true,
+      hideNotifications: true,
+      hideAccountAvatar: false,
+      hideFilterChips: false,
+      hideAutoplay: true,
+      hideUpNext: true,
+      hideWatermark: true,
+      hidePaidPromo: true,
+      hideMiniplayer: true,
+      hidePlayOnTv: true,
+      hideSubtitles: false,
+      hideFullscreenActions: true,
+      hideAskAi: true,
+      hideDownload: true,
+      hideThanksClips: true,
+      hideJoinButton: true,
+      hideShare: false,
+      hideSave: false,
+      hideLikeDislike: false,
+      hideSubscribeButton: false,
+      hideSubscriberCount: false,
+      hideViewsDate: false,
+      hideMoreActions: false,
+      hideMerchShelf: true,
+      hideLiveChat: true,
+      hideExplore: true,
+      hideWatchPlay: true,
+      hideTrending: true,
+      hideMoreFromYoutube: true,
+      ...POWER_MODULE_DEFAULTS,
+      descKey: 'descBalanced',
+    },
+    extreme: {
+      hideHomeFeed: true,
+      redirectHomeToSubscriptions: false,
+      hideSidebar: true,
+      hideComments: true,
+      hideShorts: true,
+      hideEndScreens: true,
+      hideVoiceSearch: true,
+      hideCreateButton: true,
+      hideNotifications: true,
+      hideAccountAvatar: true,
+      hideFilterChips: true,
+      hideAutoplay: true,
+      hideUpNext: true,
+      hideWatermark: true,
+      hidePaidPromo: true,
+      hideMiniplayer: true,
+      hidePlayOnTv: true,
+      hideSubtitles: true,
+      hideFullscreenActions: true,
+      hideAskAi: true,
+      hideDownload: true,
+      hideThanksClips: true,
+      hideJoinButton: true,
+      hideShare: true,
+      hideSave: true,
+      hideLikeDislike: true,
+      hideSubscribeButton: true,
+      hideSubscriberCount: true,
+      hideViewsDate: true,
+      hideMoreActions: true,
+      hideMerchShelf: true,
+      hideLiveChat: true,
+      hideExplore: true,
+      hideWatchPlay: true,
+      hideTrending: true,
+      hideMoreFromYoutube: true,
+      ...POWER_MODULE_DEFAULTS,
+      descKey: 'descExtreme',
+    },
+    custom: {
+      descKey: 'descCustom',
+    },
+  };
+
+  function extractToggles(config) {
+    const result = {};
+    for (let i = 0; i < ALL_TOGGLE_KEYS.length; i++) {
+      const key = ALL_TOGGLE_KEYS[i];
+      if (config[key] !== undefined) {
+        result[key] = !!config[key];
+      }
+    }
+    return result;
+  }
+
+  const MAX_PROFILES = 3;
+  const DEFAULT_PROFILES = {};
+
+  // Internal UI keys that live in chrome.storage but are NOT user settings.
+  // They must never be merged into the settings payload, propagated to content
+  // scripts, or written to chrome.storage.sync (where they would eat into the
+  // per-item quota and silently break cross-device syncing).
+  const INTERNAL_STORAGE_KEYS = [
+    'profiles_orphaned',
+    'libertad_paused_snapshot',
+    'hasSeenWelcome',
+  ];
+
+  // Returns a shallow copy of the source without any internal UI key.
+  function stripInternalKeys(source) {
+    if (!source || typeof source !== 'object') return {};
+    const clean = { ...source };
+    for (let i = 0; i < INTERNAL_STORAGE_KEYS.length; i++) {
+      delete clean[INTERNAL_STORAGE_KEYS[i]];
+    }
+    return clean;
+  }
+
+  const DEFAULT_SETTINGS = {
+    activeProfile: null,
+    profiles: DEFAULT_PROFILES,
+    preset: 'balanced',
+    theme: 'auto',
+    lang: 'auto',
+    scale: 'auto',
+    activeTab: 'focus',
+    ...extractToggles(PRESET_MAP.balanced),
+  };
+
+  if (typeof globalThis !== 'undefined') {
+    globalThis.TOGGLE_KEYS = TOGGLE_KEYS;
+    globalThis.POWER_MODULE_KEYS = POWER_MODULE_KEYS;
+    globalThis.POWER_MODULE_DEFAULTS = POWER_MODULE_DEFAULTS;
+    globalThis.POWER_MODULE_OFF = POWER_MODULE_OFF;
+    globalThis.ALL_TOGGLE_KEYS = ALL_TOGGLE_KEYS;
+    globalThis.DEFAULT_SETTINGS = DEFAULT_SETTINGS;
+    globalThis.PRESET_MAP = PRESET_MAP;
+    globalThis.DEFAULT_PROFILES = DEFAULT_PROFILES;
+    globalThis.MAX_PROFILES = MAX_PROFILES;
+    globalThis.INTERNAL_STORAGE_KEYS = INTERNAL_STORAGE_KEYS;
+    globalThis.stripInternalKeys = stripInternalKeys;
+    globalThis.extractToggles = extractToggles;
+  }
+
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+      TOGGLE_KEYS,
+      POWER_MODULE_KEYS,
+      POWER_MODULE_DEFAULTS,
+      POWER_MODULE_OFF,
+      ALL_TOGGLE_KEYS,
+      DEFAULT_SETTINGS,
+      PRESET_MAP,
+      DEFAULT_PROFILES,
+      MAX_PROFILES,
+      INTERNAL_STORAGE_KEYS,
+      stripInternalKeys,
+      extractToggles,
+    };
+  }
+})();

@@ -6,7 +6,14 @@
 
 const fs = require('fs');
 const path = require('path');
-const { ALL_TOGGLE_KEYS, TOGGLE_KEYS, POWER_MODULE_KEYS, DEFAULT_SETTINGS } = require('../constants.js');
+const {
+  ALL_TOGGLE_KEYS,
+  TOGGLE_KEYS,
+  POWER_MODULE_KEYS,
+  DEFAULT_SETTINGS,
+  INTERNAL_STORAGE_KEYS,
+  stripInternalKeys,
+} = require('../constants.js');
 const { LIBERTAD_I18N } = require('../i18n.js');
 
 let failures = 0;
@@ -135,6 +142,7 @@ const utilsJs = fs.readFileSync(path.join(__dirname, '../src/core/utils.js'), 'u
 const shortsJs = fs.readFileSync(path.join(__dirname, '../src/modules/shorts.js'), 'utf8');
 const subscriptionsJs = fs.readFileSync(path.join(__dirname, '../src/modules/subscriptions.js'), 'utf8');
 const dislikesJs = fs.readFileSync(path.join(__dirname, '../src/modules/dislikes.js'), 'utf8');
+const untranslateJs = fs.readFileSync(path.join(__dirname, '../src/modules/untranslate.js'), 'utf8');
 
 assert(
   utilsJs.includes('function broadcastInit(settings, ctx)') &&
@@ -152,6 +160,7 @@ for (const [label, source] of [
   ['subscriptions.js', subscriptionsJs],
   ['sponsors.js', sponsorsJs],
   ['dislikes.js', dislikesJs],
+  ['untranslate.js', untranslateJs],
 ]) {
   assert(
     source.includes('init(settings, ctx)') && source.includes('moduleHydrated'),
@@ -159,8 +168,29 @@ for (const [label, source] of [
   );
 }
 
+// 13b. Verify the untranslate hydration guard actually lives inside init() and
+// covers the network-backed title lookup, not just a stray file-wide mention.
+const untranslateInitStart = untranslateJs.indexOf('init(settings, ctx)');
+const untranslateInitEnd = untranslateJs.indexOf(
+  'onNavigate',
+  untranslateInitStart,
+);
+const untranslateInitBlock = untranslateJs.slice(
+  untranslateInitStart,
+  untranslateInitEnd === -1 ? undefined : untranslateInitEnd,
+);
+assert(
+  untranslateInitStart !== -1 &&
+    untranslateInitBlock.includes('moduleHydrated') &&
+    untranslateInitBlock.includes('if (!moduleHydrated)'),
+  'untranslate.js gates its pre-hydration init() body with an early return'
+);
+assert(
+  untranslateJs.includes('moduleHydrated &&'),
+  'untranslate.js gates agent metadata application behind the hydration flag'
+);
+
 // 14. Verify untranslate writes text in place instead of wiping live nodes
-const untranslateJs = fs.readFileSync(path.join(__dirname, '../src/modules/untranslate.js'), 'utf8');
 const textWipeTargets = [
   'node.textContent = clean',
   'expandedSpan.textContent =',
@@ -204,6 +234,177 @@ assert(
 assert(
   popupJs.includes('profiles_orphaned'),
   'popup.js archives over-cap profiles instead of deleting them'
+);
+
+// 18. Verify the destroy() contract: every module releases what it created and
+// the orchestrator actually triggers the teardown.
+const zenJs = fs.readFileSync(
+  path.join(__dirname, '../src/modules/zen.js'),
+  'utf8',
+);
+
+assert(
+  utilsJs.includes('installTeardownHook') &&
+    utilsJs.includes("addEventListener('pagehide'") &&
+    utilsJs.includes('broadcastDestroy()'),
+  'utils.js installs a page teardown hook that triggers broadcastDestroy()'
+);
+assert(
+  utilsJs.includes('event?.persisted'),
+  'utils.js teardown hook skips bfcache snapshots so restored pages stay functional'
+);
+
+for (const [label, source, markers] of [
+  [
+    'shorts.js',
+    shortsJs,
+    [
+      "removeEventListener('click', interceptHandler",
+      "removeEventListener('auxclick', interceptHandler",
+      'isInterceptorBound = false',
+    ],
+  ],
+  [
+    'subscriptions.js',
+    subscriptionsJs,
+    [
+      "removeEventListener('click', interceptHandler",
+      "removeEventListener('auxclick', interceptHandler",
+      'isInterceptorBound = false',
+    ],
+  ],
+  [
+    'sponsors.js',
+    sponsorsJs,
+    [
+      'unbindVideoSponsorListener()',
+      "removeEventListener('timeupdate'",
+      'delete element.dataset.libertadSponsorBound',
+    ],
+  ],
+  [
+    'styles.js',
+    stylesJs,
+    [
+      'styleEl.remove()',
+      'clearTimeout(chatResizeTimer)',
+      'clearTimeout(playerResizeTimer)',
+      'restoreAutoplayIfSuppressed()',
+      'restoreLiveChatElements()',
+    ],
+  ],
+  [
+    'untranslate.js',
+    untranslateJs,
+    ['clearTimeout(untranslateDebounceTimer)', 'feedIntersectionObserver = null'],
+  ],
+  [
+    'zen.js',
+    zenJs,
+    ["removeEventListener('DOMContentLoaded', domReadyHandler)"],
+  ],
+]) {
+  assert(
+    markers.every((m) => source.includes(m)),
+    `${label} destroy() releases the resources it created`
+  );
+}
+
+// 19. Verify the post-update re-initialization path: a re-injected bundle must
+// tear down the stale instance before the fresh one takes over.
+assert(
+  utilsJs.includes('previousBroadcastDestroy') &&
+    utilsJs.includes('destroyPreviousInstance'),
+  'utils.js exposes the previous instance teardown hook for re-injection'
+);
+assert(
+  contentJs.includes('window.__LIBERTAD_CONTENT_TEARDOWN') &&
+    contentJs.includes('teardownContent') &&
+    contentJs.includes('observer.disconnect()') &&
+    contentJs.includes('chrome.storage.onChanged.removeListener'),
+  'content.js releases its observer and listeners when a newer instance takes over'
+);
+assert(
+  agentJs.includes('window.__LIBERTAD_AGENT_TEARDOWN') &&
+    agentJs.includes('function teardownAgent()') &&
+    agentJs.includes('delete boundPlayer.__libertadEventsBound') &&
+    agentJs.includes('delete boundVideo.__libertadEventsBound'),
+  'agent.js releases its window listeners and player bindings on re-injection'
+);
+assert(
+  (agentJs.match(/markAutonavOwnership\(\)/g) || []).length >= 3,
+  'agent.js claims autoplay ownership in every branch that suppresses it'
+);
+
+// 20. Verify internal UI keys never leak into the settings payload or sync
+assert(
+  contentJs.includes('stripInternalKeys(saved)') &&
+    contentJs.includes('INTERNAL_STORAGE_KEYS.includes(key)'),
+  'content.js filters internal UI keys out of the settings and change events'
+);
+assert(
+  backgroundJs.includes('...stripInternalKeys(saved)') &&
+    backgroundJs.includes('chrome.storage.sync.remove(INTERNAL_STORAGE_KEYS)'),
+  'background.js never syncs internal UI keys to chrome.storage.sync'
+);
+assert(
+  popupJs.includes('...stripInternalKeys(saved)') &&
+    popupJs.includes('stripInternalKeys(state)'),
+  'popup.js keeps internal UI keys out of the state and the saved payload'
+);
+
+// 20b. Behavioral check: the filter removes internal keys and keeps settings
+const simulatedStored = {
+  preset: 'balanced',
+  profiles: { p1: { preset: 'custom' } },
+  profiles_orphaned: { p9: { name: 'archived' } },
+  libertad_paused_snapshot: { preset: 'off' },
+  hasSeenWelcome: true,
+};
+const cleanedStored = stripInternalKeys(simulatedStored);
+assert(
+  INTERNAL_STORAGE_KEYS.every((k) => !(k in cleanedStored)) &&
+    cleanedStored.preset === 'balanced' &&
+    cleanedStored.profiles.p1.preset === 'custom' &&
+    'profiles_orphaned' in simulatedStored,
+  'stripInternalKeys() drops internal UI keys, keeps settings, and never mutates the source'
+);
+
+// 21. Verify the re-injection audit fixes: no redeclaration abort, live
+// teardown target, and no orphaned listeners.
+const constantsJs = fs.readFileSync(
+  path.join(__dirname, '../constants.js'),
+  'utf8',
+);
+assert(
+  constantsJs.includes('(function () {') &&
+    constantsJs.trimEnd().endsWith('})();'),
+  'constants.js is IIFE-wrapped so a re-injection cannot abort it with a redeclaration SyntaxError'
+);
+assert(
+  utilsJs.includes('const destroy = globalThis.Libertad?.broadcastDestroy;') &&
+    utilsJs.includes("if (typeof destroy === 'function') destroy();"),
+  'utils.js teardown hook resolves the live broadcastDestroy instead of a captured closure'
+);
+assert(
+  welcomeJs.includes('stripInternalKeys(saved)'),
+  'welcome.js never writes internal UI keys back to storage or sync'
+);
+assert(
+  untranslateJs.includes('onAgentMetadata') &&
+    untranslateJs.includes(
+      "window.removeEventListener('libertad-agent-metadata', onAgentMetadata)",
+    ),
+  'untranslate.js detaches its agent metadata listener on destroy()'
+);
+assert(
+  untranslateJs.includes('let moduleHydrated = false;'),
+  'untranslate.js starts un-hydrated so a premature agent broadcast cannot reach the DOM'
+);
+assert(
+  (zenJs.match(/removeEventListener\('DOMContentLoaded', domReadyHandler\)/g) || [])
+    .length >= 2,
+  'zen.js detaches the pending DOMContentLoaded listener on re-init and on destroy'
 );
 
 console.log(`\n=== PARITY AUDIT COMPLETE: ${failures} FAILURES ===`);

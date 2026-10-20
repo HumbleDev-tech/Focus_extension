@@ -187,7 +187,12 @@
               ? extractToggles(PRESET_MAP[presetName])
               : PRESET_MAP[presetName];
           const updated = {
-            ...(saved || {}),
+            // Internal UI keys (archived profiles, pause snapshot, welcome
+            // flag) share the storage area but are not settings: they must
+            // never be written back to chrome.storage.sync.
+            ...(typeof stripInternalKeys === 'function'
+              ? stripInternalKeys(saved)
+              : saved || {}),
             ...toggles,
             preset: presetName,
             isOff: false,

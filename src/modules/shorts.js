@@ -11,6 +11,8 @@ globalThis.Libertad = globalThis.Libertad || {};
   let isInterceptorBound = false;
   let currentModuleSettings = null;
   let moduleHydrated = true;
+  // Kept at module scope so destroy() can detach the document listeners.
+  let interceptHandler = null;
 
   function getShortsVideoId(url) {
     if (typeof globalThis.Libertad?.parseYouTubeVideoId === 'function') {
@@ -142,6 +144,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     document.addEventListener('click', handleIntercept, { capture: true });
     document.addEventListener('auxclick', handleIntercept, { capture: true });
+    interceptHandler = handleIntercept;
   }
 
   // Dynamic DOM cleaner for individual Shorts filter chips in feeds, search, and watch related bar
@@ -337,6 +340,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
 
     destroy() {
+      moduleHydrated = false;
       currentModuleSettings = null;
       if (chipsScanTimer) {
         clearTimeout(chipsScanTimer);
@@ -344,6 +348,16 @@ globalThis.Libertad = globalThis.Libertad || {};
       }
       pendingChipsSettings = null;
       cleanShortsChips({ hideShorts: false });
+      if (interceptHandler) {
+        document.removeEventListener('click', interceptHandler, {
+          capture: true,
+        });
+        document.removeEventListener('auxclick', interceptHandler, {
+          capture: true,
+        });
+        interceptHandler = null;
+      }
+      isInterceptorBound = false;
     },
   };
 

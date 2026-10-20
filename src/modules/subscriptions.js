@@ -11,6 +11,8 @@ globalThis.Libertad = globalThis.Libertad || {};
   let isInterceptorBound = false;
   let currentModuleSettings = null;
   let moduleHydrated = true;
+  // Kept at module scope so destroy() can detach the document listeners.
+  let interceptHandler = null;
 
   function redirectHomeToSubscriptions(settings, targetUrl) {
     const activeSettings = settings || currentModuleSettings;
@@ -78,6 +80,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     document.addEventListener('click', handleIntercept, { capture: true });
     document.addEventListener('auxclick', handleIntercept, { capture: true });
+    interceptHandler = handleIntercept;
   }
 
   const subscriptionsModule = {
@@ -115,7 +118,18 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
 
     destroy() {
+      moduleHydrated = false;
       currentModuleSettings = null;
+      if (interceptHandler) {
+        document.removeEventListener('click', interceptHandler, {
+          capture: true,
+        });
+        document.removeEventListener('auxclick', interceptHandler, {
+          capture: true,
+        });
+        interceptHandler = null;
+      }
+      isInterceptorBound = false;
     },
   };
 

@@ -8,8 +8,21 @@
 (function () {
   'use strict';
 
-  if (window.__LIBERTAD_AGENT_ACTIVE) return;
+  // The service worker re-injects this agent after an extension update. A
+  // stale instance must release its window listeners and player bindings
+  // before the new one takes over, otherwise the tab keeps running
+  // pre-update code until the user manually reloads the page.
+  if (window.__LIBERTAD_AGENT_ACTIVE) {
+    if (typeof window.__LIBERTAD_AGENT_TEARDOWN === 'function') {
+      try {
+        window.__LIBERTAD_AGENT_TEARDOWN();
+      } catch (_) {}
+    } else {
+      return;
+    }
+  }
   window.__LIBERTAD_AGENT_ACTIVE = true;
+  window.__LIBERTAD_AGENT_TEARDOWN = teardownAgent;
 
   const ORIGINAL_KEYWORDS = [
     'original',
@@ -65,7 +78,7 @@
   } catch (_) {}
 
   // Synchronize settings from Libertad content script
-  window.addEventListener('libertad-agent-settings', (event) => {
+  const onAgentSettings = (event) => {
     const detail = event?.detail;
     if (!detail || typeof detail !== 'object') return;
     agentSettings = {
@@ -91,7 +104,9 @@
         retryTimer = null;
       }
     }
-  });
+  };
+
+  window.addEventListener('libertad-agent-settings', onAgentSettings);
 
   // Request fresh settings handshake in case content script initialized first
   try {
@@ -124,7 +139,12 @@
           }
           suppressed = true;
         } else if (typeof player.setAutonav === 'function') {
+          // No getter available: the player cannot report its current state,
+          // so ownership is claimed unconditionally. Without this the
+          // suppression would be irreversible (restoreAutonavIfOurs bails out
+          // when the ownership flag is missing).
           player.setAutonav(false);
+          markAutonavOwnership();
           suppressed = true;
         }
         if (suppressed && document.documentElement) {
@@ -543,6 +563,13 @@
     }
   }
 
+  // References to the player and video elements this agent attached to, kept
+  // so the teardown can detach them and clear the binding flags.
+  let boundPlayer = null;
+  let boundPlayerHandler = null;
+  let boundVideo = null;
+  let boundVideoHandlers = null;
+
   function bindPlayerEvents() {
     const player = getPlayer();
     let playerBound = false;
@@ -554,11 +581,14 @@
       !player.__libertadEventsBound
     ) {
       player.__libertadEventsBound = true;
-      player.addEventListener('onStateChange', (state) => {
+      const onPlayerStateChange = (state) => {
         if (state === 1) {
           triggerPlaybackEnforcement();
         }
-      });
+      };
+      player.addEventListener('onStateChange', onPlayerStateChange);
+      boundPlayer = player;
+      boundPlayerHandler = onPlayerStateChange;
       playerBound = true;
     } else if (player?.__libertadEventsBound) {
       playerBound = true;
@@ -567,9 +597,9 @@
     const video = getVideoElement();
     if (video && !video.__libertadEventsBound) {
       video.__libertadEventsBound = true;
-      video.addEventListener('playing', () => {
+      const onVideoPlaying = () => {
         triggerPlaybackEnforcement();
-      });
+      };
       // Cold-start media initialization hooks: enforce audio before playback commences
       const onMediaPreload = () => {
         if (
@@ -580,16 +610,80 @@
           enforceOriginalAudio();
         }
       };
+      video.addEventListener('playing', onVideoPlaying);
       video.addEventListener('loadedmetadata', onMediaPreload, {
         passive: true,
       });
       video.addEventListener('canplay', onMediaPreload, { passive: true });
+      boundVideo = video;
+      boundVideoHandlers = { onVideoPlaying, onMediaPreload };
       videoBound = true;
     } else if (video?.__libertadEventsBound) {
       videoBound = true;
     }
 
     return playerBound && videoBound;
+  }
+
+  // Releases every resource this agent created: window listeners, player and
+  // video bindings, and pending retry timers. Invoked by the next instance
+  // when the service worker re-injects the agent after an extension update.
+  function teardownAgent() {
+    window.removeEventListener('libertad-agent-settings', onAgentSettings);
+    window.removeEventListener('libertad-agent-cmd', onAgentCommand);
+    window.removeEventListener('yt-navigate-finish', onNavigateFinish);
+    window.removeEventListener('popstate', onPopState);
+
+    if (boundPlayer && boundPlayerHandler) {
+      boundPlayer.removeEventListener('onStateChange', boundPlayerHandler);
+      delete boundPlayer.__libertadEventsBound;
+    }
+    boundPlayer = null;
+    boundPlayerHandler = null;
+
+    if (boundVideo && boundVideoHandlers) {
+      boundVideo.removeEventListener(
+        'playing',
+        boundVideoHandlers.onVideoPlaying,
+      );
+      boundVideo.removeEventListener(
+        'loadedmetadata',
+        boundVideoHandlers.onMediaPreload,
+      );
+      boundVideo.removeEventListener(
+        'canplay',
+        boundVideoHandlers.onMediaPreload,
+      );
+      delete boundVideo.__libertadEventsBound;
+    }
+    boundVideo = null;
+    boundVideoHandlers = null;
+
+    if (retryTimer) {
+      clearTimeout(retryTimer);
+      clearInterval(retryTimer);
+      retryTimer = null;
+    }
+  }
+
+  // Resets the per-video caches shared by the navigation listeners. The autonav
+  // ownership flag (libertadAutonavOurs) is intentionally NOT reset here: it
+  // tracks whether Libertad turned autoplay off for the session, so it must
+  // survive navigation to keep the restore path working.
+  function resetAgentNavigationState() {
+    lastEnforcedVideoId = null;
+    audioSwitchAttemptedVideoId = null;
+    lastBroadcastMetadataKey = null;
+    cachedPlayerResponse = null;
+    cachedPlayerResponseVideoId = null;
+    if (document.documentElement?.dataset) {
+      delete document.documentElement.dataset.libertadAutonav;
+    }
+    if (retryTimer) {
+      clearTimeout(retryTimer);
+      clearInterval(retryTimer);
+      retryTimer = null;
+    }
   }
 
   function startEnforcementRoutine() {
@@ -650,7 +744,7 @@
   }
 
   // Listen for targeted execution commands from Libertad Content Script
-  window.addEventListener('libertad-agent-cmd', (event) => {
+  const onAgentCommand = (event) => {
     const detail = event?.detail;
     if (!detail || typeof detail !== 'object') return;
     const cmd = detail.action;
@@ -673,43 +767,24 @@
         }
       } catch (_) {}
     }
-  });
+  };
+
+  window.addEventListener('libertad-agent-cmd', onAgentCommand);
 
   // Automatically monitor navigation in page context
-  window.addEventListener('yt-navigate-finish', () => {
-    lastEnforcedVideoId = null;
-    audioSwitchAttemptedVideoId = null;
-    lastBroadcastMetadataKey = null;
-    cachedPlayerResponse = null;
-    cachedPlayerResponseVideoId = null;
-    if (document.documentElement?.dataset) {
-      delete document.documentElement.dataset.libertadAutonav;
-    }
-    if (retryTimer) {
-      clearTimeout(retryTimer);
-      clearInterval(retryTimer);
-      retryTimer = null;
-    }
+  const onNavigateFinish = () => {
+    resetAgentNavigationState();
     bindPlayerEvents();
     enforceAutoplaySuppression();
     setTimeout(startEnforcementRoutine, 100);
-  });
+  };
 
-  window.addEventListener('popstate', () => {
-    lastEnforcedVideoId = null;
-    audioSwitchAttemptedVideoId = null;
-    lastBroadcastMetadataKey = null;
-    cachedPlayerResponse = null;
-    cachedPlayerResponseVideoId = null;
-    if (document.documentElement?.dataset) {
-      delete document.documentElement.dataset.libertadAutonav;
-    }
-    if (retryTimer) {
-      clearTimeout(retryTimer);
-      clearInterval(retryTimer);
-      retryTimer = null;
-    }
-  });
+  const onPopState = () => {
+    resetAgentNavigationState();
+  };
+
+  window.addEventListener('yt-navigate-finish', onNavigateFinish);
+  window.addEventListener('popstate', onPopState);
 
   // Initial startup hook
   bindPlayerEvents();

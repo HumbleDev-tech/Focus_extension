@@ -356,7 +356,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     state = {
       ...DEFAULT_SETTINGS,
-      ...saved,
+      // Internal UI keys (archived profiles, pause snapshot, welcome flag)
+      // share the storage area but are not settings: keeping them out of the
+      // state prevents them from being written back to local and sync.
+      ...stripInternalKeys(saved),
       activeProfile: activeProf,
       profiles: loadedProfiles,
     };
@@ -810,7 +813,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       return;
     }
-    const syncPayload = { ...state };
+    const syncPayload = stripInternalKeys(state);
     delete syncPayload.activeTab;
     try {
       localStorage.setItem('libertad_popup_state', JSON.stringify(syncPayload));

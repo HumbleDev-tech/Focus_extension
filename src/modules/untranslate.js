@@ -43,6 +43,11 @@ globalThis.Libertad = globalThis.Libertad || {};
   let metadataRequestPending = false;
   let latestOriginalMetadata = null;
   let activeUntranslateSettings = null;
+  // Hydration guard: irreversible actions (network lookups, agent commands
+  // that mutate the player) must wait until settings storage has been read.
+  // Starts as false: before the first init() the module is not hydrated yet,
+  // so a premature agent broadcast must not reach the DOM.
+  let moduleHydrated = false;
 
   function getVideoId(url) {
     if (typeof globalThis.Libertad?.parseYouTubeVideoId === 'function') {
@@ -71,7 +76,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   // Listen for broadcasted metadata from Main World Agent
-  window.addEventListener('libertad-agent-metadata', (event) => {
+  const onAgentMetadata = (event) => {
     const detail = event?.detail;
     if (!detail || typeof detail !== 'object') return;
 
@@ -111,7 +116,12 @@ globalThis.Libertad = globalThis.Libertad || {};
     };
     metadataRequestPending = false;
 
+    // Caching the raw metadata above is safe at any time (pure data, no side
+    // effects). Applying it to the DOM is gated: pre-hydration broadcasts
+    // still carry default settings, so writing them would override a user who
+    // actually disabled the Untranslate suite.
     if (
+      moduleHydrated &&
       latestOriginalMetadata.title &&
       window.location.pathname === '/watch' &&
       (!activeUntranslateSettings ||
@@ -121,20 +131,24 @@ globalThis.Libertad = globalThis.Libertad || {};
       applyWatchTitle(latestOriginalMetadata.title, videoId);
     }
     if (
-      !activeUntranslateSettings ||
-      (activeUntranslateSettings.untranslateMaster !== false &&
-        activeUntranslateSettings.untranslateDescription !== false)
+      moduleHydrated &&
+      (!activeUntranslateSettings ||
+        (activeUntranslateSettings.untranslateMaster !== false &&
+          activeUntranslateSettings.untranslateDescription !== false))
     ) {
       restoreOriginalDescription(activeUntranslateSettings);
     }
     if (
-      !activeUntranslateSettings ||
-      (activeUntranslateSettings.untranslateMaster !== false &&
-        activeUntranslateSettings.untranslateChapters !== false)
+      moduleHydrated &&
+      (!activeUntranslateSettings ||
+        (activeUntranslateSettings.untranslateMaster !== false &&
+          activeUntranslateSettings.untranslateChapters !== false))
     ) {
       restoreOriginalChapters(activeUntranslateSettings);
     }
-  });
+  };
+
+  window.addEventListener('libertad-agent-metadata', onAgentMetadata);
 
   function resetUntranslateNavigation() {
     currentOriginalTitle = null;
@@ -925,8 +939,15 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   const untranslateModule = {
-    init(settings) {
+    init(settings, ctx) {
+      moduleHydrated = !(ctx && ctx.hydrated === false);
       activeUntranslateSettings = settings;
+      if (!moduleHydrated) {
+        // Pre-hydration bootstrap: only reversible, side-effect free work is
+        // allowed here. Title lookups hit the network and the agent commands
+        // mutate the player, so they must wait for the hydrated pass.
+        return;
+      }
       if (
         settings?.untranslateMaster !== false &&
         settings?.untranslateTitles !== false
@@ -972,6 +993,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         resetUntranslateNavigation();
         return;
       }
+      if (!moduleHydrated) return;
       if (
         settings?.untranslateMaster !== false &&
         settings?.untranslateTitles !== false
@@ -1018,6 +1040,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
 
     onSettingsChange(settings, changes) {
+      moduleHydrated = true;
       activeUntranslateSettings = settings;
       const untranslateKeys = [
         'untranslateMaster',
@@ -1067,6 +1090,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
 
     onDomMutation(settings) {
+      if (!moduleHydrated) return;
       activeUntranslateSettings = settings;
       if (settings?.untranslateMaster === false) return;
 
@@ -1097,7 +1121,19 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
 
     destroy() {
+      moduleHydrated = false;
+      window.removeEventListener('libertad-agent-metadata', onAgentMetadata);
       resetUntranslateNavigation();
+      if (untranslateDebounceTimer) {
+        clearTimeout(untranslateDebounceTimer);
+        untranslateDebounceTimer = null;
+      }
+      feedIntersectionObserver?.disconnect();
+      feedIntersectionObserver = null;
+      inFlightTitles.clear();
+      feedFetchQueue.length = 0;
+      pendingFeedVideoIds.clear();
+      activeFeedFetches = 0;
       activeUntranslateSettings = null;
     },
   };

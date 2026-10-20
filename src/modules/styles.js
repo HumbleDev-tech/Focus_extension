@@ -1446,6 +1446,37 @@ globalThis.Libertad = globalThis.Libertad || {};
   let lastNonChatWatchUrl = null;
   let lastAutoplayHandledUrl = null;
 
+  // Reverts every live-chat DOM mutation this module performed. Extracted so
+  // the teardown path can restore the page even outside watch routes, where
+  // cleanLiveChat() short-circuits before reaching its restore branch.
+  function restoreLiveChatElements() {
+    const hiddenElements = document.querySelectorAll(
+      '[data-libertad-hidden-chat="true"]',
+    );
+    for (let i = 0; i < hiddenElements.length; i++) {
+      hiddenElements[i].removeAttribute('data-libertad-hidden-chat');
+      hiddenElements[i].classList.remove('libertad-force-hide');
+      hiddenElements[i].style.removeProperty('display');
+      hiddenElements[i].style.removeProperty('height');
+      hiddenElements[i].style.removeProperty('min-height');
+      hiddenElements[i].style.removeProperty('max-height');
+      hiddenElements[i].style.removeProperty('margin');
+      hiddenElements[i].style.removeProperty('padding');
+      hiddenElements[i].style.removeProperty('border');
+      hiddenElements[i].style.removeProperty('visibility');
+    }
+    const checkedElements = document.querySelectorAll(
+      '[data-libertad-chat-checked="true"]',
+    );
+    for (let i = 0; i < checkedElements.length; i++) {
+      checkedElements[i].removeAttribute('data-libertad-chat-checked');
+    }
+    const flexy = document.querySelector('ytd-watch-flexy');
+    if (flexy) {
+      flexy.removeAttribute('flexy-chat-collapsed_');
+    }
+  }
+
   function resetStylesNavigation() {
     lastNonChatWatchUrl = null;
     lastAutoplayHandledUrl = null;
@@ -1476,30 +1507,8 @@ globalThis.Libertad = globalThis.Libertad || {};
     const flexy = document.querySelector('ytd-watch-flexy');
 
     if (!settings?.hideLiveChat) {
-      // Revert any previously hidden elements
-      const hiddenElements = document.querySelectorAll(
-        '[data-libertad-hidden-chat="true"]',
-      );
-      for (let i = 0; i < hiddenElements.length; i++) {
-        hiddenElements[i].removeAttribute('data-libertad-hidden-chat');
-        hiddenElements[i].classList.remove('libertad-force-hide');
-        hiddenElements[i].style.removeProperty('display');
-        hiddenElements[i].style.removeProperty('height');
-        hiddenElements[i].style.removeProperty('min-height');
-        hiddenElements[i].style.removeProperty('max-height');
-        hiddenElements[i].style.removeProperty('margin');
-        hiddenElements[i].style.removeProperty('padding');
-        hiddenElements[i].style.removeProperty('border');
-        hiddenElements[i].style.removeProperty('visibility');
-      }
-      const checkedElements = document.querySelectorAll(
-        '[data-libertad-chat-checked="true"]',
-      );
-      for (let i = 0; i < checkedElements.length; i++) {
-        checkedElements[i].removeAttribute('data-libertad-chat-checked');
-      }
+      restoreLiveChatElements();
       if (flexy) {
-        flexy.removeAttribute('flexy-chat-collapsed_');
         scheduleChatResize();
       }
       return;
@@ -2056,6 +2065,21 @@ globalThis.Libertad = globalThis.Libertad || {};
     schedulePlayerResize();
   }
 
+  // Re-enable autoplay only when this module is the one that turned it off.
+  // Shares the ownership flag with agent.js so neither restores twice.
+  function restoreAutoplayIfSuppressed() {
+    const root = document.documentElement;
+    if (root?.dataset?.libertadAutonavOurs !== '1') return;
+    try {
+      const autonavBtn = document.querySelector('.ytp-autonav-toggle-button');
+      if (autonavBtn && autonavBtn.getAttribute('aria-checked') === 'false') {
+        autonavBtn.click();
+      }
+    } catch (_) {}
+    delete root.dataset.libertadAutonavOurs;
+    delete root.dataset.libertadAutonav;
+  }
+
   globalThis.Libertad.buildStylesheet = buildStylesheet;
   globalThis.Libertad.applyStyles = applyStyles;
   globalThis.Libertad.cleanLiveChat = cleanLiveChat;
@@ -2166,6 +2190,28 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
     destroy() {
       stylesLastFlexySyncedHref = null;
+      resetStylesNavigation();
+
+      // Restore every DOM mutation this module performed
+      restoreLiveChatElements();
+      cleanExplore({ hideExplore: false });
+      restoreAutoplayIfSuppressed();
+
+      // Drop the injected stylesheet
+      const styleEl = document.getElementById(STYLE_ID);
+      if (styleEl) styleEl.remove();
+      cachedStylesheetKey = '';
+      cachedStylesheetCss = '';
+
+      // Cancel pending timers last: the restore passes above may schedule one
+      if (chatResizeTimer) {
+        clearTimeout(chatResizeTimer);
+        chatResizeTimer = null;
+      }
+      if (playerResizeTimer) {
+        clearTimeout(playerResizeTimer);
+        playerResizeTimer = null;
+      }
     },
   };
 

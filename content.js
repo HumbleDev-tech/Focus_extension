@@ -6,10 +6,20 @@
 (function () {
   'use strict';
 
-  if (window.__LIBERTAD_CONTENT_INITIALIZED) return;
-  window.__LIBERTAD_CONTENT_INITIALIZED = true;
-
   const Libertad = globalThis.Libertad || {};
+
+  // The service worker re-injects the content bundle after an extension
+  // update. Without this, the stale instance would keep its listeners
+  // attached and the tab would keep running pre-update code until the user
+  // manually reloads. The previous instance is torn down first so the new
+  // one takes over cleanly (see utils.js destroyPreviousInstance).
+  if (window.__LIBERTAD_CONTENT_INITIALIZED) {
+    // Stop the stale orchestrator first so it stops reacting to events, then
+    // release the stale modules so the fresh instance starts from a clean DOM.
+    safeRun('teardownPreviousContent', window.__LIBERTAD_CONTENT_TEARDOWN);
+    safeRun('destroyPreviousInstance', Libertad.destroyPreviousInstance);
+  }
+  window.__LIBERTAD_CONTENT_INITIALIZED = true;
 
   // Settings hydration state: irreversible module actions (redirects, network
   // fetches) must wait until storage has been consulted at least once.
@@ -58,9 +68,11 @@
   broadcastAgentSettings();
 
   // Listen for agent readiness event from main world
-  window.addEventListener('libertad-agent-ready', () => {
+  const onAgentReady = () => {
     broadcastAgentSettings();
-  });
+  };
+
+  window.addEventListener('libertad-agent-ready', onAgentReady);
 
   // Resilient execution wrapper: prevents any single module failure from breaking the pipeline
   function safeRun(moduleName, fn, ...args) {
@@ -93,8 +105,15 @@
   // Load saved settings from storage with local priority and sync fallback
   const applyLoadedSettings = (saved) => {
     settingsHydrated = true;
-    if (saved && Object.keys(saved).length > 0) {
-      currentSettings = { ...currentSettings, ...saved };
+    // Internal UI keys (profiles_orphaned, paused snapshot, welcome flag) live
+    // in the same storage area but are not settings: they must never reach
+    // the modules, the agent, or the sessionStorage mirror.
+    const cleanSaved =
+      typeof stripInternalKeys === 'function'
+        ? stripInternalKeys(saved)
+        : saved;
+    if (cleanSaved && Object.keys(cleanSaved).length > 0) {
+      currentSettings = { ...currentSettings, ...cleanSaved };
       try {
         sessionStorage.setItem(
           'libertad_settings',
@@ -129,13 +148,19 @@
   }
 
   // Listen for storage changes in real time with granular key diffing
-  chrome.storage.onChanged.addListener((changes, areaName) => {
+  const onStorageChanged = (changes, areaName) => {
     // Only react to local storage events (fallback to sync only if local is unsupported)
     if (areaName !== 'local' && chrome.storage?.local) return;
 
     settingsHydrated = true;
 
     for (const key in changes) {
+      if (
+        typeof INTERNAL_STORAGE_KEYS !== 'undefined' &&
+        INTERNAL_STORAGE_KEYS.includes(key)
+      ) {
+        continue;
+      }
       currentSettings[key] = changes[key].newValue;
     }
 
@@ -155,12 +180,14 @@
       currentSettings,
       changes,
     );
-  });
+  };
+
+  chrome.storage.onChanged.addListener(onStorageChanged);
 
   let lastCheckedHref = window.location.href;
 
   // Handle YouTube SPA Navigation events
-  window.addEventListener('yt-navigate-start', (event) => {
+  const onNavigateStart = (event) => {
     const targetUrl = event?.detail?.url;
     safeRun(
       'broadcastNavigation',
@@ -169,9 +196,9 @@
       currentSettings,
       'start',
     );
-  });
+  };
 
-  window.addEventListener('yt-navigate-finish', () => {
+  const onNavigateFinish = () => {
     lastCheckedHref = window.location.href;
     safeRun(
       'broadcastNavigation',
@@ -181,9 +208,9 @@
       'finish',
     );
     syncAllModules();
-  });
+  };
 
-  window.addEventListener('popstate', () => {
+  const onPopState = () => {
     lastCheckedHref = window.location.href;
     safeRun(
       'broadcastNavigation',
@@ -193,21 +220,29 @@
       'finish',
     );
     syncAllModules();
-  });
+  };
+
+  window.addEventListener('yt-navigate-start', onNavigateStart);
+  window.addEventListener('yt-navigate-finish', onNavigateFinish);
+  window.addEventListener('popstate', onPopState);
 
   // High-performance cooperative background scheduler: keeps non-urgent DOM passes off the render frame budget
   let isIdleScheduled = false;
+  let idleTaskHandle = null;
   const scheduleIdleTask = (callback) => {
     if (isIdleScheduled) return;
     isIdleScheduled = true;
     const runTask = () => {
       isIdleScheduled = false;
+      idleTaskHandle = null;
       callback();
     };
     if (typeof window.requestIdleCallback === 'function') {
-      return window.requestIdleCallback(runTask, { timeout: 150 });
+      idleTaskHandle = window.requestIdleCallback(runTask, { timeout: 150 });
+    } else {
+      idleTaskHandle = setTimeout(runTask, 30);
     }
-    return setTimeout(runTask, 30);
+    return idleTaskHandle;
   };
 
   // Throttled MutationObserver with node-addition filtering and memoized lookups
@@ -262,4 +297,29 @@
     childList: true,
     subtree: true,
   });
+
+  // Teardown: releases the orchestrator's own listeners, observer and pending
+  // idle task, so a re-injected instance can take over without duplicating
+  // DOM passes or reacting twice to the same storage event.
+  function teardownContent() {
+    observer.disconnect();
+    window.removeEventListener('libertad-agent-ready', onAgentReady);
+    window.removeEventListener('yt-navigate-start', onNavigateStart);
+    window.removeEventListener('yt-navigate-finish', onNavigateFinish);
+    window.removeEventListener('popstate', onPopState);
+    if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
+      chrome.storage.onChanged.removeListener(onStorageChanged);
+    }
+    if (idleTaskHandle !== null) {
+      if (typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(idleTaskHandle);
+      } else {
+        clearTimeout(idleTaskHandle);
+      }
+      idleTaskHandle = null;
+    }
+    isIdleScheduled = false;
+  }
+
+  window.__LIBERTAD_CONTENT_TEARDOWN = teardownContent;
 })();

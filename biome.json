@@ -82,6 +82,8 @@
       "POWER_MODULE_OFF",
       "DEFAULT_PROFILES",
       "MAX_PROFILES",
+      "INTERNAL_STORAGE_KEYS",
+      "stripInternalKeys",
       "extractToggles",
       "getTranslation"
     ],

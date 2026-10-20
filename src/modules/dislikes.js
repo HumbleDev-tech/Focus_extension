@@ -605,6 +605,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
 
     destroy() {
+      moduleHydrated = false;
       resetDislikesNavigation();
     },
   };
