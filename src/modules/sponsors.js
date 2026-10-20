@@ -66,6 +66,11 @@ globalThis.Libertad = globalThis.Libertad || {};
   let isProgrammaticSkip = false;
   let programmaticSkipTimer = null;
   let moduleHydrated = true;
+  // Bounded retry for transient SponsorBlock failures. Without it a single
+  // network error left the video without segments until the next navigation.
+  let sponsorRetryTimer = null;
+  let sponsorRetryAttempts = 0;
+  const SPONSOR_RETRY_DELAYS = [3000, 9000];
   // References to the media element and its listeners, kept so destroy() can
   // detach them and clear the binding flag (otherwise a re-init could never
   // re-bind and SponsorBlock skipping would silently stop working).
@@ -104,6 +109,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       clearTimeout(programmaticSkipTimer);
       programmaticSkipTimer = null;
     }
+    clearSponsorRetry();
     ignoredSegmentUuids.clear();
     const playerContainer =
       document.querySelector('#movie_player') ||
@@ -824,6 +830,33 @@ globalThis.Libertad = globalThis.Libertad || {};
     }
   }
 
+  // Schedules a bounded retry for a failed SponsorBlock lookup. The retry is
+  // dropped when the feature gets disabled, the module is torn down, or the
+  // user already moved to a different video.
+  function scheduleSponsorRetry(videoId) {
+    if (sponsorRetryTimer) return;
+    if (sponsorRetryAttempts >= SPONSOR_RETRY_DELAYS.length) return;
+    if (!moduleHydrated || !activeSponsorSettings?.skipSponsors) return;
+
+    const delay = SPONSOR_RETRY_DELAYS[sponsorRetryAttempts];
+    sponsorRetryAttempts++;
+    sponsorRetryTimer = setTimeout(() => {
+      sponsorRetryTimer = null;
+      if (!moduleHydrated || !activeSponsorSettings?.skipSponsors) return;
+      const activeVid = getActiveVideoId();
+      if (activeVid && activeVid !== videoId) return;
+      updateSponsorSegments(activeSponsorSettings);
+    }, delay);
+  }
+
+  function clearSponsorRetry() {
+    if (sponsorRetryTimer) {
+      clearTimeout(sponsorRetryTimer);
+      sponsorRetryTimer = null;
+    }
+    sponsorRetryAttempts = 0;
+  }
+
   function updateSponsorSegments(settings) {
     if (settings) activeSponsorSettings = settings;
     if (!settings?.skipSponsors) {
@@ -877,10 +910,18 @@ globalThis.Libertad = globalThis.Libertad || {};
             !res ||
             !res.success
           ) {
+            // Transient failure: retry a couple of times before giving up.
+            scheduleSponsorRetry(videoId);
             return;
           }
 
           if (getActiveVideoId() !== videoId) return;
+
+          // The feature may have been disabled while the request was in
+          // flight. Drop the payload instead of re-enabling the overlay.
+          if (!moduleHydrated || !activeSponsorSettings?.skipSponsors) {
+            return;
+          }
 
           const rawSegments = Array.isArray(res.data)
             ? res.data
@@ -907,6 +948,8 @@ globalThis.Libertad = globalThis.Libertad || {};
 
           sponsorCache.set(videoId, parsed);
           currentSponsorSegments = parsed;
+          // A successful lookup ends the failure streak.
+          clearSponsorRetry();
 
           const video = getVideoElement();
           if (video && Number.isFinite(video.duration) && video.duration > 0) {
@@ -920,7 +963,9 @@ globalThis.Libertad = globalThis.Libertad || {};
         },
       );
     } catch (_) {
-      // Fail silently on transient runtime errors without poisoning the local cache
+      // Fail silently on transient runtime errors without poisoning the local
+      // cache, but give the lookup a couple of chances to recover.
+      scheduleSponsorRetry(videoId);
     }
   }
 

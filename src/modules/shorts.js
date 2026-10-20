@@ -13,6 +13,32 @@ globalThis.Libertad = globalThis.Libertad || {};
   let moduleHydrated = true;
   // Kept at module scope so destroy() can detach the document listeners.
   let interceptHandler = null;
+  // Marker used to remember the href YouTube originally set on an anchor, so
+  // the rewrite can be reverted when the feature is turned off.
+  const SHORTS_ORIG_HREF_ATTR = 'data-libertad-shorts-orig-href';
+
+  // Records the native href once, before the first rewrite.
+  function rememberOriginalHref(anchor, href) {
+    if (!anchor.hasAttribute(SHORTS_ORIG_HREF_ATTR)) {
+      anchor.setAttribute(SHORTS_ORIG_HREF_ATTR, href || '');
+    }
+  }
+
+  // Reverts every href this module rewrote, leaving YouTube's own links
+  // untouched again.
+  function restoreInterceptedHrefs() {
+    const anchors = document.querySelectorAll(`[${SHORTS_ORIG_HREF_ATTR}]`);
+    for (let i = 0; i < anchors.length; i++) {
+      const anchor = anchors[i];
+      const original = anchor.getAttribute(SHORTS_ORIG_HREF_ATTR);
+      if (original) {
+        anchor.setAttribute('href', original);
+      } else {
+        anchor.removeAttribute('href');
+      }
+      anchor.removeAttribute(SHORTS_ORIG_HREF_ATTR);
+    }
+  }
 
   function getShortsVideoId(url) {
     if (typeof globalThis.Libertad?.parseYouTubeVideoId === 'function') {
@@ -94,11 +120,13 @@ globalThis.Libertad = globalThis.Libertad || {};
           const parsed = new URL(href, window.location.origin);
           parsed.pathname = '/watch';
           parsed.searchParams.set('v', match[1]);
+          rememberOriginalHref(anchor, href);
           anchor.setAttribute(
             'href',
             parsed.pathname + parsed.search + (parsed.hash || ''),
           );
         } catch (_) {
+          rememberOriginalHref(anchor, href);
           anchor.setAttribute('href', `/watch?v=${match[1]}`);
         }
         return;
@@ -109,6 +137,7 @@ globalThis.Libertad = globalThis.Libertad || {};
         /^(\/(@[^/]+|channel\/[^/]+|c\/[^/]+|user\/[^/]+))\/shorts(?:\/.*)?$/,
       );
       if (channelShortsMatch) {
+        rememberOriginalHref(anchor, href);
         anchor.setAttribute('href', `${channelShortsMatch[1]}/videos`);
         return;
       }
@@ -124,6 +153,7 @@ globalThis.Libertad = globalThis.Libertad || {};
             const dest = settings?.redirectHomeToSubscriptions
               ? '/feed/subscriptions'
               : '/';
+            rememberOriginalHref(anchor, href);
             anchor.setAttribute('href', dest);
           }
         }
@@ -137,6 +167,7 @@ globalThis.Libertad = globalThis.Libertad || {};
           const dest = settings?.redirectHomeToSubscriptions
             ? '/feed/subscriptions'
             : '/';
+          rememberOriginalHref(anchor, href);
           anchor.setAttribute('href', dest);
         }
       }
@@ -314,11 +345,19 @@ globalThis.Libertad = globalThis.Libertad || {};
       cleanShortsChips(settings);
     },
 
-    onSettingsChange(newSettings, _changes) {
+    onSettingsChange(newSettings, changes) {
       moduleHydrated = true;
       currentModuleSettings = newSettings;
       if (chipsScanTimer) {
         pendingChipsSettings = newSettings;
+      }
+      // Give YouTube its own links back when the feature is disabled, and
+      // when the redirect target changes (the previous rewrite may point to
+      // the old destination).
+      const redirectChanged =
+        !!changes && Object.hasOwn(changes, 'redirectHomeToSubscriptions');
+      if (!newSettings?.hideShorts || redirectChanged) {
+        restoreInterceptedHrefs();
       }
       if (newSettings?.hideShorts) {
         redirectShortsIfActive(newSettings);
@@ -348,6 +387,7 @@ globalThis.Libertad = globalThis.Libertad || {};
       }
       pendingChipsSettings = null;
       cleanShortsChips({ hideShorts: false });
+      restoreInterceptedHrefs();
       if (interceptHandler) {
         document.removeEventListener('click', interceptHandler, {
           capture: true,

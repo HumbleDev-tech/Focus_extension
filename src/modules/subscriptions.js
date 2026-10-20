@@ -13,6 +13,32 @@ globalThis.Libertad = globalThis.Libertad || {};
   let moduleHydrated = true;
   // Kept at module scope so destroy() can detach the document listeners.
   let interceptHandler = null;
+  // Marker used to remember the href YouTube originally set on an anchor, so
+  // the rewrite can be reverted when the feature is turned off.
+  const SUBS_ORIG_HREF_ATTR = 'data-libertad-subs-orig-href';
+
+  // Records the native href once, before the first rewrite.
+  function rememberOriginalHref(anchor, href) {
+    if (!anchor.hasAttribute(SUBS_ORIG_HREF_ATTR)) {
+      anchor.setAttribute(SUBS_ORIG_HREF_ATTR, href || '');
+    }
+  }
+
+  // Reverts every href this module rewrote, leaving YouTube's own links
+  // untouched again.
+  function restoreInterceptedHrefs() {
+    const anchors = document.querySelectorAll(`[${SUBS_ORIG_HREF_ATTR}]`);
+    for (let i = 0; i < anchors.length; i++) {
+      const anchor = anchors[i];
+      const original = anchor.getAttribute(SUBS_ORIG_HREF_ATTR);
+      if (original) {
+        anchor.setAttribute('href', original);
+      } else {
+        anchor.removeAttribute('href');
+      }
+      anchor.removeAttribute(SUBS_ORIG_HREF_ATTR);
+    }
+  }
 
   function redirectHomeToSubscriptions(settings, targetUrl) {
     const activeSettings = settings || currentModuleSettings;
@@ -62,6 +88,7 @@ globalThis.Libertad = globalThis.Libertad || {};
           parsed.hostname === window.location.hostname ||
           parsed.hostname.endsWith('youtube.com');
         if (isYouTube && (parsed.pathname === '/' || parsed.pathname === '')) {
+          rememberOriginalHref(anchor, href);
           anchor.setAttribute('href', '/feed/subscriptions');
         }
       } catch (_) {
@@ -73,6 +100,7 @@ globalThis.Libertad = globalThis.Libertad || {};
           href === 'https://www.youtube.com/' ||
           href === 'https://youtube.com/'
         ) {
+          rememberOriginalHref(anchor, href);
           anchor.setAttribute('href', '/feed/subscriptions');
         }
       }
@@ -104,6 +132,9 @@ globalThis.Libertad = globalThis.Libertad || {};
       currentModuleSettings = newSettings;
       if (newSettings?.redirectHomeToSubscriptions) {
         redirectHomeToSubscriptions(newSettings);
+      } else {
+        // Give YouTube its own links back once the redirect is disabled.
+        restoreInterceptedHrefs();
       }
     },
 
@@ -120,6 +151,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     destroy() {
       moduleHydrated = false;
       currentModuleSettings = null;
+      restoreInterceptedHrefs();
       if (interceptHandler) {
         document.removeEventListener('click', interceptHandler, {
           capture: true,

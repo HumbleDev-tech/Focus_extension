@@ -39,6 +39,10 @@ globalThis.Libertad = globalThis.Libertad || {};
   let dislikePollTimer = null;
   let dislikePollAttempts = 0;
   let moduleHydrated = true;
+  // Latest settings seen by the module. A fetch can resolve after the user
+  // disabled the feature, so the callback must validate against the current
+  // state instead of the one captured when the request was issued.
+  let currentModuleSettings = null;
 
   function getVideoId(url) {
     if (typeof globalThis.Libertad?.parseYouTubeVideoId === 'function') {
@@ -223,9 +227,10 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     if (!nativeBtn.hasAttribute('data-libertad-orig-aria')) {
       const origAria = nativeBtn.getAttribute('aria-label');
-      if (origAria) {
-        nativeBtn.setAttribute('data-libertad-orig-aria', origAria);
-      }
+      // Always record ownership, even when the native button had no
+      // aria-label: an empty marker means "Libertad owns this attribute" and
+      // lets removeDislikeBadge() delete the label it generated.
+      nativeBtn.setAttribute('data-libertad-orig-aria', origAria || '');
     }
 
     updateDislikeButtonShape(nativeBtn, true);
@@ -342,8 +347,16 @@ globalThis.Libertad = globalThis.Libertad || {};
         updateDislikeButtonShape(btn, false);
         btn.removeAttribute('data-libertad-dislike-vid');
         const defaultAria = btn.getAttribute('data-libertad-orig-aria');
-        if (defaultAria) {
-          btn.setAttribute('aria-label', defaultAria);
+        if (defaultAria !== null) {
+          // Restore the native label and drop the ownership marker. An empty
+          // marker means the button had no label and the generated one
+          // (aria-label="Dislike (123)") must be removed.
+          if (defaultAria) {
+            btn.setAttribute('aria-label', defaultAria);
+          } else {
+            btn.removeAttribute('aria-label');
+          }
+          btn.removeAttribute('data-libertad-orig-aria');
         }
       }
       b.remove();
@@ -423,6 +436,9 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   // Dislike restoration logic: eagerly fetches API count and injects whenever button is ready
   function updateDislikeCount(settings) {
+    // Keep the module state in sync so late callbacks can validate against
+    // the current settings instead of the captured ones.
+    if (settings) currentModuleSettings = settings;
     if (!settings?.showDislikes || settings?.hideLikeDislike) {
       removeDislikeBadge();
       return;
@@ -484,6 +500,12 @@ globalThis.Libertad = globalThis.Libertad || {};
       .then((result) => {
         inFlightDislikes.delete(videoId);
         const currentVideoId = getVideoId(window.location.href);
+        // The user may have disabled the module while the request was in
+        // flight. Re-validate against the live settings: a stale response
+        // must never re-enable the badge.
+        const active = currentModuleSettings;
+        const featureEnabled =
+          moduleHydrated && !!active?.showDislikes && !active?.hideLikeDislike;
         if (
           result?.ok &&
           result.data &&
@@ -494,13 +516,15 @@ globalThis.Libertad = globalThis.Libertad || {};
             function (n) {
               return n.toString();
             };
-          const formatted = formatNum(result.data.dislikes, settings?.lang);
+          const formatted = formatNum(result.data.dislikes, active?.lang);
           dislikeCache.set(videoId, formatted);
-          if (currentVideoId === videoId) {
+          if (featureEnabled && currentVideoId === videoId) {
             const currentBtn = findDislikeButton();
             if (currentBtn) {
               injectDislikeBadge(currentBtn, formatted, videoId);
             }
+          } else if (!featureEnabled) {
+            removeDislikeBadge();
           }
         } else if (result?.notFound) {
           // Explicit 404 from community API: safe to cache as false to avoid repeated lookups
@@ -534,6 +558,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     init(settings, ctx) {
       moduleHydrated = !(ctx && ctx.hydrated === false);
+      currentModuleSettings = settings;
       if (
         moduleHydrated &&
         settings?.showDislikes &&
@@ -544,6 +569,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
 
     onNavigate(_url, settings, phase) {
+      currentModuleSettings = settings;
       lastDislikeBtn = null;
       if (phase === 'start') {
         resetDislikesNavigation();
@@ -556,6 +582,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     onSettingsChange(settings, changes) {
       moduleHydrated = true;
+      currentModuleSettings = settings;
       const showChanged =
         changes && ('showDislikes' in changes || 'hideLikeDislike' in changes);
       if (showChanged || !changes) {
@@ -569,6 +596,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     onDomMutation(settings) {
       if (!moduleHydrated) return;
+      currentModuleSettings = settings;
       if (!settings?.showDislikes || settings?.hideLikeDislike) {
         return;
       }
@@ -606,6 +634,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     destroy() {
       moduleHydrated = false;
+      currentModuleSettings = null;
       resetDislikesNavigation();
     },
   };
