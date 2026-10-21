@@ -292,7 +292,9 @@ Focus_extension/
 │       ├── untranslate.js # Title, description, caption & chapter restoration
 │       └── zen.js         # Intentional Zen home screen & focus banner engine
 ├── test/
-│   └── parity-check.js    # Automated toggle parity and locale integrity test suite
+│   ├── dom-mock.js          # Dependency-free DOM mock for behavioural checks
+│   ├── parity-check.js      # Automated toggle parity and locale integrity test suite
+│   └── untranslate-restore-check.js # Behavioural check of the Untranslate restore cycle
 ├── background.js          # Service worker with dual-layer caching & tab injection
 ├── constants.js           # Single source of truth for toggles, presets & profiles
 ├── content.js             # SPA lifecycle router and module orchestrator
