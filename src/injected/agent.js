@@ -104,7 +104,7 @@
       (!agentSettings.untranslateAudio && !agentSettings.untranslateCaptions)
     ) {
       if (retryTimer) {
-        clearInterval(retryTimer);
+        clearTimeout(retryTimer);
         retryTimer = null;
       }
     }
@@ -373,7 +373,7 @@
   }
 
   // Enforce the creator's true original audio track (Anti AI-Dubbing)
-  function enforceOriginalAudio(force = false) {
+  function enforceOriginalAudio() {
     if (
       agentSettings.hydrated === false ||
       agentSettings.isOff ||
@@ -384,7 +384,7 @@
     }
     const videoId = getCurrentVideoId();
     if (!videoId) return false;
-    if (!force && lastEnforcedVideoId === videoId) return true;
+    if (lastEnforcedVideoId === videoId) return true;
 
     const player = getPlayer();
     if (!player || typeof player.getAvailableAudioTracks !== 'function') {
@@ -665,7 +665,6 @@
 
     if (retryTimer) {
       clearTimeout(retryTimer);
-      clearInterval(retryTimer);
       retryTimer = null;
     }
     if (pendingRoutineTimer) {
@@ -689,7 +688,6 @@
     }
     if (retryTimer) {
       clearTimeout(retryTimer);
-      clearInterval(retryTimer);
       retryTimer = null;
     }
     if (pendingRoutineTimer) {
@@ -710,7 +708,6 @@
   function startEnforcementRoutine() {
     if (retryTimer) {
       clearTimeout(retryTimer);
-      clearInterval(retryTimer);
       retryTimer = null;
     }
 

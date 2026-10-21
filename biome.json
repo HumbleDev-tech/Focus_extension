@@ -83,6 +83,7 @@
       "DEFAULT_PROFILES",
       "MAX_PROFILES",
       "INTERNAL_STORAGE_KEYS",
+      "PAUSED_SNAPSHOT_KEY",
       "stripInternalKeys",
       "extractToggles",
       "getTranslation"

@@ -92,9 +92,6 @@
     hydrated: false,
   });
 
-  // Apply styles immediately at document_start
-  safeRun('applyStyles', Libertad.applyStyles, currentSettings);
-
   // Synchronize agent-facing state (style/DOM cleaners are owned by the styles plugin)
   function syncAllModules() {
     broadcastAgentSettings();
@@ -129,7 +126,13 @@
 
   if (typeof chrome !== 'undefined' && chrome.storage?.local) {
     chrome.storage.local.get(null, (localSaved) => {
-      if (localSaved && Object.keys(localSaved).length > 0) {
+      // The emptiness check must run on the cleaned payload: local storage
+      // frequently holds nothing but internal UI keys (the welcome flag, the
+      // archived profiles, the pause snapshot). Deciding on the raw object
+      // would skip the sync fallback and silently load the defaults instead
+      // of the settings the user synced to this device.
+      const cleanLocal = stripInternalKeys(localSaved);
+      if (cleanLocal && Object.keys(cleanLocal).length > 0) {
         applyLoadedSettings(localSaved);
       } else if (chrome.storage?.sync) {
         chrome.storage.sync.get(null, (syncSaved) => {

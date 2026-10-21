@@ -10,6 +10,19 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   const STYLE_ID = 'libertad-focus-styles';
 
+  // Hydration state of the player-facing half of this module.
+  //
+  // The bootstrap pass runs before the settings have been read, so it still
+  // carries the default preset: the user may have the opposite setting.
+  // Clicking the native autoplay toggle, collapsing the native chat and
+  // resizing the player are player state changes, so they must wait for the
+  // hydrated pass (AGENTS.md: only reversible, FOUC-critical work is allowed
+  // before the settings have been consulted).
+  //
+  // The DOM tagging done by applyStyles/cleanExplore/cleanWatchPlay is
+  // reversible and stays enabled during the bootstrap pass.
+  let moduleHydrated = true;
+
   // Build high-efficiency CSS rules based on settings
   function buildStylesheet(settings) {
     const rules = [];
@@ -1504,6 +1517,9 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   // Dynamic DOM cleaner for Live Chat & Replay elements (handles Shadow DOM, dynamic Lit/Polymer elements, and localized button text)
   function cleanLiveChat(settings) {
+    // The native chat collapse is a player state change: it must not run
+    // with the default settings of the bootstrap pass.
+    if (!moduleHydrated) return;
     const isWatch =
       window.location.pathname.startsWith('/watch') ||
       window.location.pathname.startsWith('/live') ||
@@ -2034,11 +2050,18 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   // Physical DOM switch sync for Autoplay suppression
   function cleanAutoplay(settings) {
+    // Clicking the native autoplay toggle is a player state change: it must
+    // not run with the default settings of the bootstrap pass.
+    if (!moduleHydrated) return;
     if (
       !settings?.hideAutoplay ||
       settings.isOff ||
       settings.preset === 'off'
     ) {
+      // The suppression was reversed: give the autoplay back. Only what
+      // Libertad turned off is restored, and the ownership flag makes sure
+      // the agent and this module never restore the same toggle twice.
+      restoreAutoplayIfSuppressed();
       return;
     }
     const currentUrl = window.location.href;
@@ -2049,7 +2072,9 @@ globalThis.Libertad = globalThis.Libertad || {};
     // the ownership flag exactly when it turned autoplay off, so a stale
     // "suppressed" marker alone must not disable this path.
     if (document.documentElement?.dataset?.libertadAutonavOurs === '1') {
-      lastAutoplayHandledUrl = currentUrl;
+      // The agent owns this suppression, so nothing was clicked here and
+      // the URL must not be memoized as handled: this module still has to be
+      // able to act if the agent releases the ownership later.
       return;
     }
     try {
@@ -2097,6 +2122,9 @@ globalThis.Libertad = globalThis.Libertad || {};
   }
 
   function cleanSidebar(settings) {
+    // The player resize is a player state change: it must not run with the
+    // default settings of the bootstrap pass.
+    if (!moduleHydrated) return;
     const isWatch =
       window.location.pathname.startsWith('/watch') ||
       window.location.pathname.startsWith('/live') ||
@@ -2125,12 +2153,14 @@ globalThis.Libertad = globalThis.Libertad || {};
     delete root.dataset.libertadAutonav;
   }
 
-  globalThis.Libertad.applyStyles = applyStyles;
-
   // Autonomous styles module: owns applyStyles + DOM cleaners (decoupled from content.js orchestrator)
   let stylesLastFlexySyncedHref = null;
   const stylesModule = {
-    init(settings) {
+    init(settings, ctx) {
+      // The bootstrap pass arrives with the default settings. Only the
+      // reversible work (the stylesheet and the DOM tagging) runs there;
+      // the player state changes wait for the hydrated pass.
+      moduleHydrated = !(ctx && ctx.hydrated === false);
       applyStyles(settings);
       cleanLiveChat(settings);
       cleanExplore(settings);
@@ -2160,6 +2190,9 @@ globalThis.Libertad = globalThis.Libertad || {};
       }
     },
     onSettingsChange(newSettings, changes) {
+      // A storage change carries the live settings, so the module is
+      // hydrated from here on.
+      moduleHydrated = true;
       if (changes) {
         const keys = Object.keys(changes);
         const relevant =
@@ -2228,6 +2261,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     },
     destroy() {
       stylesLastFlexySyncedHref = null;
+      moduleHydrated = false;
       resetStylesNavigation();
 
       // Restore every DOM mutation this module performed

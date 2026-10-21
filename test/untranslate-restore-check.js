@@ -87,13 +87,57 @@ function setupEmptyTitleScenario() {
   return { document, window, module, h1, inner };
 }
 
+/**
+ * A watch page whose title lookup is still in flight: the module issued the
+ * oEmbed request and the response has not arrived yet.
+ */
+function setupPendingLookupScenario() {
+  const document = new FakeDocument();
+  const window = new FakeWindow(document);
+
+  const scope = document.createElement('ytd-watch-metadata');
+  const titleEl = document.createElement('yt-formatted-string');
+  titleEl.textContent = LOCALIZED_TITLE;
+  scope.appendChild(titleEl);
+  document.body.appendChild(scope);
+
+  document.title = `${LOCALIZED_TITLE} - YouTube`;
+  document.register('watch-metadata-view-model', [titleEl]);
+
+  let resolveLookup = null;
+  const fetchImpl = () =>
+    new Promise((resolve) => {
+      resolveLookup = resolve;
+    });
+
+  const module = installEnvironment(document, window, { fetch: fetchImpl });
+
+  return {
+    document,
+    window,
+    module,
+    titleEl,
+    resolveLookup: (title) =>
+      resolveLookup({
+        ok: true,
+        json: async () => ({ title }),
+      }),
+  };
+}
+
+/** Lets every pending microtask and timer settle. */
+function flushPendingTasks() {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 /** Loads the module against a prepared environment and returns it. */
-function installEnvironment(document, window) {
+function installEnvironment(document, window, options = {}) {
   globalThis.window = window;
   globalThis.document = document;
   globalThis.NodeFilter = { SHOW_TEXT: 4 };
   globalThis.chrome = { runtime: {} };
-  globalThis.fetch = () => Promise.reject(new Error('offline in tests'));
+  globalThis.fetch =
+    options.fetch || (() => Promise.reject(new Error('offline in tests')));
 
   const modules = {};
   globalThis.Libertad = {
@@ -123,7 +167,7 @@ function deliverAgentMetadata(window) {
   );
 }
 
-function runUntranslateRestoreCheck(assert) {
+async function runUntranslateRestoreCheck(assert) {
   // Scenario 1: the user turns the titles off.
   {
     const { document, window, module, titleEl } = setupScenario();
@@ -223,6 +267,82 @@ function runUntranslateRestoreCheck(assert) {
       'the localized text is captured when the title finally shows up',
     );
   }
+
+  // Scenario 4: the title lookup resolves after the user turned the titles
+  // off. The stale response must not re-apply the original title.
+  {
+    const { module, titleEl, resolveLookup } = setupPendingLookupScenario();
+
+    module.onSettingsChange(
+      { ...BASE_SETTINGS, untranslateTitles: false },
+      { untranslateTitles: { newValue: false } },
+    );
+
+    resolveLookup(ORIGINAL_TITLE);
+    await flushPendingTasks();
+
+    assert(
+      titleEl.textContent === LOCALIZED_TITLE,
+      'a stale title lookup does not re-apply the original title',
+    );
+  }
+
+  // Scenario 5: the same lookup, but the suite stays enabled. The original
+  // title must reach the screen, so the guard cannot be a blanket refusal.
+  {
+    const { module, titleEl, resolveLookup } = setupPendingLookupScenario();
+
+    resolveLookup(ORIGINAL_TITLE);
+    await flushPendingTasks();
+
+    assert(
+      titleEl.textContent === ORIGINAL_TITLE,
+      'a title lookup that resolves while the suite is on applies the original title',
+    );
+    assert(
+      titleEl.dataset.libertadOrigText === LOCALIZED_TITLE,
+      'the late lookup still captures the localized text before overwriting it',
+    );
+  }
+
+  // Scenario 6: YouTube re-renders the title between the capture and the
+  // restore, leaving the node without a text node. The captured localized
+  // text must survive: a restore that cannot write must not throw it away.
+  {
+    const { window, module, titleEl } = setupScenario();
+
+    deliverAgentMetadata(window);
+
+    // YouTube replaces the content of the title node: it is now empty.
+    titleEl.textContent = '';
+
+    module.onSettingsChange(
+      { ...BASE_SETTINGS, untranslateTitles: false },
+      { untranslateTitles: { newValue: false } },
+    );
+
+    assert(
+      titleEl.dataset.libertadOrigText === LOCALIZED_TITLE,
+      'the captured text survives a restore that could not write',
+    );
+
+    // YouTube renders the localized title again: the next restore succeeds.
+    titleEl.textContent = LOCALIZED_TITLE;
+
+    module.onSettingsChange(
+      { ...BASE_SETTINGS, untranslateTitles: false },
+      { untranslateTitles: { newValue: false } },
+    );
+
+    assert(
+      titleEl.textContent === LOCALIZED_TITLE,
+      'a later restore puts the localized title back',
+    );
+    assert(
+      titleEl.dataset.libertadOrigText === undefined,
+      'the captured text is cleared once the restore succeeds',
+    );
+  }
 }
 
 module.exports = { runUntranslateRestoreCheck };
@@ -237,9 +357,15 @@ if (require.main === module) {
       console.log(`[PASS] ${message}`);
     }
   };
-  runUntranslateRestoreCheck(assert);
-  console.log(
-    `\n=== UNTRANSLATE RESTORE CHECK COMPLETE: ${failures} FAILURES ===`,
-  );
-  process.exit(failures > 0 ? 1 : 0);
+  runUntranslateRestoreCheck(assert)
+    .then(() => {
+      console.log(
+        `\n=== UNTRANSLATE RESTORE CHECK COMPLETE: ${failures} FAILURES ===`,
+      );
+      process.exit(failures > 0 ? 1 : 0);
+    })
+    .catch((err) => {
+      console.error('[FAIL] the behavioural check threw:', err);
+      process.exit(1);
+    });
 }

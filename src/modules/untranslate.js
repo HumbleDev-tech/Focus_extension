@@ -8,31 +8,13 @@ globalThis.Libertad = globalThis.Libertad || {};
 (function () {
   'use strict';
 
-  // Safe fallback: only used if cache.js failed to load (should not happen in production).
-  const BoundedCache =
-    globalThis.Libertad?.BoundedCache ||
-    class {
-      constructor(_maxSize) {
-        this.map = new Map();
-      }
-      get(k) {
-        return this.map.get(k);
-      }
-      set(k, v) {
-        this.map.set(k, v);
-      }
-      has(k) {
-        return this.map.has(k);
-      }
-      delete(k) {
-        return this.map.delete(k);
-      }
-      clear() {
-        this.map.clear();
-      }
-    };
+  // The bounded cache lives in src/core/cache.js, which the manifest always
+  // loads before this module. Map is the API-compatible fallback for the
+  // rare case where it is missing: it is unbounded, but it never breaks the
+  // module.
+  const CacheCtor = globalThis.Libertad?.BoundedCache;
 
-  const titlesCache = new BoundedCache(300);
+  const titlesCache = CacheCtor ? new CacheCtor(300) : new Map();
   const inFlightTitles = new Map();
   let currentWatchVideoId = null;
   let currentOriginalTitle = null;
@@ -78,6 +60,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   let feedRetryTimer = null;
   let feedIntersectionObserver = null;
   let untranslateDebounceTimer = null;
+  let metadataRequestTimer = null;
   const titleHealTimers = new Map();
 
   // Helper to send command to Main World Agent
@@ -87,6 +70,20 @@ globalThis.Libertad = globalThis.Libertad || {};
         detail: { action },
       }),
     );
+  }
+
+  // Asks the agent for the original metadata, at most once per window.
+  // The pending flag is released by a tracked timer: an untracked one would
+  // survive destroy() and reset the flag of an already torn down module.
+  function requestOriginalMetadata() {
+    if (metadataRequestPending) return;
+    metadataRequestPending = true;
+    sendAgentCommand('REQUEST_METADATA');
+    if (metadataRequestTimer) clearTimeout(metadataRequestTimer);
+    metadataRequestTimer = setTimeout(() => {
+      metadataRequestTimer = null;
+      metadataRequestPending = false;
+    }, 1500);
   }
 
   // Listen for broadcasted metadata from Main World Agent
@@ -173,6 +170,10 @@ globalThis.Libertad = globalThis.Libertad || {};
     lastRestoredExpandedVideoId = null;
     latestOriginalMetadata = null;
     metadataRequestPending = false;
+    if (metadataRequestTimer) {
+      clearTimeout(metadataRequestTimer);
+      metadataRequestTimer = null;
+    }
     feedFetchQueue.length = 0;
     pendingFeedVideoIds.clear();
     observedTitleNodesByVideoId.clear();
@@ -312,9 +313,25 @@ globalThis.Libertad = globalThis.Libertad || {};
     return Array.from(nodes);
   }
 
+  // True when the title-rewriting half of the suite is still enabled and the
+  // module has been hydrated. Every write path funnels through this check:
+  // a title lookup resolves seconds after it was issued, and the user may
+  // have turned the suite off in the meantime. A stale response must never
+  // re-apply the original title (same rule the dislikes and sponsors
+  // modules already follow for their own network calls).
+  function isUntranslateTitlesEnabled() {
+    if (!moduleHydrated) return false;
+    const active = activeUntranslateSettings;
+    if (!active) return false;
+    return (
+      active.untranslateMaster !== false && active.untranslateTitles !== false
+    );
+  }
+
   // Apply original title to watch page
   function applyWatchTitle(originalTitle, videoId) {
     if (!originalTitle?.trim()) return false;
+    if (!isUntranslateTitlesEnabled()) return false;
 
     const currentParam = getVideoId(window.location.href);
     if (videoId && currentParam && currentParam !== videoId) {
@@ -546,8 +563,19 @@ globalThis.Libertad = globalThis.Libertad || {};
     const nodes = document.querySelectorAll('[data-libertad-orig-text]');
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i];
-      setTitleText(node, node.dataset.libertadOrigText);
-      delete node.dataset.libertadOrigText;
+      // The restore only succeeds when the node still holds a text node to
+      // write into. YouTube can replace the content between the capture and
+      // the restore; dropping the captured text then would lose the
+      // localized title for good, so the marker survives until a restore
+      // can actually put the text back.
+      const restored = setTitleText(node, node.dataset.libertadOrigText);
+      if (restored) {
+        delete node.dataset.libertadOrigText;
+        node.removeAttribute('title');
+        if (node.parentElement?.tagName === 'H1') {
+          node.parentElement.removeAttribute('title');
+        }
+      }
       delete node.dataset.libertadOrigApplied;
       delete node.dataset.libertadPendingId;
       delete node.dataset.libertadHealTries;
@@ -559,10 +587,6 @@ globalThis.Libertad = globalThis.Libertad || {};
       for (let up = 0; up < 3 && owner; up++) {
         delete owner.dataset.libertadApplied;
         owner = owner.parentElement;
-      }
-      node.removeAttribute('title');
-      if (node.parentElement?.tagName === 'H1') {
-        node.parentElement.removeAttribute('title');
       }
     }
     if (originalDocumentTitle) {
@@ -610,6 +634,9 @@ globalThis.Libertad = globalThis.Libertad || {};
     ) {
       return;
     }
+    // Same guard as the watch title: a card can be written by a lookup that
+    // was already in flight when the user turned the suite off.
+    if (!isUntranslateTitlesEnabled()) return;
 
     const clean = cleanTitle.trim();
     if (
@@ -818,20 +845,23 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   function untranslateFeed(settings) {
     if (settings) activeUntranslateSettings = settings;
+    const active = activeUntranslateSettings;
+    // A pending lookup can settle after destroy() released the settings:
+    // there is nothing to translate into anymore.
+    if (!active) return;
     if (
-      settings &&
-      (settings.untranslateMaster === false ||
-        settings.untranslateTitles === false)
+      active.untranslateMaster === false ||
+      active.untranslateTitles === false
     ) {
       return;
     }
 
     const isHome =
       window.location.pathname === '/' || window.location.pathname === '';
-    if (isHome && settings.hideHomeFeed) return;
+    if (isHome && active.hideHomeFeed) return;
 
     const isWatch = window.location.pathname === '/watch';
-    if (isWatch && settings.hideSidebar) return;
+    if (isWatch && active.hideSidebar) return;
 
     const titleNodes = getAllVideoTitleNodes();
     for (let i = 0; i < titleNodes.length; i++) {
@@ -930,13 +960,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (!videoId) return;
 
     if (!latestOriginalMetadata || latestOriginalMetadata.videoId !== videoId) {
-      if (!metadataRequestPending) {
-        metadataRequestPending = true;
-        sendAgentCommand('REQUEST_METADATA');
-        setTimeout(() => {
-          metadataRequestPending = false;
-        }, 1500);
-      }
+      requestOriginalMetadata();
       return;
     }
 
@@ -1020,13 +1044,7 @@ globalThis.Libertad = globalThis.Libertad || {};
     if (lastRestoredChaptersVideoId === videoId) return;
 
     if (!latestOriginalMetadata || latestOriginalMetadata.videoId !== videoId) {
-      if (!metadataRequestPending) {
-        metadataRequestPending = true;
-        sendAgentCommand('REQUEST_METADATA');
-        setTimeout(() => {
-          metadataRequestPending = false;
-        }, 1500);
-      }
+      requestOriginalMetadata();
       return;
     }
 

@@ -8,32 +8,13 @@ globalThis.Libertad = globalThis.Libertad || {};
 (function () {
   'use strict';
 
-  // Safe fallback: only used if cache.js failed to load (should not happen in production).
-  // Kept unbounded but API-compatible so the module never crashes on instantiation.
-  const BoundedCache =
-    globalThis.Libertad?.BoundedCache ||
-    class {
-      constructor(_maxSize) {
-        this.map = new Map();
-      }
-      get(k) {
-        return this.map.get(k);
-      }
-      set(k, v) {
-        this.map.set(k, v);
-      }
-      has(k) {
-        return this.map.has(k);
-      }
-      delete(k) {
-        return this.map.delete(k);
-      }
-      clear() {
-        this.map.clear();
-      }
-    };
+  // The bounded cache lives in src/core/cache.js, which the manifest always
+  // loads before this module. Map is the API-compatible fallback for the
+  // rare case where it is missing: it is unbounded, but it never breaks the
+  // module.
+  const CacheCtor = globalThis.Libertad?.BoundedCache;
 
-  const dislikeCache = new BoundedCache(200);
+  const dislikeCache = CacheCtor ? new CacheCtor(200) : new Map();
   const inFlightDislikes = new Set();
 
   let dislikePollTimer = null;

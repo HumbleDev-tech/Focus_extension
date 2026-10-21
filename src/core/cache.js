@@ -32,9 +32,6 @@ globalThis.Libertad = globalThis.Libertad || {};
     has(key) {
       return this.map.has(key);
     }
-    clear() {
-      this.map.clear();
-    }
   }
 
   globalThis.Libertad.BoundedCache = BoundedCache;

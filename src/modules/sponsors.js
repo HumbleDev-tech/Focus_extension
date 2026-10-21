@@ -8,29 +8,11 @@ globalThis.Libertad = globalThis.Libertad || {};
 (function () {
   'use strict';
 
-  // Safe fallback: only used if cache.js failed to load (should not happen in production).
-  const BoundedCache =
-    globalThis.Libertad?.BoundedCache ||
-    class {
-      constructor(_maxSize) {
-        this.map = new Map();
-      }
-      get(k) {
-        return this.map.get(k);
-      }
-      set(k, v) {
-        this.map.set(k, v);
-      }
-      has(k) {
-        return this.map.has(k);
-      }
-      delete(k) {
-        return this.map.delete(k);
-      }
-      clear() {
-        this.map.clear();
-      }
-    };
+  // The bounded cache lives in src/core/cache.js, which the manifest always
+  // loads before this module. Map is the API-compatible fallback for the
+  // rare case where it is missing: it is unbounded, but it never breaks the
+  // module.
+  const CacheCtor = globalThis.Libertad?.BoundedCache;
 
   const SPONSOR_CATEGORY_COLORS = {
     sponsor: '#00d406',
@@ -38,9 +20,25 @@ globalThis.Libertad = globalThis.Libertad || {};
     interaction: '#cc00ff',
     intro: '#00d8d8',
     outro: '#0268ed',
-    preview: '#008fd6',
     music_offtopic: '#ff9900',
   };
+
+  // Categories that are announced and coloured as another category.
+  //
+  // 'preview' is skipped together with 'intro' (see shouldSkipCategory) and
+  // the popup exposes no toggle for it: announcing it under its own name told
+  // the user about a category they never configured.
+  const CATEGORY_ALIASES = {
+    preview: 'intro',
+  };
+
+  // Resolves the category used for everything the user sees (label, colour
+  // and tooltip). The raw SponsorBlock category is still what decides
+  // whether a segment gets skipped.
+  function resolveDisplayCategory(category) {
+    const key = typeof category === 'string' ? category : '';
+    return getCategoryEntry(CATEGORY_ALIASES, key) || key;
+  }
 
   // Looks up a category in a plain object without walking the prototype
   // chain: the category name comes from a third-party payload.
@@ -50,7 +48,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
-  const sponsorCache = new BoundedCache(200);
+  const sponsorCache = CacheCtor ? new CacheCtor(200) : new Map();
   const ignoredSegmentUuids = new Set();
 
   function getVideoId(url) {
@@ -354,11 +352,6 @@ globalThis.Libertad = globalThis.Libertad || {};
         es: 'OUTRO SALTADA',
         pt: 'FINAL PULADO',
       },
-      preview: {
-        en: 'PREVIEW SKIPPED',
-        es: 'ANTICIPO SALTADO',
-        pt: 'PRÉVIA PULADA',
-      },
       music_offtopic: {
         en: 'NON-MUSIC SKIPPED',
         es: 'NO-MÚSICA SALTADA',
@@ -366,8 +359,9 @@ globalThis.Libertad = globalThis.Libertad || {};
       },
     };
 
-    const categoryKey = getCategoryEntry(CATEGORY_LABELS, category)
-      ? category
+    const displayCategory = resolveDisplayCategory(category);
+    const categoryKey = getCategoryEntry(CATEGORY_LABELS, displayCategory)
+      ? displayCategory
       : 'sponsor';
     const langKey = isEs ? 'es' : isPt ? 'pt' : 'en';
     const label = CATEGORY_LABELS[categoryKey][langKey];
@@ -377,7 +371,7 @@ globalThis.Libertad = globalThis.Libertad || {};
 
     // Category Dot
     const catColor =
-      getCategoryEntry(SPONSOR_CATEGORY_COLORS, category) ||
+      getCategoryEntry(SPONSOR_CATEGORY_COLORS, displayCategory) ||
       SPONSOR_CATEGORY_COLORS.sponsor;
     const dot = document.createElement('span');
     dot.className = 'libertad-sponsor-toast-dot';
@@ -577,11 +571,12 @@ globalThis.Libertad = globalThis.Libertad || {};
       segmentEl.style.left = `${startPercent.toFixed(3)}%`;
       segmentEl.style.width = `${widthPercent.toFixed(3)}%`;
       const category = String(seg.category || 'sponsor');
+      const displayCategory = resolveDisplayCategory(category);
       segmentEl.style.backgroundColor =
-        getCategoryEntry(SPONSOR_CATEGORY_COLORS, category) ||
+        getCategoryEntry(SPONSOR_CATEGORY_COLORS, displayCategory) ||
         SPONSOR_CATEGORY_COLORS.sponsor;
-      segmentEl.dataset.category = category;
-      segmentEl.title = `${category.toUpperCase()} (${Math.round(seg.start)}s - ${Math.round(seg.end)}s)`;
+      segmentEl.dataset.category = displayCategory;
+      segmentEl.title = `${displayCategory.toUpperCase()} (${Math.round(seg.start)}s - ${Math.round(seg.end)}s)`;
 
       container.appendChild(segmentEl);
     }

@@ -12,6 +12,7 @@ const {
   POWER_MODULE_KEYS,
   DEFAULT_SETTINGS,
   INTERNAL_STORAGE_KEYS,
+  PAUSED_SNAPSHOT_KEY,
   stripInternalKeys,
 } = require('../constants.js');
 const { LIBERTAD_I18N } = require('../i18n.js');
@@ -161,12 +162,34 @@ for (const [label, source] of [
   ['sponsors.js', sponsorsJs],
   ['dislikes.js', dislikesJs],
   ['untranslate.js', untranslateJs],
+  ['styles.js', stylesJs],
 ]) {
   assert(
     source.includes('init(settings, ctx)') && source.includes('moduleHydrated'),
     `${label} consumes the hydration context before acting`
   );
 }
+
+// The styles module owns the player state changes (the native autoplay
+// toggle, the native chat collapse and the player resize). The bootstrap
+// pass still carries the default preset, so those changes must wait for the
+// hydrated pass: otherwise the module would fight the user's real settings.
+const hydrationGatedCleaners = [
+  'function cleanLiveChat(settings) {',
+  'function cleanAutoplay(settings) {',
+  'function cleanSidebar(settings) {',
+];
+assert(
+  stylesJs.includes('moduleHydrated = !(ctx && ctx.hydrated === false)') &&
+    hydrationGatedCleaners.every((signature) => {
+      const start = stylesJs.indexOf(signature);
+      if (start === -1) return false;
+      return stylesJs
+        .slice(start, start + 400)
+        .includes('if (!moduleHydrated) return;');
+    }),
+  'styles.js gates its player state changes behind the hydration flag',
+);
 
 // 13b. Verify the untranslate hydration guard actually lives inside init() and
 // covers the network-backed title lookup, not just a stray file-wide mention.
@@ -296,7 +319,11 @@ for (const [label, source, markers] of [
   [
     'untranslate.js',
     untranslateJs,
-    ['clearTimeout(untranslateDebounceTimer)', 'feedIntersectionObserver = null'],
+    [
+      'clearTimeout(untranslateDebounceTimer)',
+      'clearTimeout(metadataRequestTimer)',
+      'feedIntersectionObserver = null',
+    ],
   ],
   [
     'zen.js',
@@ -368,6 +395,27 @@ assert(
     cleanedStored.profiles.p1.preset === 'custom' &&
     'profiles_orphaned' in simulatedStored,
   'stripInternalKeys() drops internal UI keys, keeps settings, and never mutates the source'
+);
+
+// 20c. The internal UI keys must have a single source of truth. The legacy
+// 'descKey' leak and the paused snapshot were hardcoded in every consumer,
+// which left the content script as the only place still letting them through.
+assert(
+  INTERNAL_STORAGE_KEYS.includes('descKey') &&
+    PAUSED_SNAPSHOT_KEY === 'libertad_paused_snapshot' &&
+    popupJs.includes('PAUSED_SNAPSHOT_KEY') &&
+    !popupJs.includes("'libertad_paused_snapshot'"),
+  'the internal UI keys (descKey, paused snapshot) have a single source of truth',
+);
+
+// 20d. The fallback to chrome.storage.sync must be decided on the cleaned
+// payload: local storage often holds nothing but internal UI keys, and
+// treating that as "settings present" silently loads the defaults instead of
+// the settings the user synced to this device.
+assert(
+  contentJs.includes('const cleanLocal = stripInternalKeys(localSaved);') &&
+    popupJs.includes('const cleanLocal = stripInternalKeys(localSaved);'),
+  'content.js and popup.js decide the sync fallback on the cleaned payload',
 );
 
 // 21. Verify the re-injection audit fixes: no redeclaration abort, live
@@ -493,6 +541,15 @@ assert(
     sponsorsJs.includes('function getCategoryEntry('),
   'sponsors.js validates the category coming from the SponsorBlock payload'
 );
+// The 'preview' category is skipped together with 'intro' and the popup
+// exposes no toggle for it: announcing it under its own name told the user
+// about a category they never configured.
+assert(
+  sponsorsJs.includes("preview: 'intro'") &&
+    sponsorsJs.includes('function resolveDisplayCategory(') &&
+    !sponsorsJs.includes('PREVIEW SKIPPED'),
+  'sponsors.js announces the preview category as an intro',
+);
 const onTimeUpdateBlock = sponsorsJs.match(
   /const onTimeUpdate = \(\) => \{[\s\S]*?\n      \};/,
 );
@@ -598,12 +655,21 @@ for (const [file, names] of Object.entries(deadExportsByModule)) {
 // mock. This is the only assertion in the suite that proves the behaviour
 // instead of proving the presence of a line of code.
 const { runUntranslateRestoreCheck } = require('./untranslate-restore-check.js');
-runUntranslateRestoreCheck(assert);
 
-console.log(`\n=== PARITY AUDIT COMPLETE: ${failures} FAILURES ===`);
-if (failures > 0) {
-  process.exit(1);
-} else {
-  console.log('[ALL PRE-FLIGHT PARITY CHECKS PASSED: 100% OPERATIONAL]\n');
-}
+// The behavioural check is asynchronous: the stale-lookup scenario has to
+// let a pending network promise settle before it can assert on the DOM.
+// The report is emitted once that settles; no assertion is skipped.
+Promise.resolve(runUntranslateRestoreCheck(assert))
+  .then(() => {
+    console.log(`\n=== PARITY AUDIT COMPLETE: ${failures} FAILURES ===`);
+    if (failures > 0) {
+      process.exit(1);
+    } else {
+      console.log('[ALL PRE-FLIGHT PARITY CHECKS PASSED: 100% OPERATIONAL]\n');
+    }
+  })
+  .catch((err) => {
+    console.error('[FAIL] the behavioural check threw:', err);
+    process.exit(1);
+  });
 

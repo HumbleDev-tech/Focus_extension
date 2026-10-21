@@ -290,14 +290,24 @@
   const MAX_PROFILES = 3;
   const DEFAULT_PROFILES = {};
 
+  // Key that holds the snapshot taken when the user pauses Libertad. It is
+  // a local-only UI artifact: it must never be treated as a setting, never
+  // reach the content scripts and never be synced.
+  const PAUSED_SNAPSHOT_KEY = 'libertad_paused_snapshot';
+
   // Internal UI keys that live in chrome.storage but are NOT user settings.
   // They must never be merged into the settings payload, propagated to content
   // scripts, or written to chrome.storage.sync (where they would eat into the
   // per-item quota and silently break cross-device syncing).
+  //
+  // 'descKey' belongs here too: older builds leaked the preset label into the
+  // settings storage, and hardcoding its purge in every consumer left the
+  // content script as the only place that still let it through.
   const INTERNAL_STORAGE_KEYS = [
     'profiles_orphaned',
-    'libertad_paused_snapshot',
+    PAUSED_SNAPSHOT_KEY,
     'hasSeenWelcome',
+    'descKey',
   ];
 
   // Returns a shallow copy of the source without any internal UI key.
@@ -332,6 +342,7 @@
     globalThis.DEFAULT_PROFILES = DEFAULT_PROFILES;
     globalThis.MAX_PROFILES = MAX_PROFILES;
     globalThis.INTERNAL_STORAGE_KEYS = INTERNAL_STORAGE_KEYS;
+    globalThis.PAUSED_SNAPSHOT_KEY = PAUSED_SNAPSHOT_KEY;
     globalThis.stripInternalKeys = stripInternalKeys;
     globalThis.extractToggles = extractToggles;
   }
@@ -348,6 +359,7 @@
       DEFAULT_PROFILES,
       MAX_PROFILES,
       INTERNAL_STORAGE_KEYS,
+      PAUSED_SNAPSHOT_KEY,
       stripInternalKeys,
       extractToggles,
     };

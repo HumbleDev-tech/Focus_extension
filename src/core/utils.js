@@ -115,14 +115,6 @@ globalThis.Libertad = globalThis.Libertad || {};
     registeredModules.set(name, definition);
   }
 
-  function getModule(name) {
-    return registeredModules.get(name);
-  }
-
-  function getAllModules() {
-    return Array.from(registeredModules.values());
-  }
-
   function broadcastInit(settings, ctx) {
     for (const [name, mod] of registeredModules) {
       if (typeof mod.init === 'function') {
@@ -191,10 +183,7 @@ globalThis.Libertad = globalThis.Libertad || {};
   globalThis.Libertad.isSpanishLocale = isSpanishLocale;
   globalThis.Libertad.isPortugueseLocale = isPortugueseLocale;
 
-  globalThis.Libertad.safeRun = safeRun;
   globalThis.Libertad.registerModule = registerModule;
-  globalThis.Libertad.getModule = getModule;
-  globalThis.Libertad.getAllModules = getAllModules;
   globalThis.Libertad.broadcastInit = broadcastInit;
   globalThis.Libertad.broadcastNavigation = broadcastNavigation;
   globalThis.Libertad.broadcastSettingsChange = broadcastSettingsChange;

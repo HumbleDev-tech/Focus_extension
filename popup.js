@@ -419,7 +419,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadPersistedState() {
     if (typeof chrome !== 'undefined' && chrome.storage?.local) {
       chrome.storage.local.get(null, (localSaved) => {
-        if (localSaved && Object.keys(localSaved).length > 0) {
+        // The emptiness check runs on the cleaned payload: local storage
+        // frequently holds nothing but internal UI keys, and treating that
+        // as "settings present" would skip the sync fallback and silently
+        // load the defaults instead of the synced ones.
+        const cleanLocal = stripInternalKeys(localSaved);
+        if (cleanLocal && Object.keys(cleanLocal).length > 0) {
           reconcileStateWithSaved(localSaved);
           // Mirror to sync if sync is empty or missing data
           if (chrome.storage?.sync) {
@@ -445,8 +450,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (chrome.storage?.sync) {
           // Fallback migration from sync
           chrome.storage.sync.get(null, (syncSaved) => {
-            if (syncSaved && Object.keys(syncSaved).length > 0) {
-              chrome.storage.local.set(syncSaved, () => {});
+            const cleanSync = stripInternalKeys(syncSaved);
+            if (cleanSync && Object.keys(cleanSync).length > 0) {
+              chrome.storage.local.set(cleanSync, () => {});
               reconcileStateWithSaved(syncSaved);
             } else {
               applyThemeAndScale();
@@ -1394,8 +1400,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Purge pause snapshot to prevent stale state restoration
     try {
-      chrome.storage?.local?.remove('libertad_paused_snapshot');
-      localStorage.removeItem('libertad_paused_snapshot');
+      chrome.storage?.local?.remove(PAUSED_SNAPSHOT_KEY);
+      localStorage.removeItem(PAUSED_SNAPSHOT_KEY);
     } catch (_) {}
     const profile = state.profiles[profileId];
 
@@ -1487,8 +1493,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Purge pause snapshot
         try {
-          chrome.storage?.local?.remove('libertad_paused_snapshot');
-          localStorage.removeItem('libertad_paused_snapshot');
+          chrome.storage?.local?.remove(PAUSED_SNAPSHOT_KEY);
+          localStorage.removeItem(PAUSED_SNAPSHOT_KEY);
         } catch (_) {}
         const config = PRESET_MAP[chosenPreset];
         ALL_TOGGLE_KEYS.forEach((key) => {
@@ -1517,12 +1523,9 @@ document.addEventListener('DOMContentLoaded', () => {
       ALL_TOGGLE_KEYS.forEach((k) => {
         snapshot.toggles[k] = Boolean(state[k]);
       });
-      chrome.storage.local.set({ libertad_paused_snapshot: snapshot });
+      chrome.storage.local.set({ [PAUSED_SNAPSHOT_KEY]: snapshot });
       try {
-        localStorage.setItem(
-          'libertad_paused_snapshot',
-          JSON.stringify(snapshot),
-        );
+        localStorage.setItem(PAUSED_SNAPSHOT_KEY, JSON.stringify(snapshot));
       } catch (_) {}
 
       state.isOff = true;
@@ -1547,10 +1550,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
           }
           try {
-            chrome.storage.local.remove('libertad_paused_snapshot');
+            chrome.storage.local.remove(PAUSED_SNAPSHOT_KEY);
           } catch (_) {}
           try {
-            localStorage.removeItem('libertad_paused_snapshot');
+            localStorage.removeItem(PAUSED_SNAPSHOT_KEY);
           } catch (_) {}
           saveState();
         } else {
@@ -1569,11 +1572,11 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-        chrome.storage.local.get(['libertad_paused_snapshot'], (res) => {
-          let snapshot = res?.libertad_paused_snapshot;
+        chrome.storage.local.get([PAUSED_SNAPSHOT_KEY], (res) => {
+          let snapshot = res?.[PAUSED_SNAPSHOT_KEY];
           if (!snapshot) {
             try {
-              const raw = localStorage.getItem('libertad_paused_snapshot');
+              const raw = localStorage.getItem(PAUSED_SNAPSHOT_KEY);
               if (raw) snapshot = JSON.parse(raw);
             } catch (_) {}
           }
@@ -1582,7 +1585,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         let snapshot = null;
         try {
-          const raw = localStorage.getItem('libertad_paused_snapshot');
+          const raw = localStorage.getItem(PAUSED_SNAPSHOT_KEY);
           if (raw) snapshot = JSON.parse(raw);
         } catch (_) {}
         restoreSnapshot(snapshot);
